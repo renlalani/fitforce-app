@@ -403,19 +403,19 @@ function AICoach({profile, totalCal, totalProt, water, level, xp}) {
   const [rateLimited, setRateLimited] = useState(null); // null or Date resetsAt
 
   const callAI = async (messages, sys, maxTok) => {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch( "https://zenmux.ai/api/v1/chat/completions", {
       method:"POST",
       headers:{
         "Content-Type":"application/json",
-        "x-api-key": "ANTHROPIC_API_KEY",
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
+        "Authorization": "Bearer sk-ai-v1-bdf931612ea78390618ee9df6dec3ed91bbdd25640cc5cf899b4c5d5a604dafe"
       },
       body: JSON.stringify({
-        model:"claude-sonnet-4-20250514",
+        model:"z-ai/glm-5.2-free",
         max_tokens: maxTok || 800,
-        system: sys || systemPrompt,
-        messages
+        messages:[
+          { role:"system", content: sys || systemPrompt },
+          ...messages
+        ]
       })
     });
     if (!res.ok) {
@@ -430,7 +430,7 @@ function AICoach({profile, totalCal, totalProt, water, level, xp}) {
     }
     setRateLimited(null);
     const d = await res.json();
-    return d.content?.map(c => c.text||"").join("") || "Try again.";
+    return d.choices?.[0]?.message?.content || "Try again.";
   };
 
   const send = async () => {
