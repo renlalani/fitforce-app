@@ -397,59 +397,118 @@ function AICoach({profile, totalCal, totalProt, water, level, xp}) {
   useEffect(() => {
     if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
   }, [msgs]);
+const systemPrompt = `You are FitForce AI Coach, an expert personal trainer and nutritionist. User: ${profile.name}, Level: ${profile.level}, Goal: ${profile.goal}, Weight: ${profile.weight}kg, Height: ${profile.height}cm, Age: ${profile.age}, Gender: ${profile.gender}. Today: ${totalCal} kcal eaten, ${totalProt}g protein, ${water} glasses water. Fitness Level ${level} (${xp} XP). Be concise, energetic, expert. No markdown. Max 150 words.`;
 
-  const systemPrompt = `You are FitForce AI Coach, an expert personal trainer and nutritionist. User: ${profile.name}, Level: ${profile.level}, Goal: ${profile.goal}, Weight: ${profile.weight}kg, Height: ${profile.height}cm, Age: ${profile.age}, Gender: ${profile.gender}. Today: ${totalCal} kcal eaten, ${totalProt}g protein, ${water} glasses water. Fitness Level ${level} (${xp} XP). Be concise, energetic, expert. No markdown. Max 150 words.`;
+const [rateLimited, setRateLimited] = useState(null);
 
-  const [rateLimited, setRateLimited] = useState(null); // null or Date resetsAt
+const callAI = async (messages, sys, maxTok) => {
+  const res = await fetch("https://zenmux.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer sk-ai-v1-79c39ae685ab3d167d15b36587b6ab117a4f1a9fd3bd1d0ae929b319a294f0b8"
+    },
+    body: JSON.stringify({
+      model: "deepseek/deepseek-v4-flash",
+      max_tokens: maxTok || 2048,
+      temperature: 0.7,
+      top_p: 0.95,
+      messages: [
+        {
+          role: "system",
+          content: sys || systemPrompt
+        },
+        ...messages
+      ]
+    })
+  });
 
-  const callAI = async (messages, sys, maxTok) => {
-    const res = await fetch( "https://zenmux.ai/api/v1/chat/completions", {
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "Authorization": "Bearer sk-ai-v1-3fd149a0aa6e6b4633ab195583d34b16986ff93fbb2cc359af53b82e89d5b971"
-      },
-      body: JSON.stringify({
-        model:"z-ai/glm-5.2-free",
-        max_tokens: maxTok || 800,
-        messages:[
-          { role:"system", content: sys || systemPrompt },
-          ...messages
-        ]
-      })
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      const body = err?.error || err;
-      if (body?.type === "exceeded_limit" || res.status === 429) {
-        const resetsAt = body?.resetsAt || body?.windows?.["5h"]?.resets_at;
-        setRateLimited(resetsAt ? new Date(resetsAt * 1000) : new Date(Date.now() + 3600000));
-        throw new Error("RATE_LIMITED");
-      }
-      throw new Error(body?.message || `HTTP ${res.status}`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+
+    console.error("DeepSeek API Error:", err);
+
+    const body = err?.error || err;
+
+    if (body?.type === "exceeded_limit" || res.status === 429) {
+      const resetsAt =
+        body?.resetsAt ||
+        body?.windows?.["5h"]?.resets_at;
+
+      setRateLimited(
+        resetsAt
+          ? new Date(resetsAt * 1000)
+          : new Date(Date.now() + 3600000)
+      );
+
+      throw new Error("RATE_LIMITED");
     }
-    setRateLimited(null);
-    const d = await res.json();
-    return d.choices?.[0]?.message?.content || "Try again.";
-  };
 
-  const send = async () => {
-    if (!input.trim() || loading) return;
-    const msg = input.trim();
-    setMsgs(p => [...p, {role:"user",text:msg}]);
-    setInput("");
-    setLoading(true);
-    try {
-      const history = msgs.filter((_,i) => i > 0).map(m => ({role:m.role==="user"?"user":"assistant",content:m.text}));
-      const reply = await callAI([...history,{role:"user",content:msg}]);
-      setMsgs(p => [...p, {role:"ai",text:reply}]);
-    } catch(e) {
-      if (e.message !== "RATE_LIMITED") {
-        setMsgs(p => [...p, {role:"ai",text:`Error: ${e.message || "Connection failed. Please try again."}`}]);
-      }
+    throw new Error(body?.message || `HTTP ${res.status}`);
+  }
+
+  setRateLimited(null);
+
+  const data = await res.json();
+
+  console.log("DeepSeek Response:", data);
+
+  return data?.choices?.[0]?.message?.content || "Try again.";
+};
+
+const send = async () => {
+  if (!input.trim() || loading) return;
+
+  const msg = input.trim();
+
+  setMsgs(prev => [
+    ...prev,
+    {
+      role: "user",
+      text: msg
     }
+  ]);
+
+  setInput("");
+  setLoading(true);
+
+  try {
+    const history = msgs
+      .filter((_, i) => i > 0)
+      .map(m => ({
+        role: m.role === "user" ? "user" : "assistant",
+        content: m.text
+      }));
+
+    const reply = await callAI([
+      ...history,
+      {
+        role: "user",
+        content: msg
+      }
+    ]);
+
+    setMsgs(prev => [
+      ...prev,
+      {
+        role: "ai",
+        text: reply
+      }
+    ]);
+  } catch (e) {
+    if (e.message !== "RATE_LIMITED") {
+      setMsgs(prev => [
+        ...prev,
+        {
+          role: "ai",
+          text: `Error: ${e.message || "Connection failed. Please try again."}`
+        }
+      ]);
+    }
+  } finally {
     setLoading(false);
-  };
+  }
+};
 
   const generateWeekPlan = async () => {
     setPlanLoading(true);
