@@ -402,26 +402,27 @@ const systemPrompt = `You are FitForce AI Coach, an expert personal trainer and 
 const [rateLimited, setRateLimited] = useState(null);
 
 const callAI = async (messages, sys, maxTok) => {
-  const res = await fetch("https://zenmux.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer sk-ai-v1-c9d694536c45e1c532e152109fcd614ad29d6232fbecda4569b814ab4be659a1"
-    },
-    body: JSON.stringify({
-      model: "deepseek/deepseek-chat",
-      max_tokens: maxTok || 2048,
-      temperature: 0.7,
-      top_p: 0.95,
-      messages: [
-        {
-          role: "system",
-          content: sys || systemPrompt
-        },
-        ...messages
-      ]
-    })
-  });
+const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer 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",
+    "Content-Type": "application/json",
+    "HTTP-Referer": "https://fitforce-app.vercel.app",
+    "X-Title": "FitForce"
+  },
+  body: JSON.stringify({
+    model: "poolside/laguna-xs.2:free",
+    max_tokens: maxTok || 2048,
+    temperature: 0.7,
+    messages: [
+      {
+        role: "system",
+        content: sys || systemPrompt
+      },
+      ...messages
+    ]
+  })
+});
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
