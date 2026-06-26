@@ -407,7 +407,7 @@ function AICoach({profile, totalCal, totalProt, water, level, xp}) {
       method:"POST",
       headers:{
         "Content-Type":"application/json",
-        "Authorization": "Bearer sk-ai-v1-bdf931612ea78390618ee9df6dec3ed91bbdd25640cc5cf899b4c5d5a604dafe"
+        "Authorization": "Bearer sk-ai-v1-3fd149a0aa6e6b4633ab195583d34b16986ff93fbb2cc359af53b82e89d5b971"
       },
       body: JSON.stringify({
         model:"z-ai/glm-5.2-free",
