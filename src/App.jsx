@@ -406,10 +406,10 @@ const callAI = async (messages, sys, maxTok) => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer sk-ai-v1-79c39ae685ab3d167d15b36587b6ab117a4f1a9fd3bd1d0ae929b319a294f0b8"
+      "Authorization": "Bearer sk-ai-v1-c9d694536c45e1c532e152109fcd614ad29d6232fbecda4569b814ab4be659a1"
     },
     body: JSON.stringify({
-      model: "deepseek/deepseek-v4-flash",
+      model: "deepseek/deepseek-chat",
       max_tokens: maxTok || 2048,
       temperature: 0.7,
       top_p: 0.95,
