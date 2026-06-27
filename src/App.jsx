@@ -1,64 +1,70 @@
-import { useState, useEffect, useRef } from "react";
 
-const C = {
-  bg:"#080808",bgCard:"#111",bgCard2:"#181818",bgCard3:"#1f1f1f",
-  red:"#e02020",redDark:"#a01515",
-  text:"#f0f0f0",textMuted:"#777",textDim:"#444",
-  border:"#222",border2:"#2a2a2a",
-  green:"#22c55e",yellow:"#f59e0b",blue:"#3b82f6",purple:"#a855f7",orange:"#f97316",teal:"#14b8a6"
+import { useWorkoutStore } from "./stores/workoutStore";
+import { useUserStore } from "./stores/userStore";
+import { useNutritionStore } from "./stores/nutritionStore";
+import { useUiStore } from "./stores/uiStore";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Zap, Dumbbell, Apple, Activity, User,
+  Flame, Search, Plus, X,
+  Ruler, Heart, Brain,
+  TrendingUp
+} from "lucide-react";
+import { theme, radius, shadow, transition, muscleColor, cardStyle } from "./styles/designSystem";
+import { EXERCISES, WORKOUT_PLANS, MUSCLES } from "./data/fitness";
+import ExerciseImage from "./components/ExerciseImage";
+import Button from "./components/ui/Button";
+import Card from "./components/ui/Card";
+import { Tag, Badge } from "./components/ui/Tag";
+import Modal from "./components/ui/Modal";
+import MiniChart from "./components/MiniChart";
+import WorkoutModal from "./components/WorkoutModal";
+import WorkoutHub from "./components/WorkoutHub";
+import MealHub from "./components/MealHub";
+import FoodPickerModal from "./components/FoodPickerModal";
+import Toast from "./components/Toast";
+import AICoach from "./components/AICoach";
+import Dashboard from "./components/Dashboard";
+import useAddFood from "./hooks/useAddFood";
+import { useHydrated } from "./hooks/useHydrated";
+import { Skeleton } from "./components/ui/Skeleton";
+
+function AppSkeleton() {
+  return (
+    <div style={{ maxWidth: 480, margin: "0 auto", padding: 20 }}>
+      <Skeleton variant="card" count={1} style={{ height: 140, marginBottom: 16 }} />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 16 }}>
+        {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} variant="card" style={{ height: 80 }} />)}
+      </div>
+      <Skeleton variant="card" count={3} style={{ marginBottom: 10 }} />
+    </div>
+  );
+}
+
+const pageVariants = {
+  initial: { opacity: 0, y: 12, scale: 0.99 },
+  animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35, ease: [0.4, 0, 0.2, 1] } },
+  exit: { opacity: 0, y: -8, scale: 0.99, transition: { duration: 0.2, ease: [0.4, 0, 0.2, 1] } },
 };
 
-const EXERCISE_SVG = (muscle) => {
-  const m = muscle || "Core";
-  const svgs = {
-    Chest:`<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><rect width="80" height="80" rx="10" fill="#e0202015"/><text x="40" y="28" text-anchor="middle" fill="#e02020" font-size="22">🏋️</text><rect x="15" y="35" width="50" height="8" rx="4" fill="#e0202040"/><rect x="10" y="30" width="12" height="18" rx="6" fill="#e02020"/><rect x="58" y="30" width="12" height="18" rx="6" fill="#e02020"/><ellipse cx="26" cy="52" rx="8" ry="10" fill="#e0202060"/><ellipse cx="54" cy="52" rx="8" ry="10" fill="#e0202060"/><text x="40" y="72" text-anchor="middle" fill="#e02020" font-size="9" font-weight="bold">CHEST</text></svg>`,
-    Back:`<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><rect width="80" height="80" rx="10" fill="#3b82f615"/><text x="40" y="26" text-anchor="middle" fill="#3b82f6" font-size="20">🏋️</text><path d="M20 35 Q40 28 60 35 L58 60 Q40 65 22 60 Z" fill="#3b82f640"/><line x1="40" y1="35" x2="40" y2="60" stroke="#3b82f6" stroke-width="2"/><line x1="25" y1="40" x2="55" y2="40" stroke="#3b82f660" stroke-width="1.5"/><line x1="25" y1="48" x2="55" y2="48" stroke="#3b82f660" stroke-width="1.5"/><text x="40" y="74" text-anchor="middle" fill="#3b82f6" font-size="9" font-weight="bold">BACK</text></svg>`,
-    Legs:`<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><rect width="80" height="80" rx="10" fill="#22c55e15"/><text x="40" y="20" text-anchor="middle" fill="#22c55e" font-size="18">🦵</text><rect x="28" y="24" width="24" height="18" rx="6" fill="#22c55e50"/><rect x="20" y="40" width="16" height="24" rx="6" fill="#22c55e60"/><rect x="44" y="40" width="16" height="24" rx="6" fill="#22c55e60"/><rect x="22" y="62" width="14" height="10" rx="4" fill="#22c55e80"/><rect x="44" y="62" width="14" height="10" rx="4" fill="#22c55e80"/><text x="40" y="78" text-anchor="middle" fill="#22c55e" font-size="9" font-weight="bold">LEGS</text></svg>`,
-    Shoulders:`<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><rect width="80" height="80" rx="10" fill="#f59e0b15"/><text x="40" y="24" text-anchor="middle" fill="#f59e0b" font-size="18">💪</text><ellipse cx="20" cy="38" rx="12" ry="10" fill="#f59e0b60"/><ellipse cx="60" cy="38" rx="12" ry="10" fill="#f59e0b60"/><rect x="28" y="32" width="24" height="30" rx="6" fill="#f59e0b40"/><circle cx="20" cy="34" r="7" fill="#f59e0b80"/><circle cx="60" cy="34" r="7" fill="#f59e0b80"/><text x="40" y="74" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="bold">SHOULDERS</text></svg>`,
-    Arms:`<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><rect width="80" height="80" rx="10" fill="#a855f715"/><text x="40" y="24" text-anchor="middle" fill="#a855f7" font-size="18">💪</text><path d="M15 60 Q12 40 20 30 Q28 22 36 28 Q44 34 40 48 L38 60Z" fill="#a855f750"/><path d="M65 60 Q68 40 60 30 Q52 22 44 28 Q36 34 40 48 L42 60Z" fill="#a855f750"/><ellipse cx="30" cy="38" rx="10" ry="8" fill="#a855f780"/><ellipse cx="50" cy="38" rx="10" ry="8" fill="#a855f780"/><text x="40" y="74" text-anchor="middle" fill="#a855f7" font-size="9" font-weight="bold">ARMS</text></svg>`,
-    Core:`<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><rect width="80" height="80" rx="10" fill="#f9731615"/><text x="40" y="22" text-anchor="middle" fill="#f97316" font-size="18">🔥</text><rect x="28" y="26" width="24" height="42" rx="8" fill="#f9731640"/><line x1="40" y1="26" x2="40" y2="68" stroke="#f97316" stroke-width="2"/><line x1="28" y1="36" x2="52" y2="36" stroke="#f9731660" stroke-width="1.5"/><line x1="28" y1="45" x2="52" y2="45" stroke="#f9731660" stroke-width="1.5"/><line x1="28" y1="54" x2="52" y2="54" stroke="#f9731660" stroke-width="1.5"/><text x="40" y="76" text-anchor="middle" fill="#f97316" font-size="9" font-weight="bold">CORE</text></svg>`,
-    Cardio:`<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><rect width="80" height="80" rx="10" fill="#14b8a615"/><text x="40" y="22" text-anchor="middle" fill="#14b8a6" font-size="18">🏃</text><path d="M10 50 L20 30 L30 45 L40 20 L50 40 L60 35 L70 50" stroke="#14b8a6" stroke-width="3" fill="none" stroke-linecap="round"/><text x="40" y="76" text-anchor="middle" fill="#14b8a6" font-size="9" font-weight="bold">CARDIO</text></svg>`,
-    Glutes:`<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><rect width="80" height="80" rx="10" fill="#e0202015"/><ellipse cx="28" cy="48" rx="16" ry="18" fill="#e0202060"/><ellipse cx="52" cy="48" rx="16" ry="18" fill="#e0202060"/><text x="40" y="76" text-anchor="middle" fill="#e02020" font-size="9" font-weight="bold">GLUTES</text></svg>`,
-  };
-  return svgs[m] || svgs["Core"];
+const containerVariants = {
+  animate: { transition: { staggerChildren: 0.04 } },
 };
 
-const EXERCISES = [
-  {id:1,name:"Bench Press",muscle:"Chest",level:"Beginner",sets:3,reps:"8-10",rest:90,cal:180,desc:"Lie flat, grip bar shoulder-width, lower to chest, press up explosively."},
-  {id:2,name:"Incline DB Press",muscle:"Chest",level:"Intermediate",sets:4,reps:"10-12",rest:75,cal:160,desc:"45° bench, press dumbbells from chest. Targets upper chest."},
-  {id:3,name:"Cable Fly",muscle:"Chest",level:"Advanced",sets:3,reps:"12-15",rest:60,cal:130,desc:"Arms wide, squeeze chest at center, controlled return."},
-  {id:4,name:"Push-Ups",muscle:"Chest",level:"Beginner",sets:3,reps:"15-20",rest:60,cal:100,desc:"Hands shoulder-width, lower chest to floor, press up."},
-  {id:5,name:"Dumbbell Pullover",muscle:"Chest",level:"Intermediate",sets:3,reps:"12",rest:75,cal:140,desc:"Lower dumbbell behind head, pull back over chest."},
-  {id:6,name:"Pull-Ups",muscle:"Back",level:"Intermediate",sets:3,reps:"6-10",rest:90,cal:150,desc:"Dead hang, pull chest to bar, lower controlled."},
-  {id:7,name:"Deadlift",muscle:"Back",level:"Advanced",sets:4,reps:"5",rest:180,cal:300,desc:"Hip hinge, bar close, drive through heels, lock out at top."},
-  {id:8,name:"Barbell Row",muscle:"Back",level:"Intermediate",sets:4,reps:"8-10",rest:90,cal:200,desc:"Hinge 45°, pull bar to lower chest, squeeze shoulder blades."},
-  {id:9,name:"Lat Pulldown",muscle:"Back",level:"Beginner",sets:3,reps:"10-12",rest:75,cal:140,desc:"Wide grip, pull to upper chest, lean slightly back."},
-  {id:10,name:"Seated Cable Row",muscle:"Back",level:"Beginner",sets:3,reps:"12",rest:75,cal:130,desc:"Sit upright, pull handle to belly, squeeze shoulder blades."},
-  {id:11,name:"Squat",muscle:"Legs",level:"Beginner",sets:4,reps:"8-12",rest:120,cal:250,desc:"Feet shoulder-width, sit back and down, knees track toes."},
-  {id:12,name:"Leg Press",muscle:"Legs",level:"Beginner",sets:4,reps:"12-15",rest:90,cal:200,desc:"Feet shoulder-width on plate, press to near lockout."},
-  {id:13,name:"Romanian DL",muscle:"Legs",level:"Intermediate",sets:3,reps:"10-12",rest:90,cal:220,desc:"Hinge at hips, back flat, feel hamstring stretch."},
-  {id:14,name:"Leg Curl",muscle:"Legs",level:"Beginner",sets:3,reps:"12-15",rest:60,cal:120,desc:"Curl weight towards glutes, squeeze at top."},
-  {id:15,name:"Bulgarian Split Squat",muscle:"Legs",level:"Advanced",sets:3,reps:"10",rest:90,cal:200,desc:"Rear foot elevated, lower until front thigh parallel."},
-  {id:16,name:"Hip Thrust",muscle:"Glutes",level:"Intermediate",sets:4,reps:"12-15",rest:75,cal:180,desc:"Upper back on bench, drive hips up, squeeze glutes at top."},
-  {id:17,name:"Glute Kickback",muscle:"Glutes",level:"Beginner",sets:3,reps:"15",rest:60,cal:100,desc:"On cable, kick leg back, squeeze glute at peak."},
-  {id:18,name:"Overhead Press",muscle:"Shoulders",level:"Intermediate",sets:3,reps:"8-10",rest:90,cal:170,desc:"Press bar overhead, lock out, lower to clavicle."},
-  {id:19,name:"Lateral Raises",muscle:"Shoulders",level:"Beginner",sets:3,reps:"15-20",rest:60,cal:100,desc:"Raise dumbbells to shoulder height, control descent."},
-  {id:20,name:"Face Pulls",muscle:"Shoulders",level:"Intermediate",sets:3,reps:"15-20",rest:60,cal:110,desc:"Pull rope to face, elbows high, external rotation."},
-  {id:21,name:"Arnold Press",muscle:"Shoulders",level:"Intermediate",sets:3,reps:"10-12",rest:75,cal:150,desc:"Start palms facing you, rotate and press overhead."},
-  {id:22,name:"Bicep Curls",muscle:"Arms",level:"Beginner",sets:3,reps:"10-12",rest:60,cal:100,desc:"Curl to shoulders, squeeze at top, slow negative."},
-  {id:23,name:"Tricep Dips",muscle:"Arms",level:"Intermediate",sets:3,reps:"10-15",rest:60,cal:130,desc:"Lower until elbows at 90°, press up."},
-  {id:24,name:"Hammer Curls",muscle:"Arms",level:"Beginner",sets:3,reps:"10-12",rest:60,cal:100,desc:"Neutral grip, targets brachialis and forearm."},
-  {id:25,name:"Skull Crushers",muscle:"Arms",level:"Intermediate",sets:3,reps:"10-12",rest:75,cal:120,desc:"Lower bar to forehead, extend back up."},
-  {id:26,name:"Cable Pushdown",muscle:"Arms",level:"Beginner",sets:3,reps:"12-15",rest:60,cal:100,desc:"Push rope down, flare at bottom, squeeze triceps."},
-  {id:27,name:"Plank",muscle:"Core",level:"Beginner",sets:3,reps:"45s",rest:45,cal:60,desc:"Straight body on forearms and toes, brace core."},
-  {id:28,name:"Cable Crunch",muscle:"Core",level:"Intermediate",sets:3,reps:"15-20",rest:60,cal:90,desc:"Kneel at cable, crunch forward, cramp abs at bottom."},
-  {id:29,name:"Dragon Flag",muscle:"Core",level:"Advanced",sets:3,reps:"6-8",rest:90,cal:150,desc:"Lay on bench, keep body rigid, lower slowly."},
-  {id:30,name:"Hanging Leg Raise",muscle:"Core",level:"Intermediate",sets:3,reps:"12-15",rest:60,cal:110,desc:"Hang from bar, raise legs to 90°, lower controlled."},
-  {id:31,name:"Ab Wheel Rollout",muscle:"Core",level:"Advanced",sets:3,reps:"10",rest:75,cal:130,desc:"Roll forward until body parallel, pull back with core."},
-  {id:32,name:"Treadmill Run",muscle:"Cardio",level:"Beginner",sets:1,reps:"20 min",rest:0,cal:250,desc:"Steady 60-70% max HR, great for base aerobic fitness."},
-  {id:33,name:"HIIT Intervals",muscle:"Cardio",level:"Advanced",sets:8,reps:"30s on/off",rest:0,cal:350,desc:"Sprint at 90%+ effort, full recovery between rounds."},
-  {id:34,name:"Jump Rope",muscle:"Cardio",level:"Beginner",sets:3,reps:"3 min",rest:60,cal:200,desc:"Skip continuously, light on toes. Great conditioning."},
-  {id:35,name:"Rowing Machine",muscle:"Cardio",level:"Intermediate",sets:1,reps:"15 min",rest:0,cal:220,desc:"Full body cardio, drive with legs, pull to chest."},
+const itemVariants = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" } },
+};
+
+const tabs = [
+  { id: "dashboard", label: "Dashboard", icon: Activity },
+  { id: "workouts", label: "Workouts", icon: Dumbbell },
+  { id: "exercises", label: "Exercises", icon: Search },
+  { id: "nutrition", label: "Nutrition", icon: Apple },
+  { id: "progress", label: "Progress", icon: TrendingUp },
+  { id: "tools", label: "Body Tools", icon: Ruler },
+  { id: "ai", label: "AI Coach", icon: Brain },
+  { id: "profile", label: "Profile", icon: User },
 ];
 
 const WORKOUT_PLANS = [
@@ -640,594 +646,978 @@ const send = async () => {
 }
 
 export default function FitForce() {
-  const [tab, setTab] = useState("dashboard");
-  const [filterMuscle, setFilterMuscle] = useState("All");
-  const [filterLevel, setFilterLevel] = useState("All");
-  const [profile, setProfile] = useState({name:"Athlete",level:"Beginner",goal:"Muscle Gain",weight:"75",height:"175",age:"25",gender:"Male"});
-  const [meals, setMeals] = useState([
-    {name:"Oats (100g)",mealTime:"Breakfast",qty:1,cal:389,protein:17,carbs:66,fat:7},
-    {name:"Chicken Breast (100g)",mealTime:"Lunch",qty:2,cal:330,protein:62,carbs:0,fat:7.2},
-    {name:"Whey Protein (1 scoop)",mealTime:"Post-Workout",qty:1,cal:120,protein:25,carbs:3,fat:2},
-  ]);
-  const [workoutLog, setWorkoutLog] = useState([
-    {date:"Apr 9",name:"Bench Press",sets:3,reps:10,weight:60,vol:1800},
-    {date:"Apr 10",name:"Squat",sets:4,reps:8,weight:80,vol:2560},
-    {date:"Apr 11",name:"Deadlift",sets:4,reps:5,weight:100,vol:2000},
-  ]);
-  const [bodyStats, setBodyStats] = useState([{date:"Apr 1",weight:76},{date:"Apr 5",weight:75.5},{date:"Apr 8",weight:75.2},{date:"Apr 10",weight:75},{date:"Apr 12",weight:74.8}]);
-  const [prs, setPrs] = useState([{lift:"Bench Press",weight:80},{lift:"Squat",weight:100},{lift:"Deadlift",weight:120},{lift:"OHP",weight:55}]);
-  const [supplements, setSupplements] = useState([
-    {name:"Creatine",dose:"5g",time:"Post-Workout",done:false},
-    {name:"Whey Protein",dose:"1 scoop",time:"Post-Workout",done:true},
-    {name:"Vitamin D",dose:"2000 IU",time:"Morning",done:false},
-  ]);
-  const [water, setWater] = useState(3);
-  const [activeWorkout, setActiveWorkout] = useState(null);
-  const [showMealModal, setShowMealModal] = useState(false);
-  const [showExDetail, setShowExDetail] = useState(null);
-  const [xp, setXp] = useState(1240);
-  const [streak] = useState(7);
-  const [newBodyStat, setNewBodyStat] = useState("");
-  const [measurements, setMeasurements] = useState({chest:"100",waist:"82",hips:"95",bicep:"35",thigh:"55"});
-  const [newLogRow, setNewLogRow] = useState({name:"",sets:"",reps:"",weight:""});
-  const [orm1W, setOrm1W] = useState("100");
-  const [orm1R, setOrm1R] = useState("5");
-  const [bfNeck, setBfNeck] = useState("37");
-  const [bfWaist, setBfWaist] = useState("82");
+  const hydrated = useHydrated();
 
-  const totalCal = Math.round(meals.reduce((s,m) => s+m.cal, 0));
-  const totalProt = Math.round(meals.reduce((s,m) => s+m.protein, 0));
-  const totalCarbs = Math.round(meals.reduce((s,m) => s+m.carbs, 0));
-  const totalFat = Math.round(meals.reduce((s,m) => s+m.fat, 0));
-  const bmi = +((+profile.weight)/((+profile.height/100)**2)).toFixed(1);
-  const bmiColor = bmi<18.5?C.blue:bmi<25?C.green:bmi<30?C.yellow:C.red;
-  const calGoal = profile.goal==="Fat Loss"?2000:profile.goal==="Muscle Gain"?2800:2400;
-  const protGoal = Math.round(+profile.weight*2);
-  const level = Math.floor(xp/500)+1;
-  const xpToNext = 500-(xp%500);
-  const filteredEx = EXERCISES.filter(e => (filterMuscle==="All"||e.muscle===filterMuscle) && (filterLevel==="All"||e.level===filterLevel));
+  const workoutLog = useWorkoutStore(s => s.workoutLog);
+  const activeWorkout = useWorkoutStore(s => s.activeWorkout);
+  const setActiveWorkout = useWorkoutStore(s => s.setActiveWorkout);
+  const newLogRow = useWorkoutStore(s => s.newLogRow);
+  const setNewLogRow = useWorkoutStore(s => s.setNewLogRow);
+  const addLogEntry = useWorkoutStore(s => s.addLogEntry);
+  const xp = useUserStore(s => s.xp);
+  const setXp = useUserStore(s => s.setXp);
+  const prs = useUserStore(s => s.prs);
+  const addXp = useUserStore(s => s.addXp);
+  const updatePrWeight = useUserStore(s => s.updatePrWeight);
+  const addPr = useUserStore(s => s.addPr);
 
-  const card = {background:C.bgCard,border:`1px solid ${C.border2}`,borderRadius:12,padding:"16px",marginBottom:12};
-  const h2s = {color:C.text,fontSize:18,fontWeight:500,margin:"0 0 14px"};
-  const h3s = {color:C.text,fontSize:15,fontWeight:500,margin:"0 0 8px"};
-  const g2 = {display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:12,marginBottom:12};
-  const navBtn = a => ({background:a?C.red+"22":"transparent",color:a?C.red:C.textMuted,border:"none",borderBottom:`2px solid ${a?C.red:"transparent"}`,padding:"13px 12px",cursor:"pointer",fontSize:12,fontWeight:a?500:400,whiteSpace:"nowrap"});
-  const tabs = [{id:"dashboard",label:"Dashboard"},{id:"workouts",label:"Workouts"},{id:"exercises",label:"Exercises"},{id:"nutrition",label:"Nutrition"},{id:"progress",label:"Progress"},{id:"tools",label:"Body Tools"},{id:"ai",label:"AI Coach"},{id:"profile",label:"Profile"}];
+  const meals = useNutritionStore(s => s.meals);
+  const water = useNutritionStore(s => s.water);
+
+  const tab = useUiStore(s => s.tab);
+  const setTab = useUiStore(s => s.setTab);
+  const filterMuscle = useUiStore(s => s.filterMuscle);
+  const setFilterMuscle = useUiStore(s => s.setFilterMuscle);
+  const filterLevel = useUiStore(s => s.filterLevel);
+  const setFilterLevel = useUiStore(s => s.setFilterLevel);
+  const showMealModal = useUiStore(s => s.showMealModal);
+  const setShowMealModal = useUiStore(s => s.setShowMealModal);
+  const showExDetail = useUiStore(s => s.showExDetail);
+  const setShowExDetail = useUiStore(s => s.setShowExDetail);
+  const newBodyStat = useUiStore(s => s.newBodyStat);
+  const setNewBodyStat = useUiStore(s => s.setNewBodyStat);
+  const orm1W = useUiStore(s => s.orm1W);
+  const setOrm1W = useUiStore(s => s.setOrm1W);
+  const orm1R = useUiStore(s => s.orm1R);
+  const setOrm1R = useUiStore(s => s.setOrm1R);
+  const bfNeck = useUiStore(s => s.bfNeck);
+  const setBfNeck = useUiStore(s => s.setBfNeck);
+  const bfWaist = useUiStore(s => s.bfWaist);
+  const setBfWaist = useUiStore(s => s.setBfWaist);
+
+  const profile = useUserStore(s => s.profile);
+  const setProfile = useUserStore(s => s.setProfile);
+  const bodyStats = useUserStore(s => s.bodyStats);
+  const addBodyStat = useUserStore(s => s.addBodyStat);
+  const streak = useUserStore(s => s.streak);
+  const measurements = useUserStore(s => s.measurements);
+  const setMeasurements = useUserStore(s => s.setMeasurements);
+
+  const totalCal = Math.round((meals || []).reduce((s, m) => s + (+m.cal || 0), 0));
+  const totalProt = Math.round((meals || []).reduce((s, m) => s + (+m.protein || 0), 0));
+  const totalCarbs = Math.round((meals || []).reduce((s, m) => s + (+m.carbs || 0), 0));
+  const totalFat = Math.round((meals || []).reduce((s, m) => s + (+m.fat || 0), 0));
+  const weightNum = +profile.weight || 0;
+  const heightNum = +profile.height || 175;
+  const bmi = heightNum > 0 ? +((weightNum) / ((heightNum / 100) ** 2)).toFixed(1) : 0;
+  const bmiColor = bmi < 18.5 ? theme.blue : bmi < 25 ? theme.green : bmi < 30 ? theme.yellow : theme.red;
+  const calGoal = profile.goal === "Fat Loss" ? 2000 : profile.goal === "Muscle Gain" ? 2800 : 2400;
+  const protGoal = Math.round((+profile.weight || 0) * 2);
+  const level = Math.floor(xp / 500) + 1;
+  const xpToNext = 500 - (xp % 500);
+  const { addFoodToMeal, undoAddFood, toast, clearToast } = useAddFood();
+
+  const filteredEx = EXERCISES.filter(e => (filterMuscle === "All" || e.muscle === filterMuscle) && (filterLevel === "All" || e.level === filterLevel));
+
+  const h2s = { color: theme.text, fontSize: 20, fontWeight: 600, margin: "0 0 16px", letterSpacing: "-0.01em" };
+  const h3s = { color: theme.text, fontSize: 15, fontWeight: 500, margin: "0 0 10px" };
+  const grid2 = { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 14, marginBottom: 14 };
+
+  if (!hydrated) return <AppSkeleton />;
 
   return (
-    <div style={{background:C.bg,minHeight:"100vh",color:C.text,fontFamily:"system-ui,sans-serif"}}>
-      {activeWorkout && <WorkoutModal plan={activeWorkout} onClose={() => setActiveWorkout(null)} onXp={pts => setXp(p=>p+pts)}/>}
-      {showMealModal && <MealModal onAdd={m => { setMeals(p=>[...p,m]); setXp(p=>p+5); }} onClose={() => setShowMealModal(false)}/>}
-      {showExDetail && (
-        <div style={OL}>
-          <div style={{...MOD,maxHeight:"90vh",overflowY:"auto"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-              <h3 style={{color:C.text,margin:0}}>{showExDetail.name}</h3>
-              <button onClick={() => setShowExDetail(null)} style={{background:"transparent",border:"none",color:C.textMuted,fontSize:22,cursor:"pointer"}}>×</button>
+    <div style={{ background: theme.bg, minHeight: "100vh", color: theme.text, fontFamily: theme.family, WebkitFontSmoothing: "antialiased", position: "relative" }}>
+      <div style={{
+        position: "fixed", top: "-20%", right: "-10%",
+        width: "60vmax", height: "60vmax",
+        background: `radial-gradient(circle, ${theme.red}06, transparent 70%)`,
+        pointerEvents: "none", zIndex: 0,
+        animation: "float 12s ease-in-out infinite",
+      }} />
+      <div style={{
+        position: "fixed", bottom: "-20%", left: "-10%",
+        width: "50vmax", height: "50vmax",
+        background: `radial-gradient(circle, ${theme.blue}04, transparent 70%)`,
+        pointerEvents: "none", zIndex: 0,
+        animation: "float 15s ease-in-out infinite reverse",
+      }} />
+      <div style={{ position: "relative", zIndex: 1 }}>
+      {activeWorkout && <WorkoutModal plan={activeWorkout} onClose={() => setActiveWorkout(null)} />}
+
+      <AnimatePresence>
+        {showMealModal && (
+          <FoodPickerModal
+            onAdd={addFoodToMeal}
+            onClose={() => setShowMealModal(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showExDetail && (
+          <Modal open={showExDetail} onClose={() => setShowExDetail(null)} maxWidth={420}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+              <h3 style={{ color: theme.text, margin: 0, fontSize: 17, fontWeight: 600 }}>{showExDetail.name}</h3>
+              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                onClick={() => setShowExDetail(null)}
+                style={{ background: "transparent", border: "none", color: theme.textMuted, cursor: "pointer", padding: 4 }}>
+                <X size={20} />
+              </motion.button>
             </div>
-            <div style={{width:"100%",height:140,borderRadius:10,overflow:"hidden",marginBottom:12}} dangerouslySetInnerHTML={{__html:EXERCISE_SVG(showExDetail.muscle)}}/>
-            <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
-              <Badge label={showExDetail.level} color={showExDetail.level==="Beginner"?C.green:showExDetail.level==="Intermediate"?C.yellow:C.red}/>
-              <Tag label={showExDetail.muscle} color={muscleColor[showExDetail.muscle]||C.red}/>
-              <Tag label={`${showExDetail.sets}×${showExDetail.reps}`} color={C.blue}/>
-              <Tag label={`${showExDetail.rest}s rest`} color={C.yellow}/>
-              <Tag label={`~${showExDetail.cal} cal`} color={C.orange}/>
+            <ExerciseImage
+              exercise={showExDetail}
+              width="100%"
+              height={150}
+              style={{ marginBottom: 14, border: `1px solid ${theme.border}` }}
+            />
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+              <Badge label={showExDetail.level} color={showExDetail.level === "Beginner" ? theme.green : showExDetail.level === "Intermediate" ? theme.yellow : theme.red} />
+              <Tag label={showExDetail.muscle} color={muscleColor[showExDetail.muscle] || theme.red} />
+              <Tag label={`${showExDetail.sets}×${showExDetail.reps}`} color={theme.blue} />
+              <Tag label={`${showExDetail.rest}s rest`} color={theme.yellow} />
+              <Tag label={`~${showExDetail.cal} cal`} color={theme.orange} />
             </div>
-            <p style={{color:C.textMuted,fontSize:13,lineHeight:1.7,marginBottom:12}}>{showExDetail.desc}</p>
-            <button onClick={() => setShowExDetail(null)} style={{...RBTN,width:"100%"}}>Got it</button>
-          </div>
-        </div>
-      )}
+            <p style={{ color: theme.textMuted, fontSize: 13, lineHeight: 1.7, marginBottom: 16 }}>{showExDetail.desc}</p>
+            <Button style={{ width: "100%" }} onClick={() => setShowExDetail(null)}>Got it</Button>
+          </Modal>
+        )}
+      </AnimatePresence>
 
       {/* Header */}
-      <div style={{background:C.bgCard,borderBottom:`1px solid #2a1010`,padding:"12px 16px",display:"flex",alignItems:"center",gap:10}}>
-        <div style={{width:34,height:34,background:C.red,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:16}}>F</div>
+      <motion.div
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        style={{
+          background: `linear-gradient(180deg, ${theme.bgCard} 0%, ${theme.bg} 100%)`,
+          borderBottom: `1px solid ${theme.border}`,
+          padding: "14px 18px",
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+        }}
+      >
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          style={{
+            width: 38, height: 38,
+            background: `linear-gradient(135deg, ${theme.red}, ${theme.redDark})`,
+            borderRadius: radius.md,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: 700,
+            fontSize: 18,
+            color: "#fff",
+            boxShadow: shadow.glow(theme.red),
+          }}
+        >
+          F
+        </motion.div>
         <div>
-          <div style={{fontWeight:600,fontSize:17}}>FitForce</div>
-          <div style={{fontSize:10,color:C.textMuted}}>AI Gym Companion</div>
+          <div style={{ fontWeight: 700, fontSize: 18, letterSpacing: "-0.02em" }}>FitForce</div>
+          <div style={{ fontSize: 10, color: theme.textMuted }}>AI Gym Companion</div>
         </div>
-        <div style={{marginLeft:"auto",display:"flex",gap:8,alignItems:"center"}}>
-          <div style={{textAlign:"right"}}>
-            <div style={{fontSize:11,color:C.yellow}}>Lv.{level} · {xp} XP</div>
-            <div style={{width:80,height:3,background:C.border,borderRadius:2,overflow:"hidden",marginTop:2}}>
-              <div style={{height:"100%",width:`${((xp%500)/500)*100}%`,background:C.yellow,borderRadius:2}}/>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: 12, color: theme.yellow, fontWeight: 500, display: "flex", alignItems: "center", gap: 4 }}>
+              <Zap size={12} /> Lv.{level} · {xp} XP
+            </div>
+            <div style={{ width: 90, height: 3, background: theme.border, borderRadius: radius.full, overflow: "hidden", marginTop: 3 }}>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${((xp % 500) / 500) * 100}%` }}
+                transition={{ duration: 0.6 }}
+                style={{ height: "100%", background: theme.yellow, borderRadius: radius.full, boxShadow: `0 0 6px ${theme.yellow}40` }}
+              />
             </div>
           </div>
-          <span style={{background:C.red+"22",color:C.red,border:`1px solid ${C.red}33`,borderRadius:6,padding:"4px 10px",fontSize:12}}>🔥 {streak}</span>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            style={{
+              background: `${theme.red}15`,
+              color: theme.red,
+              border: `1px solid ${theme.red}25`,
+              borderRadius: radius.md,
+              padding: "5px 10px",
+              fontSize: 12,
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <Flame size={14} /> {streak}
+          </motion.div>
         </div>
-      </div>
-      <div style={{background:C.bgCard,borderBottom:`1px solid ${C.border2}`,padding:"0 12px",display:"flex",gap:2,overflowX:"auto",scrollbarWidth:"none"}}>
-        {tabs.map(t => <button key={t.id} style={navBtn(tab===t.id)} onClick={() => setTab(t.id)}>{t.label}</button>)}
-      </div>
+      </motion.div>
 
-      <div style={{padding:"16px",maxWidth:"100%",margin:"0 auto"}}>
+      {/* Floating Glass Nav */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+        style={{
+          background: `linear-gradient(180deg, ${theme.bgCard}ee, ${theme.bgCard}dd)`,
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          borderBottom: `1px solid ${theme.border}`,
+          padding: "0 8px",
+          display: "flex",
+          gap: 0,
+          overflowX: "auto",
+          scrollbarWidth: "none",
+          position: "sticky",
+          top: 66,
+          zIndex: 99,
+        }}
+      >
+        {tabs.map(t => {
+          const active = tab === t.id;
+          return (
+            <motion.button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              whileHover={{ color: theme.text }}
+              whileTap={{ scale: 0.96 }}
+              style={{
+                background: "transparent",
+                color: active ? theme.text : theme.textMuted,
+                border: "none",
+                padding: "12px 10px",
+                cursor: "pointer",
+                fontSize: 12,
+                fontWeight: active ? 600 : 400,
+                whiteSpace: "nowrap",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                position: "relative",
+                transition: "color 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                WebkitTapHighlightColor: "transparent",
+              }}
+            >
+              <t.icon size={13} />
+              {t.label}
+              {active && (
+                <motion.div
+                  layoutId="nav-indicator"
+                  transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 8,
+                    right: 8,
+                    height: 2,
+                    background: theme.red,
+                    borderRadius: 1,
+                    boxShadow: `0 0 8px ${theme.red}60`,
+                  }}
+                />
+              )}
+            </motion.button>
+          );
+        })}
+      </motion.div>
 
-        {/* DASHBOARD */}
-        {tab === "dashboard" && (
-          <>
-            <div style={{marginBottom:14}}>
-              <p style={{color:C.textMuted,fontSize:13,margin:"0 0 2px"}}>Welcome back,</p>
-              <h2 style={{...h2s,margin:0,fontSize:20}}>{profile.name} 💪</h2>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(110px,1fr))",gap:10,marginBottom:12}}>
-              {[["Calories",totalCal,"kcal",C.red,`/${calGoal}`],["Protein",totalProt+"g","",C.blue,`/${protGoal}g`],["Water",water+" gl","",C.teal,"/8"],["Level","Lv."+level,"",C.yellow,xpToNext+"xp left"]].map(([l,v,u,c,s]) => (
-                <div key={l} style={{background:C.bgCard2,border:`1px solid ${C.border2}`,borderRadius:10,padding:"12px",textAlign:"center"}}>
-                  <div style={{fontSize:20,fontWeight:600,color:c}}>{v}</div>
-                  <div style={{fontSize:10,color:c,marginTop:2}}>{s}</div>
-                  <div style={{fontSize:11,color:C.textMuted,marginTop:3}}>{l}</div>
-                </div>
-              ))}
-            </div>
-            <div style={g2}>
-              <div style={card}>
-                <h3 style={h3s}>Quick Start</h3>
-                {WORKOUT_PLANS.slice(0,4).map(p => (
-                  <div key={p.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 0",borderBottom:`1px solid ${C.border}`}}>
-                    <div>
-                      <div style={{fontSize:13,fontWeight:500}}>{p.name}</div>
-                      <div style={{fontSize:11,color:C.textMuted}}>{p.days}d/wk · {p.duration}</div>
-                    </div>
-                    <button onClick={() => setActiveWorkout(p)} style={{background:p.color+"22",color:p.color,border:`1px solid ${p.color}44`,borderRadius:6,padding:"5px 12px",cursor:"pointer",fontSize:12}}>Start</button>
-                  </div>
-                ))}
-              </div>
-              <div style={card}>
-                <h3 style={h3s}>Today's Macros</h3>
-                <MBar label="Calories" val={totalCal} max={calGoal} color={C.red}/>
-                <MBar label="Protein" val={totalProt} max={protGoal} color={C.blue}/>
-                <MBar label="Carbs" val={totalCarbs} max={300} color={C.yellow}/>
-                <MBar label="Fat" val={totalFat} max={80} color={C.green}/>
-                <button onClick={() => setShowMealModal(true)} style={{...RBTN,width:"100%",padding:"9px",marginTop:6}}>+ Log Meal</button>
-              </div>
-            </div>
-            <div style={g2}>
-              <WaterTracker water={water} setWater={setWater}/>
-              <div style={card}>
-                <h3 style={h3s}>Supplements Today</h3>
-                <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                  {supplements.map((s,i) => (
-                    <div key={i} onClick={() => setSupplements(p => p.map((sp,j) => j===i?{...sp,done:!sp.done}:sp))} style={{background:s.done?C.green+"20":C.bgCard2,border:`1px solid ${s.done?C.green:C.border}`,borderRadius:10,padding:"10px 12px",cursor:"pointer"}}>
-                      <div style={{fontSize:13,color:s.done?C.green:C.text}}>{s.done?"✓ ":""}{s.name}</div>
-                      <div style={{fontSize:11,color:C.textMuted}}>{s.dose}</div>
-                    </div>
+      {/* Main Content */}
+      <div style={{ padding: "20px", maxWidth: 900, margin: "0 auto" }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={tab}
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+          >
+            {tab === "dashboard" && (
+              <Dashboard
+                profile={profile}
+                totalCal={totalCal}
+                totalProt={totalProt}
+                totalCarbs={totalCarbs}
+                totalFat={totalFat}
+                calGoal={calGoal}
+                protGoal={protGoal}
+                setActiveWorkout={setActiveWorkout}
+                setShowMealModal={setShowMealModal}
+                onNavigate={setTab}
+                level={level}
+                streak={streak}
+              />
+            )}
+
+            {tab === "workouts" && (
+              <WorkoutHub
+                level={level}
+                streak={streak}
+                setActiveWorkout={setActiveWorkout}
+                onNavigate={setTab}
+                profile={profile}
+                onShowDetail={setShowExDetail}
+              />
+            )}
+
+            {tab === "exercises" && (
+              <motion.div variants={containerVariants} initial="initial" animate="animate">
+                <motion.div variants={itemVariants} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                  <h2 style={{ ...h2s, margin: 0 }}>Exercise Library</h2>
+                  <span style={{ fontSize: 13, color: theme.textMuted }}>{filteredEx.length} exercises</span>
+                </motion.div>
+
+                <motion.div variants={itemVariants} style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+                  {MUSCLES.map(m => (
+                    <motion.button
+                      key={m}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setFilterMuscle(m)}
+                      style={{
+                        padding: "6px 14px",
+                        borderRadius: radius.full,
+                        border: `1px solid ${filterMuscle === m ? (muscleColor[m] || theme.red) : theme.border2}`,
+                        background: filterMuscle === m ? `${muscleColor[m] || theme.red}18` : "transparent",
+                        color: filterMuscle === m ? (muscleColor[m] || theme.red) : theme.textMuted,
+                        cursor: "pointer",
+                        fontSize: 12,
+                        fontWeight: filterMuscle === m ? 500 : 400,
+                        transition: transition.fast,
+                      }}
+                    >
+                      {m}
+                    </motion.button>
                   ))}
-                </div>
-              </div>
-            </div>
-            <div style={card}>
-              <h3 style={h3s}>Recent Activity</h3>
-              {workoutLog.slice(-3).reverse().map((w,i) => (
-                <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:`1px solid ${C.border}`,fontSize:13}}>
-                  <span style={{color:C.textMuted}}>{w.date}</span>
-                  <span>{w.name}</span>
-                  <span style={{color:C.red}}>{w.sets}×{w.reps} @ {w.weight?w.weight+"kg":"BW"}</span>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
+                </motion.div>
 
-        {/* WORKOUTS */}
-        {tab === "workouts" && (
-          <>
-            <h2 style={h2s}>Workout Plans</h2>
-            {WORKOUT_PLANS.map(p => (
-              <div key={p.id} style={{...card,borderLeft:`3px solid ${p.color}`}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:12}}>
-                  <div style={{flex:1}}>
-                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-                      <h3 style={{...h3s,margin:0}}>{p.name}</h3>
-                      <Badge label={p.level} color={p.level==="Beginner"?C.green:p.level==="Intermediate"?C.yellow:C.red}/>
-                    </div>
-                    <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:6}}>
-                      <Tag label={`${p.days} days/wk`} color={p.color}/>
-                      <Tag label={p.duration} color={C.textMuted}/>
-                      <Tag label={p.goal} color={p.color}/>
-                    </div>
-                    <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-                      {p.exercises.slice(0,5).map(eid => {
-                        const ex = EXERCISES.find(e => e.id===eid);
-                        return ex ? <span key={eid} style={{fontSize:11,padding:"2px 7px",background:C.bgCard2,borderRadius:6,color:C.textMuted,border:`1px solid ${C.border}`}}>{ex.name}</span> : null;
-                      })}
-                      {p.exercises.length > 5 && <span style={{fontSize:11,color:C.textMuted}}>+{p.exercises.length-5} more</span>}
-                    </div>
-                  </div>
-                  <button onClick={() => setActiveWorkout(p)} style={{...RBTN,background:p.color,margin:0,padding:"10px 18px",flexShrink:0}}>Start →</button>
-                </div>
-              </div>
-            ))}
-          </>
-        )}
-
-        {/* EXERCISES */}
-        {tab === "exercises" && (
-          <>
-            <h2 style={h2s}>Exercise Library ({filteredEx.length})</h2>
-            <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
-              {MUSCLES.map(m => (
-                <button key={m} onClick={() => setFilterMuscle(m)} style={{padding:"6px 12px",borderRadius:20,border:`1px solid ${filterMuscle===m?(muscleColor[m]||C.red):C.border}`,background:filterMuscle===m?(muscleColor[m]||C.red)+"20":"transparent",color:filterMuscle===m?(muscleColor[m]||C.red):C.textMuted,cursor:"pointer",fontSize:12}}>{m}</button>
-              ))}
-            </div>
-            <div style={{display:"flex",gap:6,marginBottom:14}}>
-              {["All","Beginner","Intermediate","Advanced"].map(l => (
-                <button key={l} onClick={() => setFilterLevel(l)} style={{padding:"5px 12px",borderRadius:6,border:`1px solid ${filterLevel===l?C.red:C.border}`,background:filterLevel===l?C.red+"20":"transparent",color:filterLevel===l?C.red:C.textMuted,cursor:"pointer",fontSize:12}}>{l}</button>
-              ))}
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:10}}>
-              {filteredEx.map(ex => (
-                <div key={ex.id} style={{...card,marginBottom:0,cursor:"pointer"}} onClick={() => setShowExDetail(ex)}>
-                  <div style={{width:"100%",height:80,borderRadius:8,overflow:"hidden",marginBottom:10}} dangerouslySetInnerHTML={{__html:EXERCISE_SVG(ex.muscle)}}/>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                    <h3 style={{...h3s,margin:0,fontSize:13}}>{ex.name}</h3>
-                    <Badge label={ex.level} color={ex.level==="Beginner"?C.green:ex.level==="Intermediate"?C.yellow:C.red}/>
-                  </div>
-                  <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:4}}>
-                    <Tag label={ex.muscle} color={muscleColor[ex.muscle]||C.red}/>
-                    <Tag label={`${ex.sets}×${ex.reps}`} color={C.blue}/>
-                  </div>
-                  <p style={{color:C.textMuted,fontSize:11,margin:0,lineHeight:1.5,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{ex.desc}</p>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* NUTRITION */}
-        {tab === "nutrition" && (
-          <>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-              <h2 style={{...h2s,margin:0}}>Nutrition</h2>
-              <button onClick={() => setShowMealModal(true)} style={RBTN}>+ Add Meal</button>
-            </div>
-            <div style={card}>
-              <h3 style={h3s}>Daily Summary</h3>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(100px,1fr))",gap:10,marginBottom:10}}>
-                {[["Calories",totalCal,calGoal,"kcal",C.red],["Protein",totalProt,protGoal,"g",C.blue],["Carbs",totalCarbs,300,"g",C.yellow],["Fat",totalFat,80,"g",C.green]].map(([l,v,g,u,col]) => (
-                  <div key={l} style={{textAlign:"center",background:C.bgCard2,borderRadius:10,padding:"12px 6px"}}>
-                    <div style={{fontSize:20,fontWeight:600,color:col}}>{v}</div>
-                    <div style={{fontSize:10,color:C.textMuted}}>/{g}{u}</div>
-                    <div style={{height:3,background:C.border,borderRadius:2,margin:"6px 4px 4px",overflow:"hidden"}}>
-                      <div style={{height:"100%",width:`${Math.min(100,(v/g)*100)}%`,background:col,borderRadius:2}}/>
-                    </div>
-                    <div style={{fontSize:11,color:C.textMuted}}>{l}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{fontSize:12,color:C.textMuted,textAlign:"center"}}>
-                Remaining: <span style={{color:C.green}}>{Math.max(0,calGoal-totalCal)} kcal</span> · Protein gap: <span style={{color:C.blue}}>{Math.max(0,protGoal-totalProt)}g</span>
-              </div>
-            </div>
-            <WaterTracker water={water} setWater={setWater}/>
-            <div style={card}>
-              <h3 style={h3s}>Supplements</h3>
-              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                {supplements.map((s,i) => (
-                  <div key={i} onClick={() => setSupplements(p => p.map((sp,j) => j===i?{...sp,done:!sp.done}:sp))} style={{background:s.done?C.green+"20":C.bgCard2,border:`1px solid ${s.done?C.green:C.border}`,borderRadius:10,padding:"10px 12px",cursor:"pointer"}}>
-                    <div style={{fontSize:13,color:s.done?C.green:C.text}}>{s.done?"✓ ":""}{s.name}</div>
-                    <div style={{fontSize:11,color:C.textMuted}}>{s.dose} · {s.time}</div>
-                  </div>
-                ))}
-                <div onClick={() => { const n = prompt("Supplement name:"); if(n) setSupplements(p=>[...p,{name:n,dose:"1 serving",time:"Daily",done:false}]); }} style={{background:C.bgCard2,border:`1px solid ${C.border}`,borderRadius:10,padding:"10px 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",minWidth:50}}>
-                  <span style={{color:C.textMuted,fontSize:22}}>+</span>
-                </div>
-              </div>
-            </div>
-            {["Breakfast","Lunch","Post-Workout","Dinner","Snack"].map(mt => {
-              const mts = meals.filter(m => m.mealTime===mt);
-              if (!mts.length) return null;
-              return (
-                <div key={mt} style={card}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                    <h3 style={{...h3s,margin:0}}>{mt}</h3>
-                    <div style={{fontSize:12,color:C.textMuted}}>{Math.round(mts.reduce((s,m)=>s+m.cal,0))} kcal · {Math.round(mts.reduce((s,m)=>s+m.protein,0))}g P</div>
-                  </div>
-                  {mts.map((m,i) => (
-                    <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:`1px solid ${C.border}`}}>
-                      <div>
-                        <div style={{fontSize:13}}>{m.name}{m.qty&&m.qty!==1?<span style={{color:C.textMuted}}> ×{m.qty}</span>:""}</div>
-                        <div style={{fontSize:11,color:C.textMuted}}>{Math.round(m.protein)}g P · {Math.round(m.carbs)}g C · {Math.round(m.fat)}g F</div>
-                      </div>
-                      <div style={{display:"flex",alignItems:"center",gap:10}}>
-                        <span style={{color:C.red,fontSize:13,fontWeight:500}}>{Math.round(m.cal)} kcal</span>
-                        <button onClick={() => setMeals(p => p.filter(x => x!==m))} style={{background:"transparent",border:"none",color:C.textDim,cursor:"pointer",fontSize:18}}>×</button>
-                      </div>
-                    </div>
+                <motion.div variants={itemVariants} style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+                  {["All", "Beginner", "Intermediate", "Advanced"].map(l => (
+                    <motion.button
+                      key={l}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setFilterLevel(l)}
+                      style={{
+                        padding: "5px 12px",
+                        borderRadius: radius.sm,
+                        border: `1px solid ${filterLevel === l ? theme.red : theme.border2}`,
+                        background: filterLevel === l ? `${theme.red}15` : "transparent",
+                        color: filterLevel === l ? theme.red : theme.textMuted,
+                        cursor: "pointer",
+                        fontSize: 12,
+                        fontWeight: filterLevel === l ? 500 : 400,
+                        transition: transition.fast,
+                      }}
+                    >
+                      {l}
+                    </motion.button>
                   ))}
-                </div>
-              );
-            })}
-          </>
-        )}
+                </motion.div>
 
-        {/* PROGRESS */}
-        {tab === "progress" && (
-          <>
-            <h2 style={h2s}>Progress</h2>
-            <div style={g2}>
-              <div style={card}>
-                <h3 style={h3s}>Body Weight</h3>
-                <MiniChart data={bodyStats.map(b => ({...b,value:b.weight}))} color={C.red} label="Weight trend (kg)"/>
-                <div style={{display:"flex",gap:8}}>
-                  <input type="number" step="0.1" placeholder="Weight (kg)" value={newBodyStat} onChange={e => setNewBodyStat(e.target.value)} style={{...INP,flex:1,padding:"8px 10px",fontSize:12}}/>
-                  <button onClick={() => {
-                    if (!newBodyStat) return;
-                    const today = new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"});
-                    setBodyStats(p => [...p,{date:today,weight:+newBodyStat}]);
-                    setNewBodyStat("");
-                  }} style={{...RBTN,margin:0,padding:"8px 14px"}}>Log</button>
-                </div>
-              </div>
-              <div style={card}>
-                <h3 style={h3s}>Strength PRs</h3>
-                {prs.map((p,i) => (
-                  <div key={i} style={{marginBottom:10}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-                      <span style={{fontSize:13}}>{p.lift}</span>
-                      <div style={{display:"flex",gap:6,alignItems:"center"}}>
-                        <input type="number" value={p.weight} onChange={e => setPrs(ps => ps.map((pr,j) => j===i?{...pr,weight:+e.target.value}:pr))} style={{...INP,width:65,padding:"4px 8px",fontSize:12,textAlign:"center"}}/>
-                        <span style={{fontSize:11,color:C.textMuted}}>kg</span>
+                <motion.div variants={itemVariants} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 12 }}>
+                  {filteredEx.map(ex => (
+                    <motion.div
+                      key={ex.id}
+                      whileHover={{ y: -3, boxShadow: shadow.elevated }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setShowExDetail(ex)}
+                      style={{
+                        ...cardStyle,
+                        marginBottom: 0,
+                        cursor: "pointer",
+                        padding: "18px",
+                      }}
+                    >
+                      <ExerciseImage
+                        exercise={ex}
+                        width="100%"
+                        height={90}
+                        style={{ marginBottom: 12 }}
+                      />
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                        <h3 style={{ ...h3s, margin: 0, fontSize: 14 }}>{ex.name}</h3>
+                        <Badge label={ex.level} color={ex.level === "Beginner" ? theme.green : ex.level === "Intermediate" ? theme.yellow : theme.red} />
                       </div>
+                      <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 6 }}>
+                        <Tag label={ex.muscle} color={muscleColor[ex.muscle] || theme.red} />
+                        <Tag label={`${ex.sets}×${ex.reps}`} color={theme.blue} />
+                      </div>
+                      <p style={{
+                        color: theme.textMuted, fontSize: 11, margin: 0,
+                        lineHeight: 1.5, display: "-webkit-box",
+                        WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      }}>
+                        {ex.desc}
+                      </p>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </motion.div>
+            )}
+
+            {tab === "nutrition" && (
+              <MealHub
+                calGoal={calGoal}
+                protGoal={protGoal}
+                onOpenModal={() => setShowMealModal(true)}
+              />
+            )}
+
+            {tab === "progress" && (
+              <motion.div variants={containerVariants} initial="initial" animate="animate">
+                <motion.h2 variants={itemVariants} style={h2s}>Progress</motion.h2>
+
+                <motion.div variants={itemVariants} style={grid2}>
+                  <Card>
+                    <h3 style={h3s}>Body Weight</h3>
+                    <MiniChart data={bodyStats.map(b => ({ ...b, value: b.weight }))} color={theme.red} label="Weight trend (kg)" />
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <div style={{ flex: 1 }}>
+                        <input
+                          id="body-weight" name="bodyWeight" type="number" step="0.1" placeholder="Weight (kg)"
+                          value={newBodyStat}
+                          onChange={e => setNewBodyStat(e.target.value)}
+                          style={{
+                            background: theme.bgCard2, border: `1px solid ${theme.border2}`,
+                            borderRadius: radius.md, padding: "8px 12px",
+                            color: theme.text, fontSize: 13, outline: "none",
+                            width: "100%", boxSizing: "border-box",
+                          }}
+                        />
+                      </div>
+                      <Button onClick={() => {
+                        if (!newBodyStat) return;
+                        const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                        addBodyStat({ date: today, weight: +newBodyStat });
+                        setNewBodyStat("");
+                      }}>
+                        Log
+                      </Button>
                     </div>
-                    <div style={{height:4,background:C.border,borderRadius:2,overflow:"hidden"}}>
-                      <div style={{height:"100%",width:`${Math.min(100,(p.weight/160)*100)}%`,background:C.red,borderRadius:2}}/>
-                    </div>
-                  </div>
-                ))}
-                <button onClick={() => { const n=prompt("Lift name:"); if(n) setPrs(p=>[...p,{lift:n,weight:60}]); }} style={{background:C.bgCard2,border:`1px solid ${C.border}`,color:C.textMuted,borderRadius:8,padding:"7px",cursor:"pointer",fontSize:12,width:"100%",marginTop:4}}>+ Add Lift</button>
-              </div>
-            </div>
-            <div style={card}>
-              <h3 style={h3s}>Body Measurements (cm)</h3>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:10}}>
-                {Object.entries(measurements).map(([k,v]) => (
-                  <div key={k}>
-                    <label style={{fontSize:11,color:C.textMuted,display:"block",marginBottom:4,textTransform:"capitalize"}}>{k}</label>
-                    <input type="number" value={v} onChange={e => setMeasurements(p=>({...p,[k]:e.target.value}))} style={{...INP,padding:"8px 10px",fontSize:13}}/>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div style={card}>
-              <h3 style={h3s}>Workout Log</h3>
-              <div style={{overflowX:"auto"}}>
-                <table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:400}}>
-                  <thead>
-                    <tr style={{borderBottom:`1px solid ${C.border2}`}}>
-                      {["Date","Exercise","Sets","Reps","Weight","Volume"].map(h => <th key={h} style={{padding:"8px 6px",textAlign:"left",color:C.textMuted,fontWeight:400}}>{h}</th>)}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {workoutLog.map((w,i) => (
-                      <tr key={i} style={{borderBottom:`1px solid ${C.border}`}}>
-                        <td style={{padding:"7px 6px",color:C.textMuted}}>{w.date}</td>
-                        <td style={{padding:"7px 6px"}}>{w.name}</td>
-                        <td style={{padding:"7px 6px",color:C.red}}>{w.sets}</td>
-                        <td style={{padding:"7px 6px",color:C.blue}}>{w.reps}</td>
-                        <td style={{padding:"7px 6px",color:C.yellow}}>{w.weight?`${w.weight}kg`:"BW"}</td>
-                        <td style={{padding:"7px 6px",color:C.textMuted}}>{w.vol||"—"}</td>
-                      </tr>
+                  </Card>
+
+                  <Card>
+                    <h3 style={h3s}>Strength PRs</h3>
+                    {prs.map((p, i) => (
+                      <div key={p.lift} style={{ marginBottom: 12 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                          <span style={{ fontSize: 13 }}>{p.lift}</span>
+                          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                            <input
+                              id={`pr-weight-${i}`} name={`prWeight_${i}`} type="number" value={p.weight}
+                              onChange={e => updatePrWeight(i, e.target.value)}
+                              style={{
+                                background: theme.bgCard2, border: `1px solid ${theme.border2}`,
+                                borderRadius: radius.sm, width: 60, padding: "4px 8px",
+                                color: theme.text, fontSize: 12, textAlign: "center",
+                                outline: "none",
+                              }}
+                            />
+                            <span style={{ fontSize: 11, color: theme.textMuted }}>kg</span>
+                          </div>
+                        </div>
+                        <div style={{ height: 4, background: theme.border, borderRadius: radius.full, overflow: "hidden" }}>
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${Math.min(100, (p.weight / 160) * 100)}%` }}
+                            transition={{ duration: 0.6, delay: i * 0.1 }}
+                            style={{ height: "100%", background: theme.red, borderRadius: radius.full }}
+                          />
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-              <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr",gap:8,marginTop:12}}>
-                {[["Exercise","name","text"],["Sets","sets","number"],["Reps","reps","number"],["Weight","weight","number"]].map(([ph,k,t]) => (
-                  <input key={k} type={t} placeholder={ph} value={newLogRow[k]} onChange={e => setNewLogRow(p=>({...p,[k]:e.target.value}))} style={{...INP,padding:"8px 10px",fontSize:12}}/>
-                ))}
-              </div>
-              <button style={{...RBTN,width:"100%",marginTop:8}} onClick={() => {
-                if (!newLogRow.name) return;
-                const s=+newLogRow.sets||3, r=+newLogRow.reps||10, w=+newLogRow.weight||0;
-                setWorkoutLog(p => [...p,{date:"Today",name:newLogRow.name,sets:s,reps:r,weight:w,vol:s*r*w}]);
-                setNewLogRow({name:"",sets:"",reps:"",weight:""});
-                setXp(p => p+15);
-              }}>+ Log Exercise</button>
-            </div>
-            <div style={card}>
-              <h3 style={h3s}>Achievements & XP</h3>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                <div>
-                  <div style={{fontSize:22,fontWeight:600,color:C.yellow}}>Level {level}</div>
-                  <div style={{fontSize:12,color:C.textMuted}}>{xp} XP total</div>
-                </div>
-                <div>
-                  <div style={{fontSize:12,color:C.text,marginBottom:4}}>{xpToNext} XP to Level {level+1}</div>
-                  <div style={{width:120,height:6,background:C.border,borderRadius:3,overflow:"hidden"}}>
-                    <div style={{height:"100%",width:`${((xp%500)/500)*100}%`,background:C.yellow,borderRadius:3}}/>
-                  </div>
-                </div>
-              </div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(90px,1fr))",gap:8}}>
-                {[["🔥","7-Day Streak",C.red,true],["💪","First Workout",C.blue,true],["🥗","Nutrition Pro",C.green,true],["⚡","PR Broken",C.yellow,true],["🏃","Cardio King",C.purple,false],["🎯","Level 5",C.orange,false]].map(([icon,name,c,unlocked]) => (
-                  <div key={name} style={{background:unlocked?c+"15":C.bgCard2,border:`1px solid ${unlocked?c+"33":C.border}`,borderRadius:10,padding:"10px 8px",textAlign:"center",opacity:unlocked?1:0.35}}>
-                    <div style={{fontSize:22,marginBottom:4}}>{icon}</div>
-                    <div style={{fontSize:10,color:unlocked?c:C.textMuted,lineHeight:1.3}}>{name}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
+                    <motion.button whileHover={{ borderColor: theme.red + "40" }} whileTap={{ scale: 0.98 }}
+                      onClick={() => { const n = prompt("Lift name:"); if (n) addPr(n); }}
+                      style={{
+                        background: theme.bgCard2, border: `1px solid ${theme.border}`,
+                        color: theme.textMuted, borderRadius: radius.md, padding: "7px",
+                        cursor: "pointer", fontSize: 12, width: "100%", marginTop: 4,
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                      }}>
+                      <Plus size={14} /> Add Lift
+                    </motion.button>
+                  </Card>
+                </motion.div>
 
-        {/* BODY TOOLS */}
-        {tab === "tools" && (
-          <>
-            <h2 style={h2s}>Body Tools</h2>
-            <div style={g2}>
-              <div style={card}>
-                <h3 style={h3s}>BMI & Metabolism</h3>
-                {(() => {
-                  const h = +profile.height/100, w = +profile.weight, age = +profile.age||25;
-                  const bmi2 = +(w/(h*h)).toFixed(1);
-                  const bmr = profile.gender==="Female" ? (10*w)+(6.25*(+profile.height))-(5*age)-161 : (10*w)+(6.25*(+profile.height))-(5*age)+5;
-                  const tdee = Math.round(bmr*1.55);
-                  const bmiC = bmi2<18.5?C.blue:bmi2<25?C.green:bmi2<30?C.yellow:C.red;
-                  const bmiL = bmi2<18.5?"Underweight":bmi2<25?"Normal":bmi2<30?"Overweight":"Obese";
-                  return (
-                    <>
-                      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:10}}>
-                        {[["BMI",bmi2,bmiC,bmiL],["BMR",Math.round(bmr),C.blue,"kcal/day"],["TDEE",tdee,C.red,"kcal/day"]].map(([l,v,c,sub]) => (
-                          <div key={l} style={{textAlign:"center",background:C.bgCard2,borderRadius:8,padding:"10px 4px"}}>
-                            <div style={{fontSize:18,fontWeight:600,color:c}}>{v}</div>
-                            <div style={{fontSize:10,color:C.textMuted}}>{l}</div>
-                            <div style={{fontSize:10,color:c}}>{sub}</div>
+                <motion.div variants={itemVariants}>
+                  <Card>
+                    <h3 style={h3s}>Body Measurements (cm)</h3>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: 10 }}>
+                      {Object.entries(measurements).map(([k, v]) => (
+                        <div key={k}>
+                          <label style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 4, textTransform: "capitalize" }}>
+                            {k}
+                          </label>
+                          <input
+                            type="number" value={v}
+                            onChange={e => setMeasurements(p => ({ ...p, [k]: e.target.value }))}
+                            style={{
+                              background: theme.bgCard2, border: `1px solid ${theme.border2}`,
+                              borderRadius: radius.md, padding: "8px 12px",
+                              color: theme.text, fontSize: 13, outline: "none",
+                              width: "100%", boxSizing: "border-box",
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                </motion.div>
+
+                <motion.div variants={itemVariants}>
+                  <Card>
+                    <h3 style={h3s}>Workout Log</h3>
+                    <div style={{ overflowX: "auto" }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, minWidth: 400 }}>
+                        <thead>
+                          <tr style={{ borderBottom: `1px solid ${theme.border2}` }}>
+                            {["Date", "Exercise", "Sets", "Reps", "Weight", "Volume"].map(h => (
+                              <th key={h} style={{ padding: "8px 8px", textAlign: "left", color: theme.textMuted, fontWeight: 400, fontSize: 11 }}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {workoutLog.map((w, i) => (
+                            <tr key={w.uid || `${w.date}-${w.name}-${i}`} style={{ borderBottom: `1px solid ${theme.border}` }}>
+                              <td style={{ padding: "8px", color: theme.textMuted }}>{w.date}</td>
+                              <td style={{ padding: "8px", fontWeight: 500 }}>{w.name}</td>
+                              <td style={{ padding: "8px", color: theme.red }}>{w.sets}</td>
+                              <td style={{ padding: "8px", color: theme.blue }}>{w.reps}</td>
+                              <td style={{ padding: "8px", color: theme.yellow }}>{w.weight ? `${w.weight}kg` : "BW"}</td>
+                              <td style={{ padding: "8px", color: theme.textMuted }}>{w.vol || "—"}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 8, marginTop: 12 }}>
+                      {[["Exercise", "name", "text"], ["Sets", "sets", "number"], ["Reps", "reps", "number"], ["Weight", "weight", "number"]].map(([ph, k, t]) => (
+                        <input key={k} id={`log-${k}`} name={`log${k.charAt(0).toUpperCase() + k.slice(1)}`} type={t} placeholder={ph}
+                          value={newLogRow[k]}
+                          onChange={e => setNewLogRow(p => ({ ...p, [k]: e.target.value }))}
+                          style={{
+                            background: theme.bgCard2, border: `1px solid ${theme.border2}`,
+                            borderRadius: radius.md, padding: "8px 12px",
+                            color: theme.text, fontSize: 12, outline: "none",
+                            width: "100%", boxSizing: "border-box",
+                          }} />
+                      ))}
+                    </div>
+                    <Button style={{ width: "100%", marginTop: 10 }} onClick={() => {
+                      if (!newLogRow.name) return;
+                      addLogEntry();
+                      addXp(15);
+                    }}>
+                      <Plus size={14} /> Log Exercise
+                    </Button>
+                  </Card>
+                </motion.div>
+
+                <motion.div variants={itemVariants}>
+                  <Card>
+                    <h3 style={h3s}>Achievements & XP</h3>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                      <div>
+                        <div style={{ fontSize: 24, fontWeight: 700, color: theme.yellow }}>Level {level}</div>
+                        <div style={{ fontSize: 12, color: theme.textMuted }}>{xp} XP total</div>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <div style={{ fontSize: 12, color: theme.text, marginBottom: 6 }}>{xpToNext} XP to Level {level + 1}</div>
+                        <div style={{ width: 140, height: 6, background: theme.border, borderRadius: radius.full, overflow: "hidden" }}>
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${((xp % 500) / 500) * 100}%` }}
+                            transition={{ duration: 0.6 }}
+                            style={{ height: "100%", background: theme.yellow, borderRadius: radius.full, boxShadow: `0 0 8px ${theme.yellow}40` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(100px,1fr))", gap: 10 }}>
+                      {[
+                        ["🔥", "7-Day Streak", theme.red, true],
+                        ["💪", "First Workout", theme.blue, true],
+                        ["🥗", "Nutrition Pro", theme.green, true],
+                        ["⚡", "PR Broken", theme.yellow, true],
+                        ["🏃", "Cardio King", theme.purple, false],
+                        ["🎯", "Level 5", theme.orange, false],
+                      ].map(([icon, name, c, unlocked]) => (
+                        <motion.div key={name} whileHover={unlocked ? { scale: 1.05 } : {}}
+                          style={{
+                            background: unlocked ? `${c}12` : theme.bgCard2,
+                            border: `1px solid ${unlocked ? `${c}30` : theme.border}`,
+                            borderRadius: radius.md,
+                            padding: "12px 8px",
+                            textAlign: "center",
+                            opacity: unlocked ? 1 : 0.35,
+                          }}>
+                          <div style={{ fontSize: 24, marginBottom: 4 }}>{icon}</div>
+                          <div style={{ fontSize: 10, color: unlocked ? c : theme.textMuted, lineHeight: 1.3, fontWeight: 500 }}>{name}</div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </Card>
+                </motion.div>
+              </motion.div>
+            )}
+
+            {tab === "tools" && (
+              <motion.div variants={containerVariants} initial="initial" animate="animate">
+                <motion.h2 variants={itemVariants} style={h2s}>Body Tools</motion.h2>
+
+                <motion.div variants={itemVariants} style={grid2}>
+                  <Card>
+                    <h3 style={h3s}>BMI & Metabolism</h3>
+                    {(() => {
+                      const h = (+profile.height || 175) / 100, w = +profile.weight || 75, age = +profile.age || 25;
+                      const bmi2 = h > 0 ? +(w / (h * h)).toFixed(1) : 0;
+                      const bmr = profile.gender === "Female" ? (10 * w) + (6.25 * (+profile.height)) - (5 * age) - 161 : (10 * w) + (6.25 * (+profile.height)) - (5 * age) + 5;
+                      const tdee = Math.round(bmr * 1.55);
+                      const bmiC = bmi2 < 18.5 ? theme.blue : bmi2 < 25 ? theme.green : bmi2 < 30 ? theme.yellow : theme.red;
+                      const bmiL = bmi2 < 18.5 ? "Underweight" : bmi2 < 25 ? "Normal" : bmi2 < 30 ? "Overweight" : "Obese";
+                      return (
+                        <>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 12 }}>
+                            {[
+                              ["BMI", bmi2, bmiC, bmiL],
+                              ["BMR", Math.round(bmr), theme.blue, "kcal/day"],
+                              ["TDEE", tdee, theme.red, "kcal/day"],
+                            ].map(([l, v, c, sub]) => (
+                              <div key={l} style={{
+                                textAlign: "center", background: theme.bgCard2,
+                                borderRadius: radius.md, padding: "12px 4px",
+                                border: `1px solid ${theme.border}`,
+                              }}>
+                                <div style={{ fontSize: 20, fontWeight: 700, color: c }}>{v}</div>
+                                <div style={{ fontSize: 10, color: theme.textMuted }}>{l}</div>
+                                <div style={{ fontSize: 10, color: c, fontWeight: 500 }}>{sub}</div>
+                              </div>
+                            ))}
                           </div>
+                          <div style={{ background: theme.bgCard2, borderRadius: radius.md, padding: "12px", fontSize: 12, border: `1px solid ${theme.border}` }}>
+                            <div style={{ color: theme.textMuted, marginBottom: 6 }}>
+                              Calorie goal: <span style={{ color: theme.red, fontWeight: 500 }}>{calGoal} kcal</span>
+                            </div>
+                            <div style={{ color: theme.textMuted, marginBottom: 6 }}>
+                              Protein target: <span style={{ color: theme.blue, fontWeight: 500 }}>{protGoal}g/day</span>
+                            </div>
+                            <div style={{ color: theme.textMuted }}>
+                              Today's balance:{" "}
+                              <span style={{ color: totalCal > calGoal ? theme.orange : theme.green, fontWeight: 500 }}>
+                                {totalCal - calGoal > 0 ? "+" : ""}{totalCal - calGoal} kcal
+                              </span>
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </Card>
+
+                  <Card>
+                    <h3 style={h3s}>1 Rep Max Calculator</h3>
+                    {(() => {
+                      const oneRM = Math.round(+orm1W * (1 + 0.0333 * +orm1R));
+                      return (
+                        <>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+                            <div>
+                              <label style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 4 }}>Weight (kg)</label>
+                              <input id="orm-weight" name="ormWeight" type="number" value={orm1W} onChange={e => setOrm1W(e.target.value)}
+                                style={{
+                                  background: theme.bgCard2, border: `1px solid ${theme.border2}`,
+                                  borderRadius: radius.md, padding: "8px 12px", color: theme.text,
+                                  fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box",
+                                }} />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 4 }}>Reps</label>
+                              <input id="orm-reps" name="ormReps" type="number" value={orm1R} onChange={e => setOrm1R(e.target.value)}
+                                style={{
+                                  background: theme.bgCard2, border: `1px solid ${theme.border2}`,
+                                  borderRadius: radius.md, padding: "8px 12px", color: theme.text,
+                                  fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box",
+                                }} />
+                            </div>
+                          </div>
+                          <div style={{
+                            textAlign: "center",
+                            background: `linear-gradient(135deg, ${theme.bgCard2}, ${theme.bgCard3})`,
+                            borderRadius: radius.md, padding: "16px", marginBottom: 12,
+                            border: `1px solid ${theme.border}`,
+                          }}>
+                            <motion.div
+                              key={oneRM}
+                              initial={{ scale: 1.3 }}
+                              animate={{ scale: 1 }}
+                              style={{ fontSize: 32, fontWeight: 700, color: theme.red }}
+                            >
+                              {oneRM} kg
+                            </motion.div>
+                            <div style={{ fontSize: 12, color: theme.textMuted }}>Estimated 1RM</div>
+                          </div>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8 }}>
+                            {[
+                              ["95%", Math.round(oneRM * 0.95), "Strength"],
+                              ["85%", Math.round(oneRM * 0.85), "Power"],
+                              ["75%", Math.round(oneRM * 0.75), "Hypertrophy"],
+                              ["65%", Math.round(oneRM * 0.65), "Endurance"],
+                            ].map(([p, v, l]) => (
+                              <div key={p} style={{
+                                background: theme.bgCard3, borderRadius: radius.md,
+                                padding: "10px 4px", textAlign: "center",
+                                border: `1px solid ${theme.border}`,
+                              }}>
+                                <div style={{ fontSize: 15, color: theme.red, fontWeight: 600 }}>{v}kg</div>
+                                <div style={{ fontSize: 10, color: theme.textMuted }}>{p}</div>
+                                <div style={{ fontSize: 9, color: theme.textDim }}>{l}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </Card>
+                </motion.div>
+
+                <motion.div variants={itemVariants} style={grid2}>
+                  <Card>
+                    <h3 style={h3s}>Body Fat Estimator (Navy)</h3>
+                    {(() => {
+                      const bf = +(495 / (1.0324 - 0.19077 * Math.log10(Math.max(1, +bfWaist - +bfNeck)) + 0.15456 * Math.log10(+profile.height)) - 450).toFixed(1);
+                      const bfLabel = bf < 8 ? "Essential" : bf < 14 ? "Athletic" : bf < 18 ? "Fitness" : bf < 24 ? "Average" : "High";
+                      const bfColor = bf < 14 ? theme.blue : bf < 18 ? theme.green : bf < 24 ? theme.yellow : theme.red;
+                      return (
+                        <>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+                            <div>
+                              <label style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 4 }}>Neck (cm)</label>
+                              <input id="bf-neck" name="bfNeck" type="number" value={bfNeck} onChange={e => setBfNeck(e.target.value)}
+                                style={{
+                                  background: theme.bgCard2, border: `1px solid ${theme.border2}`,
+                                  borderRadius: radius.md, padding: "8px 12px", color: theme.text,
+                                  fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box",
+                                }} />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 4 }}>Waist (cm)</label>
+                              <input id="bf-waist" name="bfWaist" type="number" value={bfWaist} onChange={e => setBfWaist(e.target.value)}
+                                style={{
+                                  background: theme.bgCard2, border: `1px solid ${theme.border2}`,
+                                  borderRadius: radius.md, padding: "8px 12px", color: theme.text,
+                                  fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box",
+                                }} />
+                            </div>
+                          </div>
+                          <div style={{
+                            textAlign: "center",
+                            background: `linear-gradient(135deg, ${theme.bgCard2}, ${theme.bgCard3})`,
+                            borderRadius: radius.md, padding: "16px",
+                            border: `1px solid ${theme.border}`,
+                          }}>
+                            <motion.div
+                              key={bf}
+                              initial={{ scale: 1.3 }}
+                              animate={{ scale: 1 }}
+                              style={{ fontSize: 32, fontWeight: 700, color: bfColor }}
+                            >
+                              {isNaN(bf) || bf < 0 ? "—" : bf}%
+                            </motion.div>
+                            <div style={{ fontSize: 14, color: bfColor, fontWeight: 500 }}>{bfLabel}</div>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </Card>
+
+                  <Card>
+                    <h3 style={h3s}>Recovery Guide</h3>
+                    <div>
+                      {[
+                        ["Chest/Triceps", "48-72h", theme.red],
+                        ["Back/Biceps", "48-72h", theme.blue],
+                        ["Legs", "72-96h", theme.green],
+                        ["Shoulders", "48-72h", theme.yellow],
+                        ["Core", "24-48h", theme.orange],
+                        ["Cardio", "24h", theme.teal],
+                      ].map(([m, t, c]) => (
+                        <div key={m} style={{
+                          display: "flex", justifyContent: "space-between",
+                          padding: "9px 0", borderBottom: `1px solid ${theme.border}`,
+                          fontSize: 13,
+                        }}>
+                          <span>{m}</span>
+                          <span style={{ color: c, fontSize: 12, fontWeight: 500 }}>{t}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                </motion.div>
+              </motion.div>
+            )}
+
+            {tab === "ai" && (
+              <motion.div variants={containerVariants} initial="initial" animate="animate">
+                <motion.h2 variants={itemVariants} style={h2s}>AI Coach</motion.h2>
+                <motion.div variants={itemVariants}>
+                  <AICoach profile={profile} totalCal={totalCal} totalProt={totalProt} water={water} level={level} xp={xp} />
+                </motion.div>
+              </motion.div>
+            )}
+
+            {tab === "profile" && (
+              <motion.div variants={containerVariants} initial="initial" animate="animate">
+                <motion.h2 variants={itemVariants} style={h2s}>Profile</motion.h2>
+
+                <motion.div variants={itemVariants}>
+                  <Card>
+                    <div style={{
+                      display: "flex", alignItems: "center", gap: 18,
+                      marginBottom: 20, paddingBottom: 18,
+                      borderBottom: `1px solid ${theme.border}`,
+                    }}>
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        style={{
+                          width: 68, height: 68,
+                          background: `linear-gradient(135deg, ${theme.red}, ${theme.redDark})`,
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 28,
+                          fontWeight: 700,
+                          color: "#fff",
+                          boxShadow: shadow.glow(theme.red),
+                        }}>
+                        {profile.name.charAt(0).toUpperCase()}
+                      </motion.div>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 20 }}>{profile.name}</div>
+                        <div style={{ color: theme.textMuted, fontSize: 13, marginTop: 2 }}>
+                          {profile.level} · {profile.goal}
+                        </div>
+                        <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
+                          <span style={{ fontSize: 12, color: theme.yellow, display: "flex", alignItems: "center", gap: 3 }}>
+                            <Zap size={12} /> Lv.{level}
+                          </span>
+                          <span style={{ fontSize: 12, color: bmiColor, display: "flex", alignItems: "center", gap: 3 }}>
+                            <Heart size={12} /> BMI: {bmi}
+                          </span>
+                          <span style={{ fontSize: 12, color: theme.red, display: "flex", alignItems: "center", gap: 3 }}>
+                            <Flame size={12} /> {streak}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+                      {[["Name", "name", "text"], ["Age", "age", "number"], ["Weight (kg)", "weight", "number"], ["Height (cm)", "height", "number"]].map(([l, k, t]) => (
+                        <div key={k}>
+                          <label style={{ fontSize: 12, color: theme.textMuted, display: "block", marginBottom: 4 }}>{l}</label>
+                          <input id={`profile-${k}`} name={`profile${k.charAt(0).toUpperCase() + k.slice(1)}`} type={t} value={profile[k]}
+                            onChange={e => setProfile(k, e.target.value)}
+                            style={{
+                              background: theme.bgCard2, border: `1px solid ${theme.border2}`,
+                              borderRadius: radius.md, padding: "10px 14px", color: theme.text,
+                              fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box",
+                            }} />
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ marginBottom: 14 }}>
+                      <label style={{ fontSize: 12, color: theme.textMuted, display: "block", marginBottom: 6 }}>Gender</label>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        {["Male", "Female", "Other"].map(g => (
+                          <motion.button key={g} whileTap={{ scale: 0.97 }}
+                            onClick={() => setProfile("gender", g)}
+                            style={{
+                              flex: 1, padding: "10px", borderRadius: radius.md,
+                              border: `1px solid ${profile.gender === g ? theme.red : theme.border2}`,
+                              background: profile.gender === g ? `${theme.red}15` : "transparent",
+                              color: profile.gender === g ? theme.red : theme.textMuted,
+                              cursor: "pointer", fontSize: 13,
+                              fontWeight: profile.gender === g ? 500 : 400,
+                            }}>
+                            {g}
+                          </motion.button>
                         ))}
                       </div>
-                      <div style={{background:C.bgCard2,borderRadius:8,padding:"10px",fontSize:12}}>
-                        <div style={{color:C.textMuted,marginBottom:4}}>Calorie goal: <span style={{color:C.red}}>{calGoal} kcal</span></div>
-                        <div style={{color:C.textMuted,marginBottom:4}}>Protein target: <span style={{color:C.blue}}>{protGoal}g/day</span></div>
-                        <div style={{color:C.textMuted}}>Today's balance: <span style={{color:totalCal>calGoal?C.orange:C.green}}>{totalCal-calGoal>0?"+":""}{totalCal-calGoal} kcal</span></div>
-                      </div>
-                    </>
-                  );
-                })()}
-              </div>
-              <div style={card}>
-                <h3 style={h3s}>1 Rep Max Calculator</h3>
-                {(() => {
-                  const oneRM = Math.round(+orm1W*(1+0.0333*+orm1R));
-                  return (
-                    <>
-                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
-                        <div>
-                          <label style={{fontSize:11,color:C.textMuted,display:"block",marginBottom:3}}>Weight lifted (kg)</label>
-                          <input type="number" value={orm1W} onChange={e => setOrm1W(e.target.value)} style={{...INP,padding:"8px 10px",fontSize:13}}/>
-                        </div>
-                        <div>
-                          <label style={{fontSize:11,color:C.textMuted,display:"block",marginBottom:3}}>Reps completed</label>
-                          <input type="number" value={orm1R} onChange={e => setOrm1R(e.target.value)} style={{...INP,padding:"8px 10px",fontSize:13}}/>
-                        </div>
-                      </div>
-                      <div style={{textAlign:"center",background:C.bgCard2,borderRadius:10,padding:"14px",marginBottom:10}}>
-                        <div style={{fontSize:28,fontWeight:700,color:C.red}}>{oneRM} kg</div>
-                        <div style={{fontSize:12,color:C.textMuted}}>Estimated 1RM</div>
-                      </div>
-                      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6}}>
-                        {[["95%",Math.round(oneRM*0.95),"Strength"],["85%",Math.round(oneRM*0.85),"Power"],["75%",Math.round(oneRM*0.75),"Hypertrophy"],["65%",Math.round(oneRM*0.65),"Endurance"]].map(([p,v,l]) => (
-                          <div key={p} style={{background:C.bgCard3,borderRadius:8,padding:"8px 4px",textAlign:"center"}}>
-                            <div style={{fontSize:14,color:C.red,fontWeight:500}}>{v}kg</div>
-                            <div style={{fontSize:10,color:C.textMuted}}>{p}</div>
-                            <div style={{fontSize:9,color:C.textDim}}>{l}</div>
-                          </div>
+                    </div>
+
+                    <div style={{ marginBottom: 14 }}>
+                      <label style={{ fontSize: 12, color: theme.textMuted, display: "block", marginBottom: 6 }}>Fitness Level</label>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        {["Beginner", "Intermediate", "Advanced"].map(l => (
+                          <motion.button key={l} whileTap={{ scale: 0.97 }}
+                            onClick={() => setProfile("level", l)}
+                            style={{
+                              flex: 1, padding: "10px", borderRadius: radius.md,
+                              border: `1px solid ${profile.level === l ? theme.red : theme.border2}`,
+                              background: profile.level === l ? `${theme.red}15` : "transparent",
+                              color: profile.level === l ? theme.red : theme.textMuted,
+                              cursor: "pointer", fontSize: 13,
+                              fontWeight: profile.level === l ? 500 : 400,
+                            }}>
+                            {l}
+                          </motion.button>
                         ))}
                       </div>
-                    </>
-                  );
-                })()}
-              </div>
-            </div>
-            <div style={g2}>
-              <div style={card}>
-                <h3 style={h3s}>Body Fat Estimator (Navy)</h3>
-                {(() => {
-                  const bf = +(495/(1.0324-0.19077*Math.log10(Math.max(1,+bfWaist-+bfNeck))+0.15456*Math.log10(+profile.height))-450).toFixed(1);
-                  const bfLabel = bf<8?"Essential":bf<14?"Athletic":bf<18?"Fitness":bf<24?"Average":"High";
-                  const bfColor = bf<14?C.blue:bf<18?C.green:bf<24?C.yellow:C.red;
-                  return (
-                    <>
-                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
-                        <div>
-                          <label style={{fontSize:11,color:C.textMuted,display:"block",marginBottom:3}}>Neck (cm)</label>
-                          <input type="number" value={bfNeck} onChange={e => setBfNeck(e.target.value)} style={{...INP,padding:"8px 10px"}}/>
+                    </div>
+
+                    <div style={{ marginBottom: 18 }}>
+                      <label style={{ fontSize: 12, color: theme.textMuted, display: "block", marginBottom: 6 }}>Goal</label>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        {["Muscle Gain", "Fat Loss", "Endurance", "Strength", "General Fitness"].map(g => (
+                          <motion.button key={g} whileTap={{ scale: 0.95 }}
+                            onClick={() => setProfile("goal", g)}
+                            style={{
+                              padding: "8px 16px", borderRadius: radius.full,
+                              border: `1px solid ${profile.goal === g ? theme.red : theme.border2}`,
+                              background: profile.goal === g ? `${theme.red}15` : "transparent",
+                              color: profile.goal === g ? theme.red : theme.textMuted,
+                              cursor: "pointer", fontSize: 12,
+                              fontWeight: profile.goal === g ? 500 : 400,
+                            }}>
+                            {g}
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{
+                      background: theme.bgCard2, borderRadius: radius.md,
+                      padding: "14px", marginBottom: 16,
+                      border: `1px solid ${theme.border}`,
+                    }}>
+                      <div style={{ color: theme.textMuted, fontSize: 12, marginBottom: 8, fontWeight: 500 }}>
+                        Auto-calculated targets
+                      </div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12 }}>
+                        <div style={{ color: theme.textMuted }}>
+                          Calories: <span style={{ color: theme.red, fontWeight: 500 }}>{calGoal} kcal</span>
                         </div>
-                        <div>
-                          <label style={{fontSize:11,color:C.textMuted,display:"block",marginBottom:3}}>Waist (cm)</label>
-                          <input type="number" value={bfWaist} onChange={e => setBfWaist(e.target.value)} style={{...INP,padding:"8px 10px"}}/>
+                        <div style={{ color: theme.textMuted }}>
+                          Protein: <span style={{ color: theme.blue, fontWeight: 500 }}>{protGoal}g</span>
+                        </div>
+                        <div style={{ color: theme.textMuted }}>
+                          BMI: <span style={{ color: bmiColor, fontWeight: 500 }}>{bmi}</span>
+                        </div>
+                        <div style={{ color: theme.textMuted }}>
+                          Goal: <span style={{ color: theme.yellow, fontWeight: 500 }}>{profile.goal}</span>
                         </div>
                       </div>
-                      <div style={{textAlign:"center",background:C.bgCard2,borderRadius:10,padding:"14px"}}>
-                        <div style={{fontSize:28,fontWeight:700,color:bfColor}}>{isNaN(bf)||bf<0?"-":bf}%</div>
-                        <div style={{fontSize:13,color:bfColor}}>{bfLabel}</div>
-                      </div>
-                    </>
-                  );
-                })()}
-              </div>
-              <div style={card}>
-                <h3 style={h3s}>Recovery Guide</h3>
-                {[["Chest/Triceps","48-72h",C.red],["Back/Biceps","48-72h",C.blue],["Legs","72-96h",C.green],["Shoulders","48-72h",C.yellow],["Core","24-48h",C.orange],["Cardio","24h",C.teal]].map(([m,t,c]) => (
-                  <div key={m} style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:`1px solid ${C.border}`,fontSize:13}}>
-                    <span>{m}</span>
-                    <span style={{color:c,fontSize:12}}>{t}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
+                    </div>
 
-        {/* AI COACH */}
-        {tab === "ai" && (
-          <>
-            <h2 style={h2s}>AI Coach</h2>
-            <AICoach profile={profile} totalCal={totalCal} totalProt={totalProt} water={water} level={level} xp={xp}/>
-          </>
-        )}
+                    <Button style={{ width: "100%" }}>Save Profile</Button>
+                  </Card>
+                </motion.div>
+              </motion.div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
 
-        {/* PROFILE */}
-        {tab === "profile" && (
-          <>
-            <h2 style={h2s}>Profile</h2>
-            <div style={card}>
-              <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:18,paddingBottom:16,borderBottom:`1px solid ${C.border}`}}>
-                <div style={{width:64,height:64,background:C.red,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,fontWeight:700}}>{profile.name.charAt(0).toUpperCase()}</div>
-                <div>
-                  <div style={{fontWeight:600,fontSize:18}}>{profile.name}</div>
-                  <div style={{color:C.textMuted,fontSize:13,marginTop:2}}>{profile.level} · {profile.goal}</div>
-                  <div style={{display:"flex",gap:8,marginTop:4}}>
-                    <span style={{fontSize:12,color:C.yellow}}>Lv.{level}</span>
-                    <span style={{fontSize:12,color:bmiColor}}>BMI: {bmi}</span>
-                    <span style={{fontSize:12,color:C.red}}>🔥 {streak}</span>
-                  </div>
-                </div>
-              </div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
-                {[["Name","name","text"],["Age","age","number"],["Weight (kg)","weight","number"],["Height (cm)","height","number"]].map(([l,k,t]) => (
-                  <div key={k}>
-                    <label style={{fontSize:12,color:C.textMuted,display:"block",marginBottom:4}}>{l}</label>
-                    <input type={t} value={profile[k]} onChange={e => setProfile(p=>({...p,[k]:e.target.value}))} style={INP}/>
-                  </div>
-                ))}
-              </div>
-              <div style={{marginBottom:12}}>
-                <label style={{fontSize:12,color:C.textMuted,display:"block",marginBottom:6}}>Gender</label>
-                <div style={{display:"flex",gap:8}}>
-                  {["Male","Female","Other"].map(g => (
-                    <button key={g} onClick={() => setProfile(p=>({...p,gender:g}))} style={{flex:1,padding:"8px",borderRadius:8,border:`1px solid ${profile.gender===g?C.red:C.border}`,background:profile.gender===g?C.red+"20":"transparent",color:profile.gender===g?C.red:C.textMuted,cursor:"pointer",fontSize:13}}>{g}</button>
-                  ))}
-                </div>
-              </div>
-              <div style={{marginBottom:12}}>
-                <label style={{fontSize:12,color:C.textMuted,display:"block",marginBottom:6}}>Fitness Level</label>
-                <div style={{display:"flex",gap:8}}>
-                  {["Beginner","Intermediate","Advanced"].map(l => (
-                    <button key={l} onClick={() => setProfile(p=>({...p,level:l}))} style={{flex:1,padding:"8px",borderRadius:8,border:`1px solid ${profile.level===l?C.red:C.border}`,background:profile.level===l?C.red+"20":"transparent",color:profile.level===l?C.red:C.textMuted,cursor:"pointer",fontSize:13}}>{l}</button>
-                  ))}
-                </div>
-              </div>
-              <div style={{marginBottom:16}}>
-                <label style={{fontSize:12,color:C.textMuted,display:"block",marginBottom:6}}>Goal</label>
-                <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                  {["Muscle Gain","Fat Loss","Endurance","Strength","General Fitness"].map(g => (
-                    <button key={g} onClick={() => setProfile(p=>({...p,goal:g}))} style={{padding:"7px 14px",borderRadius:20,border:`1px solid ${profile.goal===g?C.red:C.border}`,background:profile.goal===g?C.red+"20":"transparent",color:profile.goal===g?C.red:C.textMuted,cursor:"pointer",fontSize:12}}>{g}</button>
-                  ))}
-                </div>
-              </div>
-              <div style={{background:C.bgCard2,borderRadius:10,padding:"12px",marginBottom:12,fontSize:12}}>
-                <div style={{color:C.textMuted,marginBottom:6}}>Auto-calculated targets</div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
-                  <div style={{color:C.textMuted}}>Calories: <span style={{color:C.red}}>{calGoal} kcal</span></div>
-                  <div style={{color:C.textMuted}}>Protein: <span style={{color:C.blue}}>{protGoal}g</span></div>
-                  <div style={{color:C.textMuted}}>BMI: <span style={{color:bmiColor}}>{bmi}</span></div>
-                  <div style={{color:C.textMuted}}>Goal: <span style={{color:C.yellow}}>{profile.goal}</span></div>
-                </div>
-              </div>
-              <button style={{...RBTN,width:"100%"}}>Save Profile</button>
-            </div>
-          </>
-        )}
-
+      <Toast
+        message={toast.message}
+        sub={toast.sub}
+        visible={toast.visible}
+        onClose={clearToast}
+        onUndo={undoAddFood}
+        duration={4000}
+      />
       </div>
     </div>
   );
