@@ -5,6 +5,7 @@ import { useWorkoutStore } from "../stores/workoutStore";
 import { useUiStore } from "../stores/uiStore";
 
 function subscribeToHydration(store, cb) {
+  if (store.persist.hasHydrated()) cb();
   const unsub = store.persist.onFinishHydration(() => cb());
   return () => { unsub?.(); };
 }

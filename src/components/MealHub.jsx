@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Apple, Flame, Droplets, Plus, X, ChevronDown, Zap,
@@ -214,7 +214,7 @@ function MealSection({ time, items, secCal, secProt, secCarbs, secFat, totalCal,
                     <div style={{ paddingTop: 10 }}>
                       <AnimatePresence mode="popLayout">
                         {items.map((meal, mi) => (
-                          <FoodCard key={meal.uid || `${meal.name}-${meal.mealTime}-${Math.round(meal.cal)}`} meal={meal} index={mi} onDelete={onDeleteMeal} />
+                          <FoodCard key={meal.uid} meal={meal} index={mi} onDelete={onDeleteMeal} />
                         ))}
                       </AnimatePresence>
                     </div>
@@ -463,10 +463,10 @@ export default function MealHub({ calGoal, protGoal, onOpenModal }) {
             <motion.div variants={itemVariants} style={{ display: "flex", gap: 8, marginBottom: 14, overflowX: "auto", paddingBottom: 4 }}>
               {FOOD_DB.filter(f => f.healthyScore >= 8).slice(0, 8).map((qm, i) => (
                 <motion.button
-                  key={qm.name}
+                  key={`${qm.name}-${qm.cal}-${i}`}
                   initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.02 }}
                   whileHover={{ scale: 1.03, borderColor: theme.green + "40" }} whileTap={{ scale: 0.96 }}
-                  onClick={() => { useNutritionStore.getState().addMeal({ ...qm, mealTime: "Snack", qty: 1 }); }}
+                  onClick={() => onOpenModal(qm)}
                   style={{
                     flexShrink: 0, background: theme.bgCard2,
                     border: `1px solid ${theme.border}`, borderRadius: radius.md,

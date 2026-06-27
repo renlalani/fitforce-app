@@ -1,8 +1,10 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-let _logUid = 3;
-function nextLogUid() { return (++_logUid).toString(36); }
+function nextLogUid(log) {
+  const maxUid = log.reduce((max, e) => Math.max(max, parseInt(e.uid, 36) || 0), 0);
+  return (maxUid + 1).toString(36);
+}
 
 const initialState = {
   workoutLog: [
@@ -55,7 +57,9 @@ export const useWorkoutStore = create(
 
       setNewLogRow: (field, value) =>
         set((state) => ({
-          newLogRow: { ...state.newLogRow, [field]: value },
+          newLogRow: typeof field === "function"
+            ? field(state.newLogRow)
+            : { ...state.newLogRow, [field]: value },
         })),
 
       resetNewLogRow: () =>
@@ -77,7 +81,7 @@ export const useWorkoutStore = create(
             workoutLog: [
               ...state.workoutLog,
               {
-                uid: nextLogUid(),
+                uid: nextLogUid(state.workoutLog),
                 date: today,
                 name,
                 sets: s,
@@ -141,15 +145,19 @@ export const useWorkoutStore = create(
             totalVolume,
           };
 
-          const logEntries = entries.map((ex) => ({
-            uid: nextLogUid(),
-            date: today,
-            name: ex.name,
-            sets: ex.sets,
-            reps: ex.reps,
-            weight: ex.weight,
-            vol: ex.vol,
-          }));
+          let baseUid = state.workoutLog.reduce((max, e) => Math.max(max, parseInt(e.uid, 36) || 0), 0);
+          const logEntries = entries.map((ex) => {
+            baseUid++;
+            return {
+              uid: baseUid.toString(36),
+              date: today,
+              name: ex.name,
+              sets: ex.sets,
+              reps: ex.reps,
+              weight: ex.weight,
+              vol: ex.vol,
+            };
+          });
 
           return {
             workoutSessions: [...state.workoutSessions, session],
@@ -162,10 +170,9 @@ export const useWorkoutStore = create(
       name: "fitforce-workout",
       onRehydrateStorage: () => (state) => {
         if (!state) return;
-        let uidCounter = 0;
         state.workoutLog = (state.workoutLog || []).map((e) => ({
           ...e,
-          uid: e.uid || (uidCounter++).toString(36),
+          uid: e.uid || Math.random().toString(36).slice(2, 8),
           sets: +e.sets || 0,
           reps: +e.reps || 0,
           weight: +e.weight || 0,

@@ -121,7 +121,7 @@ function FoodDetailCard({ food, qty, onQtyChange, isFav, onToggleFav }) {
   );
 }
 
-export default function FoodPickerModal({ onAdd, onClose }) {
+export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
   const [search, setSearch] = useState("");
   const [qty, setQty] = useState(1);
   const [mealTime, setMealTime] = useState("Breakfast");
@@ -136,6 +136,14 @@ export default function FoodPickerModal({ onAdd, onClose }) {
   useEffect(() => { save(FAV_KEY, favorites); }, [favorites]);
   useEffect(() => { save(RECENT_KEY, recent); }, [recent]);
   useEffect(() => { if (mode === "search") searchRef.current?.focus(); }, [mode]);
+
+  useEffect(() => {
+    if (initialFood) {
+      setSearch(initialFood.name);
+      setSelected(initialFood);
+      setMode("search");
+    }
+  }, [initialFood]);
 
   const toggleFav = useCallback((name) => {
     setFavorites(p => p.includes(name) ? p.filter(n => n !== name) : [...p, name]);
@@ -171,7 +179,6 @@ export default function FoodPickerModal({ onAdd, onClose }) {
   }, [mealTime, onAdd, onClose]);
 
   const handleAdd = useCallback(() => {
-    if (adding) return;
     const food = mode === "custom"
       ? { name: custom.name, mealTime, qty: 1, cal: Math.round(+custom.cal || 0), protein: Math.round(+custom.protein || 0), carbs: Math.round(+custom.carbs || 0), fat: Math.round(+custom.fat || 0), fiber: 0, sugar: 0 }
       : { name: selected.name, mealTime, qty, cal: calc("cal"), protein: calc("protein"), carbs: calc("carbs"), fat: calc("fat"), fiber: Math.round((selected.fiber || 0) * qty), sugar: Math.round((selected.sugar || 0) * qty) };

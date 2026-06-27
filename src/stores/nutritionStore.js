@@ -3,8 +3,10 @@ import { persist } from "zustand/middleware";
 
 const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 
-let _mealUid = 3;
-function nextMealUid() { return (++_mealUid).toString(36); }
+function nextMealUid(meals) {
+  const maxUid = meals.reduce((max, m) => Math.max(max, parseInt(m.uid, 36) || 0), 0);
+  return (maxUid + 1).toString(36);
+}
 
 const initialState = {
   meals: [
@@ -50,7 +52,7 @@ export const useNutritionStore = create(
             totalDays = state.totalDaysLogged + 1;
           }
           return {
-            meals: [...state.meals, { ...food, uid: nextMealUid(), fiber: food.fiber || 0, sugar: food.sugar || 0 }],
+            meals: [...state.meals, { ...food, uid: nextMealUid(state.meals), fiber: food.fiber || 0, sugar: food.sugar || 0 }],
             lastLogDate: today2,
             nutritionStreak: streak,
             totalDaysLogged: totalDays,

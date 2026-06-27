@@ -642,7 +642,7 @@ export default function WorkoutModal({ plan, onClose }) {
                       <Badge label={cur?.level} color={LEVEL_COLOR[cur?.level]} />
                     </div>
                     <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                      <Tag label={`${cur?.muscle}`} color={muscleColor[cur?.muscle] || theme.red} />
+                      <Tag label={cur?.muscle || "General"} color={muscleColor[cur?.muscle] || theme.red} />
                       <Tag label={`${cur?.rest}s rest`} color={theme.yellow} />
                       <Tag label={`~${cur?.cal} cal`} color={theme.orange} />
                     </div>

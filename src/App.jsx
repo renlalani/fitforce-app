@@ -11,8 +11,7 @@ import {
   TrendingUp
 } from "lucide-react";
 import { theme, radius, shadow, transition, muscleColor, cardStyle } from "./styles/designSystem";
-import { EXERCISES, WORKOUT_PLANS, MUSCLES } from "./data/fitness";
-const C = theme;
+import { EXERCISES, MUSCLES } from "./data/fitness";
 import ExerciseImage from "./components/ExerciseImage";
 import Button from "./components/ui/Button";
 import Card from "./components/ui/Card";
@@ -29,6 +28,7 @@ import Dashboard from "./components/Dashboard";
 import useAddFood from "./hooks/useAddFood";
 import { useHydrated } from "./hooks/useHydrated";
 import { Skeleton } from "./components/ui/Skeleton";
+import { useState, useCallback } from "react";
 
 function AppSkeleton() {
   return (
@@ -68,143 +68,6 @@ const tabs = [
   { id: "profile", label: "Profile", icon: User },
 ];
 
-const FOOD_DB = [
-  {name:"Chicken Breast (100g)",cal:165,protein:31,carbs:0,fat:3.6},
-  {name:"Brown Rice (100g)",cal:111,protein:2.6,carbs:23,fat:0.9},
-  {name:"Oats (100g)",cal:389,protein:17,carbs:66,fat:7},
-  {name:"Whole Eggs (1 egg)",cal:78,protein:6,carbs:0.6,fat:5},
-  {name:"Salmon (100g)",cal:208,protein:20,carbs:0,fat:13},
-  {name:"Broccoli (100g)",cal:34,protein:2.8,carbs:7,fat:0.4},
-  {name:"Banana (1 medium)",cal:105,protein:1.3,carbs:27,fat:0.4},
-  {name:"Peanut Butter (1 tbsp)",cal:94,protein:4,carbs:3,fat:8},
-  {name:"Whey Protein (1 scoop)",cal:120,protein:25,carbs:3,fat:2},
-  {name:"Sweet Potato (100g)",cal:86,protein:1.6,carbs:20,fat:0.1},
-  {name:"Greek Yogurt (100g)",cal:59,protein:10,carbs:3.6,fat:0.4},
-  {name:"Almonds (30g)",cal:174,protein:6,carbs:6,fat:15},
-  {name:"Tuna (100g)",cal:116,protein:25,carbs:0,fat:1},
-  {name:"White Rice (100g)",cal:130,protein:2.7,carbs:28,fat:0.3},
-  {name:"Beef Mince (100g)",cal:250,protein:26,carbs:0,fat:17},
-  {name:"Milk Full (250ml)",cal:150,protein:8,carbs:12,fat:8},
-  {name:"Lentils cooked (100g)",cal:116,protein:9,carbs:20,fat:0.4},
-];
-
-const OL = {position:"fixed",inset:0,background:"rgba(0,0,0,0.9)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:16,overflowY:"auto"};
-const MOD = {background:C.bgCard,border:`1px solid ${C.border2}`,borderRadius:16,padding:"20px",width:"100%",maxWidth:460};
-const RBTN = {background:C.red,color:"#fff",border:"none",borderRadius:8,padding:"12px 20px",cursor:"pointer",fontSize:13,fontWeight:500};
-const INP = {background:C.bgCard2,border:`1px solid ${C.border2}`,borderRadius:8,padding:"10px 12px",color:C.text,fontSize:13,outline:"none",width:"100%",boxSizing:"border-box"};
-
-function MealModal({onAdd, onClose}) {
-  const [search, setSearch] = useState("");
-  const [qty, setQty] = useState(1);
-  const [mealTime, setMealTime] = useState("Breakfast");
-  const [selected, setSelected] = useState(null);
-  const [mode, setMode] = useState("search");
-  const [custom, setCustom] = useState({name:"",cal:"",protein:"",carbs:"",fat:""});
-  const filtered = FOOD_DB.filter(f => f.name.toLowerCase().includes(search.toLowerCase()));
-  const calc = f => selected ? Math.round(selected[f]*qty) : 0;
-
-  return (
-    <div style={OL}>
-      <div style={{...MOD,maxHeight:"90vh",overflowY:"auto"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-          <h3 style={{color:C.text,margin:0}}>Add Meal</h3>
-          <button onClick={onClose} style={{background:"transparent",border:"none",color:C.textMuted,fontSize:22,cursor:"pointer"}}>×</button>
-        </div>
-        <div style={{display:"flex",gap:6,marginBottom:12}}>
-          {["search","custom"].map(m => (
-            <button key={m} onClick={() => setMode(m)} style={{flex:1,padding:"8px",borderRadius:8,border:`1px solid ${mode===m?C.red:C.border}`,background:mode===m?C.red+"20":"transparent",color:mode===m?C.red:C.textMuted,cursor:"pointer",fontSize:13}}>
-              {m==="search"?"Food Database":"Custom Food"}
-            </button>
-          ))}
-        </div>
-        {mode === "search" ? (
-          <>
-            <input placeholder="Search food..." value={search} onChange={e => setSearch(e.target.value)} style={{...INP,marginBottom:8}}/>
-            <div style={{maxHeight:190,overflowY:"auto",marginBottom:10}}>
-              {filtered.map((f,i) => (
-                <div key={i} onClick={() => setSelected(f)} style={{padding:"9px 12px",borderRadius:8,marginBottom:4,cursor:"pointer",background:selected?.name===f.name?C.red+"25":C.bgCard2,border:`1px solid ${selected?.name===f.name?C.red:C.border}`}}>
-                  <div style={{display:"flex",justifyContent:"space-between"}}>
-                    <span style={{fontSize:13,color:C.text}}>{f.name}</span>
-                    <div style={{display:"flex",gap:8,fontSize:11}}>
-                      <span style={{color:C.red}}>{f.cal} kcal</span>
-                      <span style={{color:C.blue}}>{f.protein}g P</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            {selected && (
-              <>
-                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                  <span style={{fontSize:12,color:C.textMuted}}>Qty:</span>
-                  <button onClick={() => setQty(q => Math.max(0.5, +(q-0.5).toFixed(1)))} style={{background:C.bgCard3,border:`1px solid ${C.border}`,borderRadius:6,width:28,height:28,cursor:"pointer",color:C.text,fontSize:16}}>−</button>
-                  <span style={{fontSize:14,fontWeight:500,color:C.text,minWidth:30,textAlign:"center"}}>{qty}</span>
-                  <button onClick={() => setQty(q => +(q+0.5).toFixed(1))} style={{background:C.bgCard3,border:`1px solid ${C.border}`,borderRadius:6,width:28,height:28,cursor:"pointer",color:C.text,fontSize:16}}>+</button>
-                </div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6,marginBottom:12}}>
-                  {[["Cal",calc("cal"),"kcal",C.red],["Protein",calc("protein"),"g",C.blue],["Carbs",calc("carbs"),"g",C.yellow],["Fat",calc("fat"),"g",C.green]].map(([l,v,u,col]) => (
-                    <div key={l} style={{textAlign:"center",background:C.bgCard3,borderRadius:8,padding:"8px 4px"}}>
-                      <div style={{fontSize:16,fontWeight:500,color:col}}>{v}</div>
-                      <div style={{fontSize:10,color:C.textMuted}}>{l}</div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </>
-        ) : (
-          <div style={{marginBottom:12}}>
-            {[["Food name","name","text"],["Calories","cal","number"],["Protein (g)","protein","number"],["Carbs (g)","carbs","number"],["Fat (g)","fat","number"]].map(([l,k,t]) => (
-              <div key={k} style={{marginBottom:8}}>
-                <label style={{fontSize:12,color:C.textMuted,display:"block",marginBottom:4}}>{l}</label>
-                <input type={t} placeholder={l} value={custom[k]} onChange={e => setCustom(p => ({...p,[k]:e.target.value}))} style={INP}/>
-              </div>
-            ))}
-          </div>
-        )}
-        <div style={{marginBottom:12}}>
-          <label style={{fontSize:12,color:C.textMuted,display:"block",marginBottom:6}}>Meal Time</label>
-          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-            {["Breakfast","Lunch","Post-Workout","Dinner","Snack"].map(t => (
-              <button key={t} onClick={() => setMealTime(t)} style={{padding:"5px 12px",borderRadius:20,border:`1px solid ${mealTime===t?C.red:C.border}`,background:mealTime===t?C.red+"20":"transparent",color:mealTime===t?C.red:C.textMuted,cursor:"pointer",fontSize:12}}>{t}</button>
-            ))}
-          </div>
-        </div>
-        <button
-          onClick={() => {
-            if (mode==="search" && selected) onAdd({name:selected.name,mealTime,qty,cal:calc("cal"),protein:calc("protein"),carbs:calc("carbs"),fat:calc("fat")});
-            else if (mode==="custom" && custom.name) onAdd({name:custom.name,mealTime,qty:1,cal:+custom.cal||0,protein:+custom.protein||0,carbs:+custom.carbs||0,fat:+custom.fat||0});
-            onClose();
-          }}
-          disabled={mode==="search"?!selected:!custom.name}
-          style={{...RBTN,width:"100%",opacity:(mode==="search"?!selected:!custom.name)?0.5:1}}
-        >Add to Log</button>
-      </div>
-    </div>
-  );
-}
-
-function WaterTracker({water, setWater}) {
-  const goal = 8;
-  return (
-    <div style={{background:C.bgCard,border:`1px solid ${C.border2}`,borderRadius:12,padding:"14px",marginBottom:12}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-        <h3 style={{color:C.text,margin:0,fontSize:14}}>Water Intake</h3>
-        <span style={{color:C.teal,fontSize:13,fontWeight:500}}>{water}/{goal} glasses</span>
-      </div>
-      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
-        {Array.from({length:goal},(_,i) => (
-          <div key={i} onClick={() => setWater(i < water ? i : i+1)} style={{width:28,height:36,borderRadius:6,background:i<water?C.teal:C.bgCard2,border:`1px solid ${i<water?C.teal:C.border}`,cursor:"pointer"}}/>
-        ))}
-      </div>
-      <div style={{display:"flex",gap:6}}>
-        <button onClick={() => setWater(w => Math.min(goal,w+1))} style={{flex:1,background:C.teal+"20",border:`1px solid ${C.teal}44`,color:C.teal,borderRadius:8,padding:"7px",cursor:"pointer",fontSize:12}}>+ Add Glass</button>
-        <button onClick={() => setWater(0)} style={{background:C.bgCard2,border:`1px solid ${C.border}`,color:C.textMuted,borderRadius:8,padding:"7px 12px",cursor:"pointer",fontSize:12}}>Reset</button>
-      </div>
-    </div>
-  );
-}
-
 export default function FitForce() {
   const hydrated = useHydrated();
 
@@ -215,7 +78,6 @@ export default function FitForce() {
   const setNewLogRow = useWorkoutStore(s => s.setNewLogRow);
   const addLogEntry = useWorkoutStore(s => s.addLogEntry);
   const xp = useUserStore(s => s.xp);
-  const setXp = useUserStore(s => s.setXp);
   const prs = useUserStore(s => s.prs);
   const addXp = useUserStore(s => s.addXp);
   const updatePrWeight = useUserStore(s => s.updatePrWeight);
@@ -266,6 +128,11 @@ export default function FitForce() {
   const level = Math.floor(xp / 500) + 1;
   const xpToNext = 500 - (xp % 500);
   const { addFoodToMeal, undoAddFood, toast, clearToast } = useAddFood();
+  const [preselectedFood, setPreselectedFood] = useState(null);
+  const handleOpenModal = useCallback((food) => {
+    setPreselectedFood(food || null);
+    setShowMealModal(true);
+  }, []);
 
   const filteredEx = EXERCISES.filter(e => (filterMuscle === "All" || e.muscle === filterMuscle) && (filterLevel === "All" || e.level === filterLevel));
 
@@ -297,8 +164,10 @@ export default function FitForce() {
       <AnimatePresence>
         {showMealModal && (
           <FoodPickerModal
+            key={preselectedFood?.name || "new"}
+            initialFood={preselectedFood}
             onAdd={addFoodToMeal}
-            onClose={() => setShowMealModal(false)}
+            onClose={() => { setShowMealModal(false); setPreselectedFood(null); }}
           />
         )}
       </AnimatePresence>
@@ -611,7 +480,7 @@ export default function FitForce() {
               <MealHub
                 calGoal={calGoal}
                 protGoal={protGoal}
-                onOpenModal={() => setShowMealModal(true)}
+                onOpenModal={handleOpenModal}
               />
             )}
 
