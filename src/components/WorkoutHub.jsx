@@ -457,6 +457,7 @@ export default function WorkoutHub({
                 borderRadius: radius.md, padding: "0 12px",
               }}>
                 <Search size={16} color={theme.textMuted} />
+                <label htmlFor="exercise-search" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap", border: 0 }}>Search exercises</label>
                 <input
                   id="exercise-search"
                   name="exerciseSearch"
@@ -675,7 +676,7 @@ export default function WorkoutHub({
                             >
                               <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 10, marginTop: 10 }}>
                                 {exercises.map((w, wi) => (
-                                  <div key={w.uid || `${w.date}-${w.name}-${wi}`} style={{
+                                  <div key={`wh-${w.uid || `${w.date}-${w.name}-${wi}`}`} style={{
                                     display: "flex", justifyContent: "space-between",
                                     padding: "6px 0", fontSize: 12,
                                     borderBottom: wi < exercises.length - 1 ? `1px solid ${theme.border}50` : "none",
@@ -718,7 +719,7 @@ export default function WorkoutHub({
                 ) : (
                   bestPRs.map((pr, i) => (
                     <motion.div
-                      key={pr.name}
+                      key={`pr-${pr.name}-${i}`}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.05 }}

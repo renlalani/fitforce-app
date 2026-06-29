@@ -82,9 +82,9 @@ export const useUserStore = create(
           ),
         })),
 
-      addPr: (lift) =>
+      addPr: (lift, weight = 60) =>
         set((state) => ({
-          prs: [...state.prs, { lift, weight: 60 }],
+          prs: [...state.prs, { lift, weight: Number(weight) || 60 }],
         })),
     }),
     {

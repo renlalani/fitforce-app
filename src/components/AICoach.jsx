@@ -900,7 +900,10 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
                 borderRadius: radius.lg,
                 padding: "4px 4px 4px 14px",
               }}>
+                <label htmlFor="ai-coach-input" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap", border: 0 }}>Ask your AI coach</label>
                 <textarea
+                  id="ai-coach-input"
+                  name="aiCoachInput"
                   ref={inputRef}
                   value={input}
                   onChange={e => setInput(e.target.value)}

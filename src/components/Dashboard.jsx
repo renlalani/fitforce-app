@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Zap, Flame, Dumbbell, Apple, Droplets, Brain, Target, TrendingUp,
-  Sparkles, Sun, Moon, ChevronRight, Activity, Trophy
+  Sparkles, Sun, Moon, ChevronRight, Activity, Trophy, Wand2, ChefHat
 } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
@@ -12,6 +12,7 @@ import { theme, radius, shadow, transition } from "../styles/designSystem";
 import { WORKOUT_PLANS } from "../data/fitness";
 import AnimatedCounter from "./AnimatedCounter";
 import ProgressRing from "./ProgressRing";
+import StreakCalendar from "./StreakCalendar";
 import { useWorkoutStore } from "../stores/workoutStore";
 import { useUserStore } from "../stores/userStore";
 import { useNutritionStore } from "../stores/nutritionStore";
@@ -62,7 +63,7 @@ const TooltipContent = ({ active, payload, label }) => {
 export default function Dashboard({
   profile, totalCal, totalProt, totalCarbs, totalFat,
   calGoal, protGoal,
-  setActiveWorkout, setShowMealModal, onNavigate,
+  setActiveWorkout, setShowMealModal, setShowWorkoutGenerator, setShowMealPlanner, onNavigate,
   level, streak,
 }) {
   const workoutSessions = useWorkoutStore(s => s.workoutSessions);
@@ -105,10 +106,29 @@ export default function Dashboard({
   }, [bodyStats]);
   const xpPct = ((xp % 500) / 500) * 100;
 
+  const workoutDates = useMemo(() => {
+    return workoutSessions.map(ws => new Date(ws.completedAt || ws.date));
+  }, [workoutSessions]);
+
+  const nutritionDates = useMemo(() => {
+    const dates = meals.map(m => m.date ? new Date(m.date) : new Date());
+    return [...new Set(dates.map(d => d.toDateString()))].map(d => new Date(d));
+  }, [meals]);
+
+  const weeklySessions = useMemo(() => {
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay());
+    weekStart.setHours(0, 0, 0, 0);
+    return workoutSessions.filter(ws => new Date(ws.completedAt || ws.date) >= weekStart).length;
+  }, [workoutSessions]);
+
   const actionCards = [
     { icon: Dumbbell, label: "Start Workout", color: theme.red, desc: "Begin a session", action: () => setActiveWorkout(WORKOUT_PLANS[0]) },
     { icon: Apple, label: "Log Meal", color: theme.green, desc: "Track nutrition", action: () => setShowMealModal(true) },
     { icon: Brain, label: "AI Coach", color: theme.purple, desc: "Ask anything", action: () => onNavigate?.("ai") },
+    { icon: Wand2, label: "AI Workout Plan", color: theme.pink, desc: "Generate a plan", action: () => setShowWorkoutGenerator?.(true) },
+    { icon: ChefHat, label: "AI Meal Plan", color: theme.teal, desc: "Plan your meals", action: () => setShowMealPlanner?.(true) },
     { icon: TrendingUp, label: "Progress", color: theme.blue, desc: "View stats", action: () => onNavigate?.("progress") },
     { icon: Droplets, label: "Add Water", color: theme.teal, desc: "Stay hydrated", action: () => setWater(w => Math.min(8, w + 1)) },
     { icon: Zap, label: `Level ${level+1}`, color: theme.yellow, desc: `${500 - (xp % 500)} XP to go`, action: () => {} },
@@ -579,6 +599,37 @@ export default function Dashboard({
               ))
             )}
           </div>
+        </div>
+      </motion.div>
+
+      {/* Streak Calendar */}
+      <motion.div variants={itemVariants} style={{ marginBottom: 16 }}>
+        <div style={{
+          background: `linear-gradient(135deg, ${theme.bgCard}, ${theme.bgCard2})`,
+          border: `1px solid ${theme.border}`,
+          borderRadius: radius.xl,
+          padding: "18px",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: radius.md,
+                background: `${theme.orange}15`, display: "flex",
+                alignItems: "center", justifyContent: "center",
+              }}>
+                <span style={{ fontSize: 14 }}>📅</span>
+              </div>
+              <h3 style={{ fontSize: 13, fontWeight: 600, color: theme.text, margin: 0 }}>Activity Calendar</h3>
+            </div>
+            <div style={{ fontSize: 11, color: theme.textMuted }}>
+              <span style={{ color: theme.green, fontWeight: 600 }}>{weeklySessions}</span> workouts this week
+            </div>
+          </div>
+          <StreakCalendar
+            workoutDates={workoutDates}
+            nutritionDates={nutritionDates}
+            streak={streak}
+          />
         </div>
       </motion.div>
 

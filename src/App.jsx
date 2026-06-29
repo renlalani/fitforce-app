@@ -6,8 +6,8 @@ import { useUiStore } from "./stores/uiStore";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Zap, Dumbbell, Apple, Activity, User,
-  Flame, Search, Plus, X,
-  Ruler, Heart, Brain,
+  Flame, Search, Plus,
+  Ruler, Brain,
   TrendingUp
 } from "lucide-react";
 import { theme, radius, shadow, transition, muscleColor, cardStyle } from "./styles/designSystem";
@@ -16,19 +16,23 @@ import ExerciseImage from "./components/ExerciseImage";
 import Button from "./components/ui/Button";
 import Card from "./components/ui/Card";
 import { Tag, Badge } from "./components/ui/Tag";
-import Modal from "./components/ui/Modal";
 import MiniChart from "./components/MiniChart";
+import ExerciseDetailModal from "./components/ExerciseDetailModal";
+import WorkoutGenerator from "./components/WorkoutGenerator";
+import MealPlanner from "./components/MealPlanner";
+import Profile from "./components/Profile";
 import WorkoutModal from "./components/WorkoutModal";
-import WorkoutHub from "./components/WorkoutHub";
-import MealHub from "./components/MealHub";
 import FoodPickerModal from "./components/FoodPickerModal";
 import Toast from "./components/Toast";
-import AICoach from "./components/AICoach";
-import Dashboard from "./components/Dashboard";
+
+const Dashboard = lazy(() => import("./components/Dashboard"));
+const WorkoutHub = lazy(() => import("./components/WorkoutHub"));
+const MealHub = lazy(() => import("./components/MealHub"));
+const AICoach = lazy(() => import("./components/AICoach"));
 import useAddFood from "./hooks/useAddFood";
 import { useHydrated } from "./hooks/useHydrated";
 import { Skeleton } from "./components/ui/Skeleton";
-import { useState, useCallback } from "react";
+import { useState, useCallback, lazy, Suspense } from "react";
 
 function AppSkeleton() {
   return (
@@ -43,8 +47,8 @@ function AppSkeleton() {
 }
 
 const pageVariants = {
-  initial: { opacity: 0, y: 12, scale: 0.99 },
-  animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35, ease: [0.4, 0, 0.2, 1] } },
+  initial: { y: 12, scale: 0.99 },
+  animate: { y: 0, scale: 1, transition: { duration: 0.35, ease: [0.4, 0, 0.2, 1] } },
   exit: { opacity: 0, y: -8, scale: 0.99, transition: { duration: 0.2, ease: [0.4, 0, 0.2, 1] } },
 };
 
@@ -94,6 +98,10 @@ export default function FitForce() {
   const setFilterLevel = useUiStore(s => s.setFilterLevel);
   const showMealModal = useUiStore(s => s.showMealModal);
   const setShowMealModal = useUiStore(s => s.setShowMealModal);
+  const showWorkoutGenerator = useUiStore(s => s.showWorkoutGenerator);
+  const setShowWorkoutGenerator = useUiStore(s => s.setShowWorkoutGenerator);
+  const showMealPlanner = useUiStore(s => s.showMealPlanner);
+  const setShowMealPlanner = useUiStore(s => s.setShowMealPlanner);
   const showExDetail = useUiStore(s => s.showExDetail);
   const setShowExDetail = useUiStore(s => s.setShowExDetail);
   const newBodyStat = useUiStore(s => s.newBodyStat);
@@ -172,35 +180,9 @@ export default function FitForce() {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {showExDetail && (
-          <Modal open={showExDetail} onClose={() => setShowExDetail(null)} maxWidth={420}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-              <h3 style={{ color: theme.text, margin: 0, fontSize: 17, fontWeight: 600 }}>{showExDetail.name}</h3>
-              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-                onClick={() => setShowExDetail(null)}
-                style={{ background: "transparent", border: "none", color: theme.textMuted, cursor: "pointer", padding: 4 }}>
-                <X size={20} />
-              </motion.button>
-            </div>
-            <ExerciseImage
-              exercise={showExDetail}
-              width="100%"
-              height={150}
-              style={{ marginBottom: 14, border: `1px solid ${theme.border}` }}
-            />
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
-              <Badge label={showExDetail.level} color={showExDetail.level === "Beginner" ? theme.green : showExDetail.level === "Intermediate" ? theme.yellow : theme.red} />
-              <Tag label={showExDetail.muscle} color={muscleColor[showExDetail.muscle] || theme.red} />
-              <Tag label={`${showExDetail.sets}×${showExDetail.reps}`} color={theme.blue} />
-              <Tag label={`${showExDetail.rest}s rest`} color={theme.yellow} />
-              <Tag label={`~${showExDetail.cal} cal`} color={theme.orange} />
-            </div>
-            <p style={{ color: theme.textMuted, fontSize: 13, lineHeight: 1.7, marginBottom: 16 }}>{showExDetail.desc}</p>
-            <Button style={{ width: "100%" }} onClick={() => setShowExDetail(null)}>Got it</Button>
-          </Modal>
-        )}
-      </AnimatePresence>
+      <ExerciseDetailModal exercise={showExDetail} open={!!showExDetail} onClose={() => setShowExDetail(null)} onSelectExercise={setShowExDetail} />
+      <WorkoutGenerator open={showWorkoutGenerator} onClose={() => setShowWorkoutGenerator(false)} />
+      <MealPlanner open={showMealPlanner} onClose={() => setShowMealPlanner(false)} />
 
       {/* Header */}
       <motion.div
@@ -353,6 +335,7 @@ export default function FitForce() {
             animate="animate"
             exit="exit"
           >
+            <Suspense fallback={<div style={{ padding: 20, color: theme.textMuted, fontSize: 13 }}>Loading...</div>}>
             {tab === "dashboard" && (
               <Dashboard
                 profile={profile}
@@ -364,6 +347,8 @@ export default function FitForce() {
                 protGoal={protGoal}
                 setActiveWorkout={setActiveWorkout}
                 setShowMealModal={setShowMealModal}
+                setShowWorkoutGenerator={setShowWorkoutGenerator}
+                setShowMealPlanner={setShowMealPlanner}
                 onNavigate={setTab}
                 level={level}
                 streak={streak}
@@ -494,8 +479,9 @@ export default function FitForce() {
                     <MiniChart data={bodyStats.map(b => ({ ...b, value: b.weight }))} color={theme.red} label="Weight trend (kg)" />
                     <div style={{ display: "flex", gap: 8 }}>
                       <div style={{ flex: 1 }}>
+                        <label htmlFor="body-weight" style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 4 }}>Weight (kg)</label>
                         <input
-                          id="body-weight" name="bodyWeight" type="number" step="0.1" placeholder="Weight (kg)"
+                          id="body-weight" name="bodyWeight" type="number" step="0.1"
                           value={newBodyStat}
                           onChange={e => setNewBodyStat(e.target.value)}
                           style={{
@@ -520,9 +506,9 @@ export default function FitForce() {
                   <Card>
                     <h3 style={h3s}>Strength PRs</h3>
                     {prs.map((p, i) => (
-                      <div key={p.lift} style={{ marginBottom: 12 }}>
+                      <div key={`pr-${p.lift}-${i}`} style={{ marginBottom: 12 }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                          <span style={{ fontSize: 13 }}>{p.lift}</span>
+                          <label htmlFor={`pr-weight-${i}`} style={{ fontSize: 13 }}>{p.lift}</label>
                           <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                             <input
                               id={`pr-weight-${i}`} name={`prWeight_${i}`} type="number" value={p.weight}
@@ -564,12 +550,14 @@ export default function FitForce() {
                   <Card>
                     <h3 style={h3s}>Body Measurements (cm)</h3>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: 10 }}>
-                      {Object.entries(measurements).map(([k, v]) => (
+                      {Object.entries(measurements).map(([k, v]) => {
+                        const id = `measurement-${k}`;
+                        return (
                         <div key={k}>
-                          <label style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 4, textTransform: "capitalize" }}>
+                          <label htmlFor={id} style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 4, textTransform: "capitalize" }}>
                             {k}
                           </label>
-                          <input
+                          <input id={id} name={k}
                             type="number" value={v}
                             onChange={e => setMeasurements(p => ({ ...p, [k]: e.target.value }))}
                             style={{
@@ -580,7 +568,8 @@ export default function FitForce() {
                             }}
                           />
                         </div>
-                      ))}
+                      );
+                      })}
                     </div>
                   </Card>
                 </motion.div>
@@ -599,7 +588,7 @@ export default function FitForce() {
                         </thead>
                         <tbody>
                           {workoutLog.map((w, i) => (
-                            <tr key={w.uid || `${w.date}-${w.name}-${i}`} style={{ borderBottom: `1px solid ${theme.border}` }}>
+                            <tr key={w.uid ? `wl-${w.uid}` : `wl-${i}-${w.date}-${w.name}`} style={{ borderBottom: `1px solid ${theme.border}` }}>
                               <td style={{ padding: "8px", color: theme.textMuted }}>{w.date}</td>
                               <td style={{ padding: "8px", fontWeight: 500 }}>{w.name}</td>
                               <td style={{ padding: "8px", color: theme.red }}>{w.sets}</td>
@@ -613,15 +602,20 @@ export default function FitForce() {
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 8, marginTop: 12 }}>
                       {[["Exercise", "name", "text"], ["Sets", "sets", "number"], ["Reps", "reps", "number"], ["Weight", "weight", "number"]].map(([ph, k, t]) => (
-                        <input key={k} id={`log-${k}`} name={`log${k.charAt(0).toUpperCase() + k.slice(1)}`} type={t} placeholder={ph}
-                          value={newLogRow[k]}
-                          onChange={e => setNewLogRow(p => ({ ...p, [k]: e.target.value }))}
-                          style={{
-                            background: theme.bgCard2, border: `1px solid ${theme.border2}`,
-                            borderRadius: radius.md, padding: "8px 12px",
-                            color: theme.text, fontSize: 12, outline: "none",
-                            width: "100%", boxSizing: "border-box",
-                          }} />
+                        <div key={k}>
+                          <label htmlFor={`log-${k}`} style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 4 }}>
+                            {ph}
+                          </label>
+                          <input id={`log-${k}`} name={`log${k.charAt(0).toUpperCase() + k.slice(1)}`} type={t}
+                            value={newLogRow[k]}
+                            onChange={e => setNewLogRow(p => ({ ...p, [k]: e.target.value }))}
+                            style={{
+                              background: theme.bgCard2, border: `1px solid ${theme.border2}`,
+                              borderRadius: radius.md, padding: "8px 12px",
+                              color: theme.text, fontSize: 12, outline: "none",
+                              width: "100%", boxSizing: "border-box",
+                            }} />
+                        </div>
                       ))}
                     </div>
                     <Button style={{ width: "100%", marginTop: 10 }} onClick={() => {
@@ -742,7 +736,7 @@ export default function FitForce() {
                         <>
                           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
                             <div>
-                              <label style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 4 }}>Weight (kg)</label>
+                              <label htmlFor="orm-weight" style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 4 }}>Weight (kg)</label>
                               <input id="orm-weight" name="ormWeight" type="number" value={orm1W} onChange={e => setOrm1W(e.target.value)}
                                 style={{
                                   background: theme.bgCard2, border: `1px solid ${theme.border2}`,
@@ -751,7 +745,7 @@ export default function FitForce() {
                                 }} />
                             </div>
                             <div>
-                              <label style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 4 }}>Reps</label>
+                              <label htmlFor="orm-reps" style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 4 }}>Reps</label>
                               <input id="orm-reps" name="ormReps" type="number" value={orm1R} onChange={e => setOrm1R(e.target.value)}
                                 style={{
                                   background: theme.bgCard2, border: `1px solid ${theme.border2}`,
@@ -811,7 +805,7 @@ export default function FitForce() {
                         <>
                           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
                             <div>
-                              <label style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 4 }}>Neck (cm)</label>
+                              <label htmlFor="bf-neck" style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 4 }}>Neck (cm)</label>
                               <input id="bf-neck" name="bfNeck" type="number" value={bfNeck} onChange={e => setBfNeck(e.target.value)}
                                 style={{
                                   background: theme.bgCard2, border: `1px solid ${theme.border2}`,
@@ -820,7 +814,7 @@ export default function FitForce() {
                                 }} />
                             </div>
                             <div>
-                              <label style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 4 }}>Waist (cm)</label>
+                              <label htmlFor="bf-waist" style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 4 }}>Waist (cm)</label>
                               <input id="bf-waist" name="bfWaist" type="number" value={bfWaist} onChange={e => setBfWaist(e.target.value)}
                                 style={{
                                   background: theme.bgCard2, border: `1px solid ${theme.border2}`,
@@ -886,155 +880,21 @@ export default function FitForce() {
             )}
 
             {tab === "profile" && (
-              <motion.div variants={containerVariants} initial="initial" animate="animate">
-                <motion.h2 variants={itemVariants} style={h2s}>Profile</motion.h2>
-
-                <motion.div variants={itemVariants}>
-                  <Card>
-                    <div style={{
-                      display: "flex", alignItems: "center", gap: 18,
-                      marginBottom: 20, paddingBottom: 18,
-                      borderBottom: `1px solid ${theme.border}`,
-                    }}>
-                      <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        style={{
-                          width: 68, height: 68,
-                          background: `linear-gradient(135deg, ${theme.red}, ${theme.redDark})`,
-                          borderRadius: "50%",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: 28,
-                          fontWeight: 700,
-                          color: "#fff",
-                          boxShadow: shadow.glow(theme.red),
-                        }}>
-                        {profile.name.charAt(0).toUpperCase()}
-                      </motion.div>
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: 20 }}>{profile.name}</div>
-                        <div style={{ color: theme.textMuted, fontSize: 13, marginTop: 2 }}>
-                          {profile.level} · {profile.goal}
-                        </div>
-                        <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
-                          <span style={{ fontSize: 12, color: theme.yellow, display: "flex", alignItems: "center", gap: 3 }}>
-                            <Zap size={12} /> Lv.{level}
-                          </span>
-                          <span style={{ fontSize: 12, color: bmiColor, display: "flex", alignItems: "center", gap: 3 }}>
-                            <Heart size={12} /> BMI: {bmi}
-                          </span>
-                          <span style={{ fontSize: 12, color: theme.red, display: "flex", alignItems: "center", gap: 3 }}>
-                            <Flame size={12} /> {streak}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
-                      {[["Name", "name", "text"], ["Age", "age", "number"], ["Weight (kg)", "weight", "number"], ["Height (cm)", "height", "number"]].map(([l, k, t]) => (
-                        <div key={k}>
-                          <label style={{ fontSize: 12, color: theme.textMuted, display: "block", marginBottom: 4 }}>{l}</label>
-                          <input id={`profile-${k}`} name={`profile${k.charAt(0).toUpperCase() + k.slice(1)}`} type={t} value={profile[k]}
-                            onChange={e => setProfile(k, e.target.value)}
-                            style={{
-                              background: theme.bgCard2, border: `1px solid ${theme.border2}`,
-                              borderRadius: radius.md, padding: "10px 14px", color: theme.text,
-                              fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box",
-                            }} />
-                        </div>
-                      ))}
-                    </div>
-
-                    <div style={{ marginBottom: 14 }}>
-                      <label style={{ fontSize: 12, color: theme.textMuted, display: "block", marginBottom: 6 }}>Gender</label>
-                      <div style={{ display: "flex", gap: 8 }}>
-                        {["Male", "Female", "Other"].map(g => (
-                          <motion.button key={g} whileTap={{ scale: 0.97 }}
-                            onClick={() => setProfile("gender", g)}
-                            style={{
-                              flex: 1, padding: "10px", borderRadius: radius.md,
-                              border: `1px solid ${profile.gender === g ? theme.red : theme.border2}`,
-                              background: profile.gender === g ? `${theme.red}15` : "transparent",
-                              color: profile.gender === g ? theme.red : theme.textMuted,
-                              cursor: "pointer", fontSize: 13,
-                              fontWeight: profile.gender === g ? 500 : 400,
-                            }}>
-                            {g}
-                          </motion.button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div style={{ marginBottom: 14 }}>
-                      <label style={{ fontSize: 12, color: theme.textMuted, display: "block", marginBottom: 6 }}>Fitness Level</label>
-                      <div style={{ display: "flex", gap: 8 }}>
-                        {["Beginner", "Intermediate", "Advanced"].map(l => (
-                          <motion.button key={l} whileTap={{ scale: 0.97 }}
-                            onClick={() => setProfile("level", l)}
-                            style={{
-                              flex: 1, padding: "10px", borderRadius: radius.md,
-                              border: `1px solid ${profile.level === l ? theme.red : theme.border2}`,
-                              background: profile.level === l ? `${theme.red}15` : "transparent",
-                              color: profile.level === l ? theme.red : theme.textMuted,
-                              cursor: "pointer", fontSize: 13,
-                              fontWeight: profile.level === l ? 500 : 400,
-                            }}>
-                            {l}
-                          </motion.button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div style={{ marginBottom: 18 }}>
-                      <label style={{ fontSize: 12, color: theme.textMuted, display: "block", marginBottom: 6 }}>Goal</label>
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        {["Muscle Gain", "Fat Loss", "Endurance", "Strength", "General Fitness"].map(g => (
-                          <motion.button key={g} whileTap={{ scale: 0.95 }}
-                            onClick={() => setProfile("goal", g)}
-                            style={{
-                              padding: "8px 16px", borderRadius: radius.full,
-                              border: `1px solid ${profile.goal === g ? theme.red : theme.border2}`,
-                              background: profile.goal === g ? `${theme.red}15` : "transparent",
-                              color: profile.goal === g ? theme.red : theme.textMuted,
-                              cursor: "pointer", fontSize: 12,
-                              fontWeight: profile.goal === g ? 500 : 400,
-                            }}>
-                            {g}
-                          </motion.button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div style={{
-                      background: theme.bgCard2, borderRadius: radius.md,
-                      padding: "14px", marginBottom: 16,
-                      border: `1px solid ${theme.border}`,
-                    }}>
-                      <div style={{ color: theme.textMuted, fontSize: 12, marginBottom: 8, fontWeight: 500 }}>
-                        Auto-calculated targets
-                      </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12 }}>
-                        <div style={{ color: theme.textMuted }}>
-                          Calories: <span style={{ color: theme.red, fontWeight: 500 }}>{calGoal} kcal</span>
-                        </div>
-                        <div style={{ color: theme.textMuted }}>
-                          Protein: <span style={{ color: theme.blue, fontWeight: 500 }}>{protGoal}g</span>
-                        </div>
-                        <div style={{ color: theme.textMuted }}>
-                          BMI: <span style={{ color: bmiColor, fontWeight: 500 }}>{bmi}</span>
-                        </div>
-                        <div style={{ color: theme.textMuted }}>
-                          Goal: <span style={{ color: theme.yellow, fontWeight: 500 }}>{profile.goal}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <Button style={{ width: "100%" }}>Save Profile</Button>
-                  </Card>
-                </motion.div>
-              </motion.div>
+              <Profile
+                profile={profile}
+                setProfile={setProfile}
+                streak={streak}
+                bodyStats={bodyStats}
+                addBodyStat={addBodyStat}
+                measurements={measurements}
+                setMeasurements={setMeasurements}
+                calGoal={calGoal}
+                protGoal={protGoal}
+                bmi={bmi}
+                bmiColor={bmiColor}
+              />
             )}
+            </Suspense>
           </motion.div>
         </AnimatePresence>
       </div>

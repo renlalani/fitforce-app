@@ -1,9 +1,9 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-function nextLogUid(log) {
-  const maxUid = log.reduce((max, e) => Math.max(max, parseInt(e.uid, 36) || 0), 0);
-  return (maxUid + 1).toString(36);
+let uidCounter = 0;
+function nextUid() {
+  return (++uidCounter).toString(36);
 }
 
 const initialState = {
@@ -81,7 +81,7 @@ export const useWorkoutStore = create(
             workoutLog: [
               ...state.workoutLog,
               {
-                uid: nextLogUid(state.workoutLog),
+                uid: nextUid(),
                 date: today,
                 name,
                 sets: s,
@@ -133,7 +133,7 @@ export const useWorkoutStore = create(
           const exerciseCount = entries.length;
 
           const session = {
-            id: Date.now().toString(),
+            id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
             completedAt,
             date: today,
             workoutName: sessionMeta.workoutName || "Workout",
@@ -145,19 +145,15 @@ export const useWorkoutStore = create(
             totalVolume,
           };
 
-          let baseUid = state.workoutLog.reduce((max, e) => Math.max(max, parseInt(e.uid, 36) || 0), 0);
-          const logEntries = entries.map((ex) => {
-            baseUid++;
-            return {
-              uid: baseUid.toString(36),
-              date: today,
-              name: ex.name,
-              sets: ex.sets,
-              reps: ex.reps,
-              weight: ex.weight,
-              vol: ex.vol,
-            };
-          });
+          const logEntries = entries.map((ex) => ({
+            uid: nextUid(),
+            date: today,
+            name: ex.name,
+            sets: ex.sets,
+            reps: ex.reps,
+            weight: ex.weight,
+            vol: ex.vol,
+          }));
 
           return {
             workoutSessions: [...state.workoutSessions, session],
@@ -170,14 +166,26 @@ export const useWorkoutStore = create(
       name: "fitforce-workout",
       onRehydrateStorage: () => (state) => {
         if (!state) return;
+        const seen = new Set();
         state.workoutLog = (state.workoutLog || []).map((e) => ({
           ...e,
-          uid: e.uid || Math.random().toString(36).slice(2, 8),
           sets: +e.sets || 0,
           reps: +e.reps || 0,
           weight: +e.weight || 0,
           vol: +e.vol || 0,
         }));
+        state.workoutLog.forEach((e) => {
+          if (!e.uid) return;
+          const n = parseInt(e.uid, 36);
+          if (!isNaN(n) && n > uidCounter) uidCounter = n;
+        });
+        state.workoutLog = state.workoutLog.map((e) => {
+          if (!e.uid || seen.has(e.uid)) {
+            return { ...e, uid: nextUid() };
+          }
+          seen.add(e.uid);
+          return e;
+        });
       },
     }
   )
@@ -196,7 +204,7 @@ const getThisWeek = (sessions) => {
   return sessions.filter((s) => new Date(s.completedAt) >= ws);
 };
 
-export const selectWeeklyWorkouts = (s) => new Set(getThisWeek(s.workoutSessions).map((ws) => ws.date)).size;
+export const selectWeeklyWorkouts = (s) => getThisWeek(s.workoutSessions).length;
 
 export const selectWeeklyVolume = (s) => getThisWeek(s.workoutSessions).reduce((sum, ws) => sum + (ws.totalVolume || 0), 0);
 

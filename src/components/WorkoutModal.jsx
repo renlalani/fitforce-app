@@ -83,6 +83,7 @@ export default function WorkoutModal({ plan, onClose }) {
   const [showCelebration, setShowCelebration] = useState(false);
   const [exerciseExpanded, setExerciseExpanded] = useState(false);
   const [extraRest, setExtraRest] = useState(0);
+  const [newPrFound, setNewPrFound] = useState(false);
   const restRef = useRef(null);
   const restPausedRef = useRef(restPaused);
 
@@ -121,6 +122,30 @@ export default function WorkoutModal({ plan, onClose }) {
       return () => clearTimeout(t);
     }
   }, [done, showSummary]);
+
+  useEffect(() => {
+    if (!showSummary) return;
+    const storedPrs = useUserStore.getState().prs;
+    const hasPr = completedSets.some(cs => {
+      if (!cs.weight || cs.weight === "—") return false;
+      const w = Number(cs.weight);
+      const existing = storedPrs.find(p => p.lift === cs.exerciseName);
+      return existing ? w > existing.weight : w > 0;
+    });
+    if (hasPr) {
+      completedSets.forEach(cs => {
+        if (!cs.weight || cs.weight === "—") return;
+        const w = Number(cs.weight);
+        const prIndex = storedPrs.findIndex(p => p.lift === cs.exerciseName);
+        if (prIndex >= 0 && w > storedPrs[prIndex].weight) {
+          useUserStore.getState().updatePrWeight(prIndex, w);
+        } else if (prIndex < 0 && w > 0) {
+          useUserStore.getState().addPr(cs.exerciseName, w);
+        }
+      });
+    }
+    setNewPrFound(hasPr);
+  }, [showSummary]);
 
   const nextSet = useCallback(() => {
     const entry = { exId: cur.id, name: cur.name, set: setNum, weight: weights[`${cur.id}_${setNum}`] || "—", reps: cur.reps };
@@ -172,7 +197,14 @@ export default function WorkoutModal({ plan, onClose }) {
     }, 0);
     const totalSetsDone = completedSets.length;
     const xpGained = 50 + totalSetsDone * 5 + Math.floor(estCal / 10);
-    const newAchievements = ACHIEVEMENTS_DATA.filter(a => a.unlocked);
+
+    const achievementsData = [
+      { id: "complete", icon: "💪", label: "Workout Complete", unlocked: true, color: theme.red },
+      { id: "streak", icon: "🔥", label: "Streak Kept", unlocked: true, color: theme.orange },
+      { id: "pr", icon: "⚡", label: "New PR!", unlocked: newPrFound, color: theme.yellow },
+      { id: "xp", icon: "⭐", label: "XP Boost", unlocked: true, color: theme.purple },
+    ];
+    const newAchievements = achievementsData.filter(a => a.unlocked);
 
     return (
       <>
@@ -773,13 +805,13 @@ export default function WorkoutModal({ plan, onClose }) {
 
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                   <div style={{ flex: 1, position: "relative" }}>
-                    <div style={{
+                    <label htmlFor="workout-weight" style={{
                       position: "absolute", left: 12, top: "50%",
                       transform: "translateY(-50%)",
                       fontSize: 11, color: theme.textMuted,
                     }}>
                       kg
-                    </div>
+                    </label>
                     <input
                       id="workout-weight"
                       name="workoutWeight"

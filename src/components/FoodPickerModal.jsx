@@ -313,7 +313,7 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
                       const isSelected = selected?.name === food.name;
                       return (
                         <motion.div
-                          key={food.name}
+                          key={`food-${food.name}-${i}`}
                           initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.015 }}
                           onClick={() => handleSelect(food)}
                           style={{
@@ -369,7 +369,7 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
                 <EmptyState icon={Star} title="No favorites yet" description="Star foods in search to add them here" compact />
               ) : (
                 favItems.map((food, i) => (
-                  <motion.div key={food.name} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+                  <motion.div key={`fav-${food.name}-${i}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
                     onClick={() => handleSelect(food)}
                     style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", background: selected?.name === food.name ? `${theme.red}10` : theme.bgCard2, borderRadius: radius.md, cursor: "pointer", marginBottom: 6, border: `1px solid ${selected?.name === food.name ? theme.red + "30" : theme.border}` }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -392,7 +392,7 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
                 <EmptyState icon={Clock} title="No recent foods" description="Foods you search will appear here" compact />
               ) : (
                 recentItems.map((food, i) => (
-                  <motion.div key={food.name} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+                  <motion.div key={`recent-${food.name}-${i}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
                     onClick={() => handleSelect(food)}
                     style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", background: selected?.name === food.name ? `${theme.red}10` : theme.bgCard2, borderRadius: radius.md, cursor: "pointer", marginBottom: 6, border: `1px solid ${selected?.name === food.name ? theme.red + "30" : theme.border}` }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -416,24 +416,24 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
                   onChange={e => setCustom(p => ({ ...p, name: e.target.value }))} style={inputStyle} aria-label="Food name" />
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   <div>
-                    <label style={{ fontSize: 10, color: theme.textMuted, marginBottom: 4, display: "block" }}>Calories</label>
+                    <label htmlFor="food-custom-cal" style={{ fontSize: 10, color: theme.textMuted, marginBottom: 4, display: "block" }}>Calories</label>
                     <input id="food-custom-cal" name="foodCustomCal" type="number" placeholder="0" value={custom.cal}
                       onChange={e => setCustom(p => ({ ...p, cal: e.target.value }))} style={inputStyle} aria-label="Calories" />
                   </div>
                   <div>
-                    <label style={{ fontSize: 10, color: theme.textMuted, marginBottom: 4, display: "block" }}>Protein (g)</label>
+                    <label htmlFor="food-custom-protein" style={{ fontSize: 10, color: theme.textMuted, marginBottom: 4, display: "block" }}>Protein (g)</label>
                     <input id="food-custom-protein" name="foodCustomProtein" type="number" placeholder="0" value={custom.protein}
                       onChange={e => setCustom(p => ({ ...p, protein: e.target.value }))} style={inputStyle} aria-label="Protein" />
                   </div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   <div>
-                    <label style={{ fontSize: 10, color: theme.textMuted, marginBottom: 4, display: "block" }}>Carbs (g)</label>
+                    <label htmlFor="food-custom-carbs" style={{ fontSize: 10, color: theme.textMuted, marginBottom: 4, display: "block" }}>Carbs (g)</label>
                     <input id="food-custom-carbs" name="foodCustomCarbs" type="number" placeholder="0" value={custom.carbs}
                       onChange={e => setCustom(p => ({ ...p, carbs: e.target.value }))} style={inputStyle} aria-label="Carbs" />
                   </div>
                   <div>
-                    <label style={{ fontSize: 10, color: theme.textMuted, marginBottom: 4, display: "block" }}>Fat (g)</label>
+                    <label htmlFor="food-custom-fat" style={{ fontSize: 10, color: theme.textMuted, marginBottom: 4, display: "block" }}>Fat (g)</label>
                     <input id="food-custom-fat" name="foodCustomFat" type="number" placeholder="0" value={custom.fat}
                       onChange={e => setCustom(p => ({ ...p, fat: e.target.value }))} style={inputStyle} aria-label="Fat" />
                   </div>
@@ -458,7 +458,7 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
 
         {/* Meal time selector */}
         <div style={{ marginBottom: 14 }}>
-          <label style={{ fontSize: 11, color: theme.textMuted, marginBottom: 6, display: "block" }} id="meal-time-label">Add to</label>
+          <div style={{ fontSize: 11, color: theme.textMuted, marginBottom: 6, display: "block" }} id="meal-time-label">Add to</div>
           <div style={{ display: "flex", gap: 6 }} role="radiogroup" aria-labelledby="meal-time-label">
             {MEAL_TIMES.map(mt => (
               <motion.button key={mt} whileTap={{ scale: 0.95 }}

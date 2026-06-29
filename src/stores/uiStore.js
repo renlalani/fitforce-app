@@ -7,6 +7,8 @@ const initialState = {
   filterLevel: "All",
   showMealModal: false,
   showExDetail: null,
+  showWorkoutGenerator: false,
+  showMealPlanner: false,
   newBodyStat: "",
   orm1W: "100",
   orm1R: "5",
@@ -38,6 +40,9 @@ export const useUiStore = create(
       setBfNeck: (value) => set({ bfNeck: value }),
 
       setBfWaist: (value) => set({ bfWaist: value }),
+
+      setShowWorkoutGenerator: (show) => set({ showWorkoutGenerator: show }),
+      setShowMealPlanner: (show) => set({ showMealPlanner: show }),
     }),
     { name: "fitforce-ui" }
   )

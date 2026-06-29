@@ -3,9 +3,9 @@ import { persist } from "zustand/middleware";
 
 const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 
-function nextMealUid(meals) {
-  const maxUid = meals.reduce((max, m) => Math.max(max, parseInt(m.uid, 36) || 0), 0);
-  return (maxUid + 1).toString(36);
+let uidCounter = 0;
+function nextUid() {
+  return (++uidCounter).toString(36);
 }
 
 const initialState = {
@@ -52,7 +52,7 @@ export const useNutritionStore = create(
             totalDays = state.totalDaysLogged + 1;
           }
           return {
-            meals: [...state.meals, { ...food, uid: nextMealUid(state.meals), fiber: food.fiber || 0, sugar: food.sugar || 0 }],
+            meals: [...state.meals, { ...food, uid: nextUid(), fiber: food.fiber || 0, sugar: food.sugar || 0 }],
             lastLogDate: today2,
             nutritionStreak: streak,
             totalDaysLogged: totalDays,
@@ -86,7 +86,8 @@ export const useNutritionStore = create(
       name: "fitforce-nutrition",
       onRehydrateStorage: () => (state) => {
         if (!state) return;
-        state.meals = (state.meals || []).map((m, i) => ({
+        const seen = new Set();
+        state.meals = (state.meals || []).map((m) => ({
           ...m,
           cal: +m.cal || 0,
           protein: +m.protein || 0,
@@ -94,8 +95,19 @@ export const useNutritionStore = create(
           fat: +m.fat || 0,
           fiber: +m.fiber || 0,
           sugar: +m.sugar || 0,
-          uid: m.uid || i.toString(36),
         }));
+        state.meals.forEach((m) => {
+          if (!m.uid) return;
+          const n = parseInt(m.uid, 36);
+          if (!isNaN(n) && n > uidCounter) uidCounter = n;
+        });
+        state.meals = state.meals.map((m) => {
+          if (!m.uid || seen.has(m.uid)) {
+            return { ...m, uid: nextUid() };
+          }
+          seen.add(m.uid);
+          return m;
+        });
       },
     }
   )

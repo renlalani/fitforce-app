@@ -67,7 +67,6 @@ export const FOOD_DB = [
   {name:"Avocado (100g)",cal:160,protein:2,carbs:8.5,fat:15,fiber:6.7,sugar:0.7,serving:"100g",emoji:"🥑",healthyScore:9},
   {name:"Spinach (100g)",cal:23,protein:2.9,carbs:3.6,fat:0.4,fiber:2.2,sugar:0.4,serving:"100g",emoji:"🥬",healthyScore:10},
   {name:"Quinoa (100g)",cal:120,protein:4.4,carbs:21,fat:1.9,fiber:2.8,sugar:0.9,serving:"100g",emoji:"🌾",healthyScore:8},
-  {name:"Sweet Potato (100g)",cal:86,protein:1.6,carbs:20,fat:0.1,fiber:3,sugar:4.2,serving:"100g",emoji:"🍠",healthyScore:9},
   {name:"Turkey Breast (100g)",cal:135,protein:30,carbs:0,fat:1,fiber:0,sugar:0,serving:"100g",emoji:"🍗",healthyScore:9},
   {name:"Cottage Cheese (100g)",cal:98,protein:11,carbs:3.4,fat:4.3,fiber:0,sugar:3.4,serving:"100g",emoji:"🧀",healthyScore:7},
   {name:"Mixed Nuts (30g)",cal:173,protein:5,carbs:6,fat:16,fiber:3,sugar:1.5,serving:"30g",emoji:"🥜",healthyScore:8},

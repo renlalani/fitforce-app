@@ -9,6 +9,7 @@ const Input = forwardRef(({ style, label, ...props }, ref) => {
     <div style={{ position: "relative", width: "100%" }}>
       {label && (
         <motion.label
+          htmlFor={props.id || props.name}
           animate={{
             color: focused ? theme.red : theme.textMuted,
             y: focused ? -2 : 0,
