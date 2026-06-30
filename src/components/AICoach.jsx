@@ -5,7 +5,7 @@ import {
   Zap, Copy, Check, RefreshCw, Square, ThumbsUp, ThumbsDown,
   ChevronDown, MessageSquare, Brain, StopCircle
 } from "lucide-react";
-import { theme, radius, shadow, transition } from "../styles/designSystem";
+import {  radius, shadow, transition } from "../styles/designSystem";
 import MarkdownRenderer from "./MarkdownRenderer";
 
 const SUGGESTIONS = [
@@ -17,41 +17,60 @@ const SUGGESTIONS = [
   { icon: PillIcon, title: "Supplements guide", desc: "Evidence-based recommendations" },
 ];
 
+const FOLLOW_UPS = {
+  workout: ["How many days should I train?", "What exercises should I avoid?", "How do I warm up properly?"],
+  nutrition: ["What should I eat before a workout?", "How much water should I drink?", "What are the best protein sources?"],
+  diet: ["How do I track calories?", "What's a good macro split?", "Should I take supplements?"],
+  recovery: ["How much sleep do I need?", "What are the best recovery methods?", "How do I prevent injuries?"],
+  muscle: ["How fast can I build muscle?", "What's progressive overload?", "Should I train to failure?"],
+  default: ["Tell me more about that", "How do I get started?", "What's the next step?"],
+};
+
+function getFollowUps(text) {
+  const t = text.toLowerCase();
+  if (t.includes("workout") || t.includes("exercise") || t.includes("train") || t.includes("gym")) return FOLLOW_UPS.workout;
+  if (t.includes("eat") || t.includes("food") || t.includes("meal") || t.includes("nutrition") || t.includes("diet") || t.includes("calorie")) return FOLLOW_UPS.nutrition;
+  if (t.includes("protein") || t.includes("carbs") || t.includes("fat") || t.includes("macro")) return FOLLOW_UPS.diet;
+  if (t.includes("recover") || t.includes("rest") || t.includes("sleep") || t.includes("injury") || t.includes("pain")) return FOLLOW_UPS.recovery;
+  if (t.includes("muscle") || t.includes("gain") || t.includes("strength") || t.includes("size")) return FOLLOW_UPS.muscle;
+  return FOLLOW_UPS.default;
+}
+
 function DumbbellIcon(props) { return (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={theme.red} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={"var(--accent)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <path d="M6.5 6.5 17.5 17.5M6.5 17.5 17.5 6.5M3 8l2-2M3 16l2 2M19 8l2-2M19 16l2 2M8 3l2 2M8 21l2-2M14 3l2 2M14 21l2-2"/>
   </svg>
 ); }
 function AppleIcon(props) { return (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={theme.green} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={"var(--green)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 3-1-1.56-2.78-3-5-3a4.91 4.91 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/>
   </svg>
 ); }
 function CalculatorIcon(props) { return (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={theme.blue} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={"var(--blue)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="8" x2="8" y1="10" y2="10"/><line x1="12" x2="12" y1="10" y2="10"/><line x1="16" x2="16" y1="10" y2="10"/><line x1="8" x2="8" y1="14" y2="14"/><line x1="12" x2="12" y1="14" y2="14"/><line x1="16" x2="16" y1="14" y2="14"/><line x1="8" x2="8" y1="18" y2="18"/><line x1="12" x2="12" y1="18" y2="18"/>
   </svg>
 ); }
 function TargetIcon(props) { return (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={theme.purple} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={"var(--purple)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
   </svg>
 ); }
 function FlameIcon(props) { return (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={theme.orange} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={"var(--orange)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
   </svg>
 ); }
 function PillIcon(props) { return (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={theme.teal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={"var(--teal)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/>
   </svg>
 ); }
 
-export default function AICoach({ profile, totalCal, totalProt, water, level, xp }) {
+export default function AICoach({ profile, totalCal, totalProt, water, level, xp, latestWeight }) {
   const [msgs, setMsgs] = useState([{
     role: "ai",
-    text: "Hey! I'm your AI coach — no login needed on any device. Ask me about workouts, nutrition, form, recovery, or supplements! 💪",
+    text: "Hey! I'm your AI coach — no login needed on any device. Ask me about workouts, nutrition, form, recovery, or supplements!",
     id: "welcome",
   }]);
   const [input, setInput] = useState("");
@@ -101,7 +120,11 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
     }
   }, []);
 
-  const systemPrompt = `You are FitForce AI Coach, an expert personal trainer and nutritionist. User: ${profile.name}, Level: ${profile.level}, Goal: ${profile.goal}, Weight: ${profile.weight}kg, Height: ${profile.height}cm, Age: ${profile.age}, Gender: ${profile.gender}. Today: ${totalCal} kcal eaten, ${totalProt}g protein, ${water} glasses water. Fitness Level ${level} (${xp} XP). Be concise, energetic, expert. No markdown. Max 150 words.`;
+  const systemPrompt = `You are FitForce AI Coach, an expert personal trainer and nutritionist. 
+User: ${profile.name}, Level: ${profile.level}, Goal: ${profile.goal}, Weight: ${latestWeight}kg, Height: ${profile.height}cm, Age: ${profile.age}, Gender: ${profile.gender}.
+Today: ${totalCal} kcal eaten, ${totalProt}g protein, ${water} glasses water. Fitness Level ${level} (${xp} XP).
+You can: create personalized workout plans, analyze nutrition, recommend exercises, give recovery advice, suggest meals, provide motivation, offer injury-safe modifications, and track progress.
+Be concise, energetic, and expert. Use markdown for formatting. Max 150 words per response.`;
 
   const stopGenerating = useCallback(() => {
     if (abortRef.current) {
@@ -219,7 +242,7 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
       let accumulated = "";
       await callAIStream(
         [
-          ...history.slice(0, -1),
+          ...history,
           { role: "user", content: msg },
         ],
         null,
@@ -335,7 +358,7 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
   const analyzeDay = async () => {
     setAnalyzing(true);
     const calGoal = profile.goal === "Fat Loss" ? 2000 : 2800;
-    const protGoal = Math.round(+profile.weight * 2);
+    const protGoal = Math.round(latestWeight * 2);
     const prompt = `Analyze today for ${profile.name}: ate ${totalCal} kcal (goal ${calGoal}), ${totalProt}g protein (goal ${protGoal}g), ${water}/8 glasses water. Give 3 specific actionable recommendations. Be direct, max 100 words.`;
 
     const aiMsg = { role: "ai", text: "", id: (Date.now() + 1).toString(), streaming: true };
@@ -381,7 +404,7 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
     setTimeout(() => setCopiedId(null), 1500);
   }, []);
 
-  const dayColors = { Mon: theme.red, Tue: theme.blue, Wed: theme.green, Thu: theme.yellow, Fri: theme.purple, Sat: theme.orange, Sun: theme.teal };
+  const dayColors = {   Mon: "var(--accent)", Tue: "var(--blue)", Wed: "var(--green)", Thu: "var(--yellow)", Fri: "var(--purple)", Sat: "var(--orange)", Sun: "var(--teal)" };
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -415,8 +438,8 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             style={{
-              background: `${theme.yellow}10`,
-              border: `1px solid ${theme.yellow}25`,
+              background: `rgba(245,158,11,0.063)`,
+              border: `1px solid rgba(245,158,11,0.145)`,
               borderRadius: radius.lg,
               padding: "14px 18px",
               marginBottom: 14,
@@ -425,18 +448,18 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
               alignItems: "flex-start",
             }}
           >
-            <AlertCircle size={18} color={theme.yellow} style={{ flexShrink: 0, marginTop: 1 }} />
+            <AlertCircle size={18} color={"var(--yellow)"} style={{ flexShrink: 0, marginTop: 1 }} />
             <div>
-              <div style={{ fontSize: 13, fontWeight: 500, color: theme.yellow, marginBottom: 4 }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: "var(--yellow)", marginBottom: 4 }}>
                 AI Coach is temporarily unavailable
               </div>
-              <div style={{ fontSize: 12, color: theme.textMuted, lineHeight: 1.6 }}>
+              <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
                 The free API limit has been reached. It resets at{" "}
-                <span style={{ color: theme.yellow }}>
+                <span style={{ color: "var(--yellow)" }}>
                   {rateLimited.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </span> ({rateLimited.toLocaleDateString([], { month: "short", day: "numeric" })}).
               </div>
-              <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 6 }}>
+              <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6 }}>
                 While you wait — browse the Exercise Library, log your meals, or update your Progress.
               </div>
             </div>
@@ -462,9 +485,9 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
               flex: 1,
               padding: "10px 12px",
               borderRadius: radius.md,
-              border: `1px solid ${mode === id ? theme.red : theme.border2}`,
-              background: mode === id ? `${theme.red}12` : "transparent",
-              color: mode === id ? theme.red : theme.textMuted,
+              border: `1px solid ${mode === id ? "var(--accent)" : "var(--border2)"}`,
+              background: mode === id ? `rgba(59,130,246,0.071)` : "transparent",
+              color: mode === id ? "var(--accent)" : "var(--text-muted)",
               cursor: "pointer",
               fontSize: 12,
               fontWeight: mode === id ? 500 : 400,
@@ -496,7 +519,7 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
               style={{
                 width: "100%",
                 padding: "14px",
-                background: `linear-gradient(135deg, ${theme.red}, ${theme.redDark})`,
+                background: "var(--accent-gradient)",
                 color: "#fff",
                 border: "none",
                 borderRadius: radius.lg,
@@ -527,11 +550,11 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
 
             {weekPlan?.error && (
               <div style={{
-                background: `${theme.red}10`,
-                border: `1px solid ${theme.red}25`,
+                background: `rgba(239,68,68,0.063)`,
+                border: `1px solid rgba(239,68,68,0.145)`,
                 borderRadius: radius.md,
                 padding: "12px 16px",
-                color: theme.red,
+                color: "var(--red)",
                 fontSize: 13,
                 marginBottom: 12,
               }}>
@@ -548,30 +571,30 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.04 }}
                     style={{
-                      background: theme.bgCard2,
-                      border: `1px solid ${theme.border2}`,
+                      background: "var(--bg-card2)",
+                      border: `1px solid var(--border2)`,
                       borderRadius: radius.md,
                       padding: "14px",
                       marginBottom: 8,
-                      borderLeft: `3px solid ${dayColors[d.day] || theme.red}`,
+                      borderLeft: `3px solid ${dayColors[d.day] || "var(--accent)"}`,
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                      <span style={{ fontWeight: 600, color: dayColors[d.day] || theme.red, fontSize: 13 }}>{d.day}</span>
-                      <span style={{ fontSize: 12, color: theme.textMuted }}>{d.focus} · {d.duration}</span>
+                      <span style={{ fontWeight: 600, color: dayColors[d.day] || "var(--accent)", fontSize: 13 }}>{d.day}</span>
+                      <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{d.focus} · {d.duration}</span>
                     </div>
                     <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 6 }}>
                       {(d.exercises || []).map((ex, j) => (
-                        <span key={`${d.day}-${ex}-${j}`} style={{ fontSize: 11, padding: "3px 8px", background: theme.bgCard3, borderRadius: radius.sm, color: theme.textMuted, border: `1px solid ${theme.border}` }}>
+                        <span key={`${d.day}-${ex}-${j}`} style={{ fontSize: 11, padding: "3px 8px", background: "var(--bg-card3)", borderRadius: radius.sm, color: "var(--text-muted)", border: `1px solid var(--border)` }}>
                           {ex}
                         </span>
                       ))}
                     </div>
-                    {d.note && <p style={{ fontSize: 11, color: theme.textMuted, margin: 0, fontStyle: "italic" }}>{d.note}</p>}
+                    {d.note && <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0, fontStyle: "italic" }}>{d.note}</p>}
                   </motion.div>
                 ))}
                 {weekPlan.tips && (
-                  <div style={{ fontSize: 12, color: theme.textMuted, background: theme.bgCard2, padding: "12px", borderRadius: radius.md, lineHeight: 1.6, border: `1px solid ${theme.border}` }}>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", background: "var(--bg-card2)", padding: "12px", borderRadius: radius.md, lineHeight: 1.6, border: `1px solid var(--border)` }}>
                     {weekPlan.tips}
                   </div>
                 )}
@@ -585,8 +608,8 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             style={{
-              background: theme.bgCard,
-              border: `1px solid ${theme.border2}`,
+              background: "var(--bg-card)",
+              border: `1px solid var(--border2)`,
               borderRadius: radius.xl,
               overflow: "hidden",
               marginBottom: 12,
@@ -596,38 +619,38 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
           >
             {/* Chat Header */}
             <div style={{
-              padding: "14px 18px",
-              borderBottom: `1px solid ${theme.border}`,
-              background: `linear-gradient(180deg, ${theme.bgCard2}, ${theme.bgCard})`,
+              padding: "16px 20px",
+              borderBottom: `1px solid var(--border)`,
+              background: `linear-gradient(180deg, var(--bg-card2), var(--bg-card))`,
               display: "flex",
               alignItems: "center",
               gap: 10,
             }}>
               <div style={{
                 width: 36, height: 36,
-                background: `linear-gradient(135deg, ${theme.red}, ${theme.redDark})`,
+                background: "var(--accent-gradient3)",
                 borderRadius: radius.md,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: shadow.glow(theme.red),
+                boxShadow: shadow.glow("var(--accent)"),
               }}>
                 <Brain size={18} color="#fff" />
               </div>
               <div>
-                <div style={{ fontWeight: 600, fontSize: 14, color: theme.text }}>FitForce AI</div>
-                <div style={{ fontSize: 11, color: theme.green, display: "flex", alignItems: "center", gap: 4 }}>
+                <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text)" }}>FitForce AI</div>
+                <div style={{ fontSize: 11, color: "var(--green)", display: "flex", alignItems: "center", gap: 4 }}>
                   <motion.span
                     animate={{ opacity: [1, 0.4, 1] }}
                     transition={{ repeat: Infinity, duration: 2 }}
-                    style={{ width: 6, height: 6, background: theme.green, borderRadius: "50%", display: "inline-block" }}
+                    style={{ width: 6, height: 6, background: "var(--green)", borderRadius: "50%", display: "inline-block" }}
                   />
                   Online · Laguna XS
                 </div>
               </div>
-              <div style={{ marginLeft: "auto", fontSize: 11, color: theme.textMuted, textAlign: "right" }}>
+              <div style={{ marginLeft: "auto", fontSize: 11, color: "var(--text-muted)", textAlign: "right" }}>
                 <div>{totalCal} kcal · {totalProt}g P</div>
-                <div style={{ color: theme.yellow }}>Lv.{level}</div>
+                <div style={{ color: "var(--yellow)" }}>Lv.{level}</div>
               </div>
             </div>
 
@@ -638,10 +661,10 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
               style={{
                 height: 400,
                 overflowY: "auto",
-                padding: "16px",
+                padding: "20px",
                 display: "flex",
                 flexDirection: "column",
-                gap: 6,
+                gap: 10,
                 position: "relative",
               }}
             >
@@ -660,12 +683,12 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
                       display: "flex",
                       justifyContent: m.role === "user" ? "flex-end" : "flex-start",
                       gap: 8,
-                      marginBottom: 2,
+                      marginBottom: 4,
                     }}
                   >
                     {m.role === "ai" && !isWelcome && (
-                      <div style={{ width: 26, height: 26, background: `${theme.red}15`, borderRadius: radius.sm, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 6 }}>
-                        <Bot size={13} color={theme.red} />
+                      <div style={{ width: 26, height: 26, background: `rgba(59,130,246,0.082)`, borderRadius: radius.sm, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 6 }}>
+                        <Bot size={13} color={"var(--accent)"} />
                       </div>
                     )}
                     <div
@@ -676,22 +699,23 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
                           ? "16px 16px 4px 16px"
                           : "16px 16px 16px 4px",
                         background: m.role === "user"
-                          ? `linear-gradient(135deg, ${theme.red}, ${theme.redDark})`
-                          : isError
-                            ? `${theme.red}10`
-                            : theme.bgCard2,
+                            ? "var(--accent-gradient)"
+                            : isError
+                              ? `rgba(239,68,68,0.063)`
+                              : `linear-gradient(135deg, rgba(59,130,246,0.024), var(--bg-card2))`,
                         border: m.role === "user"
                           ? "none"
                           : isError
-                            ? `1px solid ${theme.red}25`
-                            : `1px solid ${theme.border}`,
+                            ? `1px solid rgba(239,68,68,0.145)`
+                            : `1px solid var(--border)`,
+                        borderLeft: m.role === "user" || isError ? undefined : `3px solid var(--accent)`,
                         fontSize: 13,
                         lineHeight: 1.65,
-                        color: m.role === "user" ? "#fff" : theme.text,
+                        color: m.role === "user" ? "#fff" : "var(--text)",
                         whiteSpace: "pre-wrap",
                         wordBreak: "break-word",
                         boxShadow: m.role === "user"
-                          ? `0 2px 8px ${theme.red}25`
+                          ? `0 2px 8px rgba(59,130,246,0.145)`
                           : "none",
                         position: "relative",
                       }}
@@ -706,14 +730,14 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
                               <motion.span
                                 animate={{ opacity: [1, 0] }}
                                 transition={{ repeat: Infinity, duration: 0.8 }}
-                                style={{ display: "inline-block", width: 6, height: 14, background: theme.red, marginLeft: 2, borderRadius: 1 }}
+                                style={{ display: "inline-block", width: 6, height: 14, background: "var(--accent)", marginLeft: 2, borderRadius: 1 }}
                               />
                             </>
                           ) : (
                             <div style={{ display: "flex", gap: 4, alignItems: "center", padding: "4px 0" }}>
-                              <motion.span animate={{ y: [0, -3, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0 }} style={{ width: 6, height: 6, background: theme.textMuted, borderRadius: "50%", display: "inline-block" }} />
-                              <motion.span animate={{ y: [0, -3, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.15 }} style={{ width: 6, height: 6, background: theme.textMuted, borderRadius: "50%", display: "inline-block" }} />
-                              <motion.span animate={{ y: [0, -3, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.3 }} style={{ width: 6, height: 6, background: theme.textMuted, borderRadius: "50%", display: "inline-block" }} />
+                              <motion.span animate={{ y: [0, -3, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0 }} style={{ width: 6, height: 6, background: "var(--text-muted)", borderRadius: "50%", display: "inline-block" }} />
+                              <motion.span animate={{ y: [0, -3, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.15 }} style={{ width: 6, height: 6, background: "var(--text-muted)", borderRadius: "50%", display: "inline-block" }} />
+                              <motion.span animate={{ y: [0, -3, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.3 }} style={{ width: 6, height: 6, background: "var(--text-muted)", borderRadius: "50%", display: "inline-block" }} />
                             </div>
                           )}
                         </>
@@ -729,15 +753,15 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
                           <motion.button
                             whileHover={{ scale: 1.1, opacity: 1 }}
                             onClick={() => copyMsg(m.text, m.id)}
-                            style={{ background: "transparent", border: "none", color: theme.textMuted, cursor: "pointer", padding: 3, display: "flex" }}
+                            style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 3, display: "flex" }}
                             title="Copy"
                           >
-                            {copiedId === m.id ? <Check size={13} color={theme.green} /> : <Copy size={13} />}
+                            {copiedId === m.id ? <Check size={13} color={"var(--green)"} /> : <Copy size={13} />}
                           </motion.button>
                           <motion.button
                             whileHover={{ scale: 1.1, opacity: 1 }}
                             onClick={() => regenerate(i)}
-                            style={{ background: "transparent", border: "none", color: theme.textMuted, cursor: "pointer", padding: 3, display: "flex" }}
+                            style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 3, display: "flex" }}
                             title="Regenerate"
                           >
                             <RefreshCw size={13} />
@@ -745,7 +769,7 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
                           <motion.button
                             whileHover={{ scale: 1.1, opacity: 1 }}
                             onClick={() => setLikedMsgs(p => ({ ...p, [m.id]: p[m.id] === "up" ? null : "up" }))}
-                            style={{ background: "transparent", border: "none", color: likedMsgs[m.id] === "up" ? theme.blue : theme.textMuted, cursor: "pointer", padding: 3, display: "flex" }}
+                            style={{ background: "transparent", border: "none", color: likedMsgs[m.id] === "up" ? "var(--blue)" : "var(--text-muted)", cursor: "pointer", padding: 3, display: "flex" }}
                             title="Like"
                           >
                             <ThumbsUp size={13} />
@@ -753,17 +777,44 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
                           <motion.button
                             whileHover={{ scale: 1.1, opacity: 1 }}
                             onClick={() => setLikedMsgs(p => ({ ...p, [m.id]: p[m.id] === "down" ? null : "down" }))}
-                            style={{ background: "transparent", border: "none", color: likedMsgs[m.id] === "down" ? theme.red : theme.textMuted, cursor: "pointer", padding: 3, display: "flex" }}
+                            style={{ background: "transparent", border: "none", color: likedMsgs[m.id] === "down" ? "var(--red)" : "var(--text-muted)", cursor: "pointer", padding: 3, display: "flex" }}
                             title="Dislike"
                           >
                             <ThumbsDown size={13} />
                           </motion.button>
                         </div>
                       )}
+
+                      {/* Follow-up suggestions */}
+                      {m.role === "ai" && !isWelcome && !isStreaming && !isError && m.text && (
+                        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 8 }}>
+                          {getFollowUps(m.text).slice(0, 3).map((q, qi) => (
+                            <motion.button
+                              key={qi}
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: qi * 0.05 }}
+                              whileHover={{ scale: 1.03, borderColor: "rgba(59,130,246,0.251)" }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => send(q)}
+                              style={{
+                                padding: "4px 10px", borderRadius: radius.full,
+                                background: `rgba(59,130,246,0.031)`,
+                                border: `1px solid var(--border2)`,
+                                color: "var(--text-muted)", cursor: "pointer",
+                                fontSize: 10.5, whiteSpace: "nowrap",
+                                transition: "all 0.2s ease",
+                              }}
+                            >
+                              {q}
+                            </motion.button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     {m.role === "user" && (
-                      <div style={{ width: 26, height: 26, background: theme.bgCard3, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 6 }}>
-                        <User size={13} color={theme.textMuted} />
+                      <div style={{ width: 26, height: 26, background: "var(--bg-card3)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 6 }}>
+                        <User size={13} color={"var(--text-muted)"} />
                       </div>
                     )}
                   </motion.div>
@@ -783,10 +834,10 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
                     onClick={stopGenerating}
                     style={{
                       padding: "8px 18px",
-                      background: theme.bgCard3,
-                      border: `1px solid ${theme.border2}`,
+                      background: "var(--bg-card3)",
+                      border: `1px solid var(--border2)`,
                       borderRadius: radius.full,
-                      color: theme.text,
+                      color: "var(--text)",
                       cursor: "pointer",
                       fontSize: 12,
                       display: "flex",
@@ -794,7 +845,7 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
                       gap: 6,
                     }}
                   >
-                    <Square size={13} color={theme.red} fill={theme.red} />
+                    <Square size={13} color={"var(--red)"} fill={"var(--red)"} />
                     Stop generating
                   </motion.button>
                 </motion.div>
@@ -816,10 +867,10 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
                       left: "50%",
                       transform: "translateX(-50%)",
                       padding: "8px 16px",
-                      background: theme.bgCard3,
-                      border: `1px solid ${theme.border2}`,
+                      background: "var(--bg-card3)",
+                      border: `1px solid var(--border2)`,
                       borderRadius: radius.full,
-                      color: theme.textMuted,
+                      color: "var(--text-muted)",
                       cursor: "pointer",
                       fontSize: 12,
                       display: "flex",
@@ -844,9 +895,9 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  style={{ padding: "0 16px 12px" }}
+                  style={{ padding: "0 20px 16px" }}
                 >
-                  <div style={{ fontSize: 11, color: theme.textMuted, marginBottom: 8, letterSpacing: 0.5, fontWeight: 500 }}>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 8, letterSpacing: 0.5, fontWeight: 500 }}>
                     Try asking about
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: 8 }}>
@@ -856,7 +907,7 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.05 }}
-                        whileHover={{ y: -2, borderColor: theme.red + "40" }}
+                        whileHover={{ y: -2, borderColor: "rgba(59,130,246,0.251)" }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => {
                           setInput(s.title);
@@ -864,8 +915,8 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
                         }}
                         style={{
                           padding: "10px 12px",
-                          background: theme.bgCard2,
-                          border: `1px solid ${theme.border}`,
+                          background: "var(--bg-card2)",
+                          border: `1px solid var(--border)`,
                           borderRadius: radius.md,
                           cursor: "pointer",
                           display: "flex",
@@ -875,8 +926,8 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
                       >
                         <s.icon />
                         <div>
-                          <div style={{ fontSize: 12, fontWeight: 500, color: theme.text }}>{s.title}</div>
-                          <div style={{ fontSize: 10, color: theme.textMuted }}>{s.desc}</div>
+                          <div style={{ fontSize: 12, fontWeight: 500, color: "var(--text)" }}>{s.title}</div>
+                          <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{s.desc}</div>
                         </div>
                       </motion.div>
                     ))}
@@ -887,16 +938,16 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
 
             {/* Input Area */}
             <div style={{
-              padding: "12px 14px",
-              borderTop: `1px solid ${theme.border}`,
-              background: theme.bgCard,
+              padding: "16px 20px",
+              borderTop: `1px solid var(--border)`,
+              background: "var(--bg-card)",
             }}>
               <div style={{
                 display: "flex",
                 gap: 8,
                 alignItems: "flex-end",
-                background: theme.bgCard2,
-                border: `1px solid ${theme.border2}`,
+                background: "var(--bg-card2)",
+                border: `1px solid var(--border2)`,
                 borderRadius: radius.lg,
                 padding: "4px 4px 4px 14px",
               }}>
@@ -914,7 +965,7 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
                     flex: 1,
                     background: "transparent",
                     border: "none",
-                    color: theme.text,
+                    color: "var(--text)",
                     fontSize: 13,
                     outline: "none",
                     resize: "none",
@@ -936,8 +987,8 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
                       style={{
                         width: 36,
                         height: 36,
-                        background: `${theme.red}15`,
-                        color: theme.red,
+                        background: `rgba(239,68,68,0.082)`,
+                        color: "var(--red)",
                         border: "none",
                         borderRadius: radius.md,
                         cursor: "pointer",
@@ -959,9 +1010,9 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
                         width: 36,
                         height: 36,
                         background: input.trim() && !loading
-                          ? `linear-gradient(135deg, ${theme.red}, ${theme.redDark})`
-                          : theme.bgCard3,
-                        color: input.trim() && !loading ? "#fff" : theme.textMuted,
+                          ? "var(--accent-gradient)"
+                          : "var(--bg-card3)",
+                        color: input.trim() && !loading ? "#fff" : "var(--text-muted)",
                         border: "none",
                         borderRadius: radius.md,
                         cursor: input.trim() && !loading ? "pointer" : "not-allowed",
@@ -976,7 +1027,7 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
                   )}
                 </div>
               </div>
-              <div style={{ fontSize: 10, color: theme.textDim, textAlign: "center", marginTop: 6 }}>
+              <div style={{ fontSize: 10, color: "var(--text-dim)", textAlign: "center", marginTop: 6 }}>
                 Enter to send · Shift+Enter for new line · Esc to cancel
               </div>
             </div>
@@ -986,3 +1037,5 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
     </div>
   );
 }
+
+

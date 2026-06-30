@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Dumbbell, Apple, Flame, Zap, Trophy, TrendingUp, Ruler, Camera } from "lucide-react";
-import { theme, radius, shadow, transition, muscleColor } from "../styles/designSystem";
+import { Dumbbell, Apple, Flame, Zap, Trophy, TrendingUp, Ruler, Camera, Calendar, Crown, Sparkles } from "lucide-react";
+import {  radius, shadow, transition, muscleColor } from "../styles/designSystem";
 import Button from "./ui/Button";
 import Card from "./ui/Card";
 import { Badge } from "./ui/Tag";
@@ -31,7 +31,7 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
 
   const level = Math.floor(xp / 500) + 1;
   const xpToNext = 500 - (xp % 500);
-  const weightNum = +profile.weight || 0;
+  const weightNum = bodyStats.length > 0 ? bodyStats[bodyStats.length - 1].weight : (+profile.weight || 0);
 
   const totalVolume = useMemo(() =>
     workoutLog.reduce((s, e) => s + (+e.vol || 0), 0),
@@ -76,14 +76,14 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
 
   return (
     <motion.div variants={{ animate: { transition: { staggerChildren: 0.04 } } }} initial="initial" animate="animate">
-      <motion.h2 variants={itemVariants} style={{ color: theme.text, fontSize: 20, fontWeight: 600, margin: "0 0 16px", letterSpacing: "-0.01em" }}>
+      <motion.h2 variants={itemVariants} style={{ color: "var(--text)", fontSize: 20, fontWeight: 600, margin: "0 0 16px", letterSpacing: "-0.01em" }}>
         Profile
       </motion.h2>
 
       {/* Avatar + Stats Header */}
       <motion.div variants={itemVariants} style={{
-        background: `linear-gradient(135deg, ${theme.bgCard}, ${theme.bgCard2})`,
-        border: `1px solid ${theme.border}`,
+        background: `linear-gradient(135deg, var(--bg-card), var(--bg-card2))`,
+        border: `1px solid var(--border)`,
         borderRadius: radius.xl,
         padding: "20px",
         marginBottom: 14,
@@ -93,28 +93,28 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
             whileHover={{ scale: 1.05 }}
             style={{
               width: 60, height: 60,
-              background: `linear-gradient(135deg, ${theme.red}, ${theme.redDark})`,
+              background: "var(--accent-gradient3)",
               borderRadius: radius.full,
               display: "flex", alignItems: "center", justifyContent: "center",
               fontWeight: 700, fontSize: 26, color: "#fff",
-              boxShadow: shadow.glow(theme.red),
+              boxShadow: shadow.glow("var(--accent)"),
               flexShrink: 0,
             }}
           >
             {profile.name?.[0]?.toUpperCase() || "F"}
           </motion.div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: theme.text, marginBottom: 2 }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text)", marginBottom: 2 }}>
               {profile.name || "Athlete"}
             </div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>
-              <Badge label={profile.level || "Beginner"} color={theme.green} />
-              <Badge label={profile.goal || "General Fitness"} color={theme.blue} />
+              <Badge label={profile.level || "Beginner"} color={"var(--green)"} />
+              <Badge label={profile.goal || "General Fitness"} color={"var(--blue)"} />
             </div>
-            <div style={{ display: "flex", gap: 12, fontSize: 12, color: theme.textMuted }}>
+            <div style={{ display: "flex", gap: 12, fontSize: 12, color: "var(--text-muted)" }}>
               <span>Level {level}</span>
               <span>BMI: <span style={{ color: bmiColor, fontWeight: 500 }}>{bmi}</span></span>
-              <span>🔥 {streak} day streak</span>
+              <span><Flame size={14} /> {streak} day streak</span>
             </div>
           </div>
         </div>
@@ -122,20 +122,20 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
         {/* Stats Grid */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: 8 }}>
           {[
-            { icon: Dumbbell, label: "Workouts", value: workoutSessions.length, color: theme.red },
-            { icon: Zap, label: "Total XP", value: xp, color: theme.yellow },
-            { icon: Apple, label: "Meals", value: meals.length, color: theme.green },
-            { icon: Flame, label: "Streak", value: streak, color: theme.orange },
+            { icon: Dumbbell, label: "Workouts", value: workoutSessions.length, color: "var(--accent)" },
+            { icon: Zap, label: "Total XP", value: xp, color: "var(--yellow)" },
+            { icon: Apple, label: "Meals", value: meals.length, color: "var(--green)" },
+            { icon: Flame, label: "Streak", value: streak, color: "var(--orange)" },
           ].map(s => (
             <div key={s.label} style={{
-              textAlign: "center", background: theme.bgCard2,
+              textAlign: "center", background: "var(--bg-card2)",
               borderRadius: radius.md, padding: "10px 6px",
-              border: `1px solid ${theme.border}`,
+              border: `1px solid var(--border)`,
             }}>
               <div style={{ fontSize: 18, fontWeight: 700, color: s.color }}>
                 <AnimatedCounter value={s.value} />
               </div>
-              <div style={{ fontSize: 10, color: theme.textMuted }}>{s.label}</div>
+              <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{s.label}</div>
             </div>
           ))}
         </div>
@@ -144,7 +144,7 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
       {/* Editable Fields */}
       <motion.div variants={itemVariants} style={{ marginBottom: 14 }}>
         <Card>
-          <div style={{ fontSize: 13, fontWeight: 600, color: theme.text, marginBottom: 12 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 12 }}>
             Edit Profile
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
@@ -155,13 +155,13 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
               ["Height (cm)", "height", "number"],
             ].map(([l, k, t]) => (
               <div key={k}>
-                <label htmlFor={`pf-${k}`} style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 4 }}>{l}</label>
+                <label htmlFor={`pf-${k}`} style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>{l}</label>
                 <input id={`pf-${k}`} name={`profile${k.charAt(0).toUpperCase() + k.slice(1)}`} type={t} value={profile[k] || ""}
                   onChange={e => setProfile(k, e.target.value)}
                   style={{
                     width: "100%", padding: "8px 10px", borderRadius: radius.md,
-                    background: theme.bgCard2, border: `1px solid ${theme.border2}`,
-                    color: theme.text, fontSize: 12, outline: "none", boxSizing: "border-box",
+                    background: "var(--bg-card2)", border: `1px solid var(--border2)`,
+                    color: "var(--text)", fontSize: 12, outline: "none", boxSizing: "border-box",
                   }}
                 />
               </div>
@@ -169,16 +169,16 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
           </div>
 
           <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 6 }}>Gender</div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>Gender</div>
             <div style={{ display: "flex", gap: 6 }}>
               {["Male", "Female", "Other"].map(g => (
                 <motion.button key={g} whileTap={{ scale: 0.97 }}
                   onClick={() => setProfile("gender", g)}
                   style={{
                     flex: 1, padding: "8px", borderRadius: radius.md,
-                    border: `1px solid ${profile.gender === g ? theme.red : theme.border2}`,
-                    background: profile.gender === g ? `${theme.red}15` : "transparent",
-                    color: profile.gender === g ? theme.red : theme.textMuted,
+                    border: `1px solid ${profile.gender === g ? "var(--accent)" : "var(--border2)"}`,
+                    background: profile.gender === g ? `rgba(59,130,246,0.082)` : "transparent",
+                    color: profile.gender === g ? "var(--accent)" : "var(--text-muted)",
                     cursor: "pointer", fontSize: 12,
                     fontWeight: profile.gender === g ? 500 : 400,
                   }}
@@ -188,16 +188,16 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
           </div>
 
           <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 6 }}>Goal</div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>Goal</div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {["Muscle Gain", "Fat Loss", "Endurance", "Strength", "General Fitness"].map(g => (
                 <motion.button key={g} whileTap={{ scale: 0.95 }}
                   onClick={() => setProfile("goal", g)}
                   style={{
                     padding: "7px 14px", borderRadius: radius.full,
-                    border: `1px solid ${profile.goal === g ? theme.red : theme.border2}`,
-                    background: profile.goal === g ? `${theme.red}15` : "transparent",
-                    color: profile.goal === g ? theme.red : theme.textMuted,
+                    border: `1px solid ${profile.goal === g ? "var(--accent)" : "var(--border2)"}`,
+                    background: profile.goal === g ? `rgba(59,130,246,0.082)` : "transparent",
+                    color: profile.goal === g ? "var(--accent)" : "var(--text-muted)",
                     cursor: "pointer", fontSize: 11,
                     fontWeight: profile.goal === g ? 500 : 400,
                   }}
@@ -207,16 +207,16 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
           </div>
 
           <div style={{
-            background: theme.bgCard2, borderRadius: radius.md,
-            padding: "12px", border: `1px solid ${theme.border}`,
+            background: "var(--bg-card2)", borderRadius: radius.md,
+            padding: "12px", border: `1px solid var(--border)`,
             fontSize: 12,
           }}>
-            <div style={{ color: theme.textMuted, marginBottom: 6, fontWeight: 500 }}>Auto-calculated targets</div>
+            <div style={{ color: "var(--text-muted)", marginBottom: 6, fontWeight: 500 }}>Auto-calculated targets</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, fontSize: 11 }}>
-              <div>Calories: <span style={{ color: theme.red, fontWeight: 500 }}>{calGoal} kcal</span></div>
-              <div>Protein: <span style={{ color: theme.blue, fontWeight: 500 }}>{protGoal}g</span></div>
+              <div>Calories: <span style={{ color: "var(--accent)", fontWeight: 500 }}>{calGoal} kcal</span></div>
+              <div>Protein: <span style={{ color: "var(--blue)", fontWeight: 500 }}>{protGoal}g</span></div>
               <div>BMI: <span style={{ color: bmiColor, fontWeight: 500 }}>{bmi}</span></div>
-              <div>Goal: <span style={{ color: theme.yellow, fontWeight: 500 }}>{profile.goal}</span></div>
+              <div>Goal: <span style={{ color: "var(--yellow)", fontWeight: 500 }}>{profile.goal}</span></div>
             </div>
           </div>
         </Card>
@@ -226,33 +226,33 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
       <motion.div variants={itemVariants} style={{ marginBottom: 14 }}>
         <Card>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <Dumbbell size={16} color={theme.red} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>Workout Statistics</span>
+            <Dumbbell size={16} color={"var(--accent)"} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Workout Statistics</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             {[
-              ["Total Workouts", workoutSessions.length, theme.red],
-              ["Total Volume", `${totalVolume.toLocaleString()} kg`, theme.blue],
-              ["Calories Burned", `${totalCalories.toLocaleString()} kcal`, theme.orange],
-              ["Exercises Logged", workoutLog.length, theme.green],
+              ["Total Workouts", workoutSessions.length.accent],
+              ["Total Volume", `${totalVolume.toLocaleString()} kg`.blue],
+              ["Calories Burned", `${totalCalories.toLocaleString()} kcal`.orange],
+              ["Exercises Logged", workoutLog.length.green],
             ].map(([l, v, c]) => (
               <div key={l} style={{
-                background: theme.bgCard2, borderRadius: radius.sm,
-                padding: "10px", border: `1px solid ${theme.border}`,
+                background: "var(--bg-card2)", borderRadius: radius.sm,
+                padding: "10px", border: `1px solid var(--border)`,
               }}>
-                <div style={{ fontSize: 10, color: theme.textMuted, marginBottom: 2 }}>{l}</div>
+                <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 2 }}>{l}</div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: c }}>{typeof v === "number" ? <AnimatedCounter value={v} /> : v}</div>
               </div>
             ))}
           </div>
           {topExercises.length > 0 && (
             <div style={{ marginTop: 12 }}>
-              <div style={{ fontSize: 11, color: theme.textMuted, marginBottom: 6 }}>Most Performed Exercises</div>
+              <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 6 }}>Most Performed Exercises</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 {topExercises.map(([name, count], i) => (
                   <div key={name} style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}>
-                    <span style={{ color: theme.text }}>{i + 1}. {name}</span>
-                    <span style={{ color: theme.textMuted }}>{count}x</span>
+                    <span style={{ color: "var(--text)" }}>{i + 1}. {name}</span>
+                    <span style={{ color: "var(--text-muted)" }}>{count}x</span>
                   </div>
                 ))}
               </div>
@@ -265,9 +265,9 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
       <motion.div variants={itemVariants} style={{ marginBottom: 14 }}>
         <Card>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <Trophy size={16} color={theme.yellow} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>
-              Achievements <span style={{ color: theme.textMuted, fontWeight: 400, fontSize: 11 }}>({unlockedAchievements.length}/{ALL_ACHIEVEMENTS.length})</span>
+            <Trophy size={16} color={"var(--yellow)"} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>
+              Achievements <span style={{ color: "var(--text-muted)", fontWeight: 400, fontSize: 11 }}>({unlockedAchievements.length}/{ALL_ACHIEVEMENTS.length})</span>
             </span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))", gap: 8 }}>
@@ -278,8 +278,8 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
                   key={a.id}
                   whileHover={unlocked ? { scale: 1.08, y: -2 } : {}}
                   style={{
-                    background: unlocked ? `${a.color}12` : theme.bgCard2,
-                    border: `1px solid ${unlocked ? `${a.color}30` : theme.border}`,
+                    background: unlocked ? `${a.color}12` : "var(--bg-card2)",
+                    border: `1px solid ${unlocked ? `${a.color}30` : "var(--border)"}`,
                     borderRadius: radius.md,
                     padding: "10px 6px",
                     textAlign: "center",
@@ -299,7 +299,7 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
                         position: "absolute", top: -4, right: -4, fontSize: 10,
                       }}
                     >
-                      ✨
+                      <Sparkles size={24} />
                     </motion.div>
                   )}
                   <motion.div
@@ -308,7 +308,7 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
                   >
                     {a.icon}
                   </motion.div>
-                  <div style={{ fontSize: 8, color: unlocked ? a.color : theme.textMuted, fontWeight: 500, lineHeight: 1.2 }}>
+                  <div style={{ fontSize: 8, color: unlocked ? a.color : "var(--text-muted)", fontWeight: 500, lineHeight: 1.2 }}>
                     {a.label}
                   </div>
                 </motion.div>
@@ -322,21 +322,21 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
       <motion.div variants={itemVariants} style={{ marginBottom: 14 }}>
         <Card>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <Ruler size={16} color={theme.blue} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>Body Measurements</span>
+            <Ruler size={16} color={"var(--blue)"} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Body Measurements</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 8, marginBottom: 14 }}>
             {Object.entries(measurements).map(([k, v]) => {
               const mid = `pm-${k}`;
               return (
               <div key={k}>
-                <label htmlFor={mid} style={{ fontSize: 10, color: theme.textMuted, display: "block", marginBottom: 3, textTransform: "capitalize" }}>{k}</label>
+                <label htmlFor={mid} style={{ fontSize: 10, color: "var(--text-muted)", display: "block", marginBottom: 3, textTransform: "capitalize" }}>{k}</label>
                 <input id={mid} name={k} type="number" value={v}
                   onChange={e => setMeasurements(p => ({ ...p, [k]: e.target.value }))}
                   style={{
                     width: "100%", padding: "7px 10px", borderRadius: radius.md, boxSizing: "border-box",
-                    background: theme.bgCard2, border: `1px solid ${theme.border2}`,
-                    color: theme.text, fontSize: 12, outline: "none",
+                    background: "var(--bg-card2)", border: `1px solid var(--border2)`,
+                    color: "var(--text)", fontSize: 12, outline: "none",
                   }}
                 />
               </div>
@@ -347,19 +347,19 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
           {/* Log Weight */}
           <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
             <div style={{ flex: 1 }}>
-              <label htmlFor="log-body-weight" style={{ fontSize: 10, color: theme.textMuted, display: "block", marginBottom: 3 }}>Log Body Weight (kg)</label>
+              <label htmlFor="log-body-weight" style={{ fontSize: 10, color: "var(--text-muted)", display: "block", marginBottom: 3 }}>Log Body Weight (kg)</label>
               <input id="log-body-weight" name="logBodyWeight" type="number" step="0.1" value={newBodyStat}
                 onChange={e => setNewBodyStat(e.target.value)}
                 style={{
                   width: "100%", padding: "7px 10px", borderRadius: radius.md, boxSizing: "border-box",
-                  background: theme.bgCard2, border: `1px solid ${theme.border2}`,
-                  color: theme.text, fontSize: 12, outline: "none",
+                  background: "var(--bg-card2)", border: `1px solid var(--border2)`,
+                  color: "var(--text)", fontSize: 12, outline: "none",
                 }}
               />
             </div>
             <Button size="sm" onClick={() => {
               if (!newBodyStat) return;
-              const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
+              const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
               addBodyStat({ date: today, weight: +newBodyStat });
               setNewBodyStat("");
             }}>Log</Button>
@@ -371,17 +371,17 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
       <motion.div variants={itemVariants} style={{ marginBottom: 14 }}>
         <Card>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <Camera size={16} color={theme.purple} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>Progress Photos</span>
+            <Camera size={16} color={"var(--purple)"} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Progress Photos</span>
           </div>
           <div style={{
-            background: theme.bgCard2, borderRadius: radius.md,
-            border: `2px dashed ${theme.border2}`,
+            background: "var(--bg-card2)", borderRadius: radius.md,
+            border: `2px dashed var(--border2)`,
             padding: "24px", textAlign: "center",
           }}>
-            <div style={{ fontSize: 32, marginBottom: 8 }}>📸</div>
-            <div style={{ fontSize: 12, color: theme.textMuted, marginBottom: 4 }}>Track your transformation</div>
-            <div style={{ fontSize: 11, color: theme.textDim }}>Progress photos coming soon</div>
+            <Camera size={32} />
+            <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>Track your transformation</div>
+            <div style={{ fontSize: 11, color: "var(--text-dim)" }}>Progress photos coming soon</div>
           </div>
         </Card>
       </motion.div>
@@ -390,8 +390,8 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
       <motion.div variants={itemVariants} style={{ marginBottom: 14 }}>
         <Card>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <span style={{ fontSize: 16 }}>📅</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>Activity History</span>
+            <Calendar size={16} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Activity History</span>
           </div>
           <StreakCalendar workoutDates={workoutDates} nutritionDates={[]} streak={streak} />
         </Card>
@@ -401,26 +401,26 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
       <motion.div variants={itemVariants} style={{ marginBottom: 14 }}>
         <Card>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <TrendingUp size={16} color={theme.yellow} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>Personal Records</span>
+            <TrendingUp size={16} color={"var(--yellow)"} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Personal Records</span>
           </div>
           {bestPRs.length > 0 ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {bestPRs.map((pr, i) => (
                 <div key={`pr-${pr.name}-${i}`} style={{
-                  background: theme.bgCard2, borderRadius: radius.md,
-                  padding: "10px 12px", border: `1px solid ${theme.border}`,
+                  background: "var(--bg-card2)", borderRadius: radius.md,
+                  padding: "10px 12px", border: `1px solid var(--border)`,
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>{i === 0 ? "👑 " : ""}{pr.name}</span>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: theme.yellow }}>{pr.weight} kg</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{i === 0 ? <Crown size={14} /> : ""}{pr.name}</span>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: "var(--yellow)" }}>{pr.weight} kg</span>
                   </div>
-                  <div style={{ fontSize: 10, color: theme.textMuted }}>{pr.date} · {pr.reps} reps · {pr.sets} sets</div>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{pr.date} · {pr.reps} reps · {pr.sets} sets</div>
                 </div>
               ))}
             </div>
           ) : (
-            <div style={{ fontSize: 12, color: theme.textMuted, textAlign: "center", padding: "16px" }}>
+            <div style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center", padding: "16px" }}>
               No PRs yet. Start lifting to set your first record!
             </div>
           )}
@@ -431,3 +431,5 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
     </motion.div>
   );
 }
+
+

@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { theme, radius, shadow } from "../../styles/designSystem";
+import {  radius, shadow } from "../../styles/designSystem";
 
 export default function Modal({ open, onClose, children, maxWidth = 460 }) {
   return (
@@ -31,8 +31,8 @@ export default function Modal({ open, onClose, children, maxWidth = 460 }) {
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
             style={{
-              background: theme.bgCard,
-              border: `1px solid ${theme.border2}`,
+              background: "var(--bg-card)",
+              border: `1px solid var(--border2)`,
               borderRadius: radius.xl,
               padding: "24px",
               width: "100%",
@@ -49,3 +49,5 @@ export default function Modal({ open, onClose, children, maxWidth = 460 }) {
     </AnimatePresence>
   );
 }
+
+

@@ -52,7 +52,7 @@ export const useNutritionStore = create(
             totalDays = state.totalDaysLogged + 1;
           }
           return {
-            meals: [...state.meals, { ...food, uid: nextUid(), fiber: food.fiber || 0, sugar: food.sugar || 0 }],
+            meals: [...state.meals, { ...food, uid: nextUid(), qty: food.qty || 1, fiber: food.fiber || 0, sugar: food.sugar || 0 }],
             lastLogDate: today2,
             nutritionStreak: streak,
             totalDaysLogged: totalDays,
@@ -84,6 +84,7 @@ export const useNutritionStore = create(
     }),
     {
       name: "fitforce-nutrition",
+      migrate: (persisted) => persisted,
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         const seen = new Set();

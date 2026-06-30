@@ -1,15 +1,16 @@
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { theme, radius, shadow } from "../styles/designSystem";
+import { Dumbbell } from "lucide-react";
+import {  radius, shadow } from "../styles/designSystem";
 import { getExerciseImage } from "../data/exerciseImages";
 
 const ASPECT_RATIO = "56.25%";
 
-const shimmerStyle = {
-  background: `linear-gradient(90deg, ${theme.bgCard2} 25%, ${theme.bgCard3} 50%, ${theme.bgCard2} 75%)`,
+const shimmerStyle = () => ({
+  background: `linear-gradient(90deg, var(--bg-card2) 25%, var(--bg-card3) 50%, var(--bg-card2) 75%)`,
   backgroundSize: "200% 100%",
   animation: "shimmer 1.5s ease-in-out infinite",
-};
+});
 
 export default function ExerciseImage({
   exercise,
@@ -35,7 +36,7 @@ export default function ExerciseImage({
         height: height || undefined,
         borderRadius: radius.md,
         overflow: "hidden",
-        background: theme.bgCard2,
+        background: "var(--bg-card2)",
         ...style,
       }}
     >
@@ -47,7 +48,7 @@ export default function ExerciseImage({
           style={{
             position: "absolute",
             inset: 0,
-            ...shimmerStyle,
+            ...shimmerStyle(),
           }}
         />
       )}
@@ -88,7 +89,7 @@ export default function ExerciseImage({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: `linear-gradient(135deg, ${theme.bgCard2}, ${theme.bgCard3})`,
+            background: `linear-gradient(135deg, var(--bg-card2), var(--bg-card3))`,
             borderRadius: radius.md,
             flexDirection: "column",
             gap: 6,
@@ -97,15 +98,15 @@ export default function ExerciseImage({
           <div style={{
             width: 36, height: 36,
             borderRadius: "50%",
-            background: `${theme.red}15`,
+            background: `rgba(239,68,68,0.082)`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontSize: 18,
           }}>
-            🏋️
+            <Dumbbell size={32} />
           </div>
-          <div style={{ fontSize: 10, color: theme.textMuted }}>
+          <div style={{ fontSize: 10, color: "var(--text-muted)" }}>
             {exercise?.name || "Exercise"}
           </div>
         </div>
@@ -138,9 +139,11 @@ export function ExerciseImageSkeleton({ width = "100%", height, style }) {
         height: height || undefined,
         borderRadius: radius.md,
         overflow: "hidden",
-        ...shimmerStyle,
+        ...shimmerStyle(),
         ...style,
       }}
     />
   );
 }
+
+

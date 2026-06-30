@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { theme, radius } from "../../styles/designSystem";
+import {  radius } from "../../styles/designSystem";
 
-export default function ProgressBar({ value, max, color = theme.red, height = 4, label }) {
+export default function ProgressBar({ value, max, color: colorProp, height = 4, label }) {
+  const color = colorProp ?? "var(--accent)";
   const safeMax = max > 0 ? max : 1;
   const p = Math.min(100, Math.round((value / safeMax) * 100));
   return (
@@ -15,17 +16,17 @@ export default function ProgressBar({ value, max, color = theme.red, height = 4,
             marginBottom: 4,
           }}
         >
-          <span style={{ color: theme.textMuted }}>{label}</span>
+          <span style={{ color: "var(--text-muted)" }}>{label}</span>
           <span style={{ color }}>
             {value}
-            <span style={{ color: theme.textDim }}>/{max}</span>
+            <span style={{ color: "var(--text-dim)" }}>/{max}</span>
           </span>
         </div>
       )}
       <div
         style={{
           height,
-          background: theme.border,
+          background: "var(--border)",
           borderRadius: radius.full,
           overflow: "hidden",
         }}
@@ -45,3 +46,5 @@ export default function ProgressBar({ value, max, color = theme.red, height = 4,
     </div>
   );
 }
+
+

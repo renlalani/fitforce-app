@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, CheckCircle2, AlertTriangle, Lightbulb, Shield, RefreshCw } from "lucide-react";
-import { theme, radius, shadow, transition, muscleColor } from "../styles/designSystem";
+import { X, CheckCircle2, AlertTriangle, Lightbulb, Shield, RefreshCw, Activity, Dumbbell, Heart, Footprints, Flame, Zap, Clock, Star, AlignJustify } from "lucide-react";
+import {  radius, shadow, transition, muscleColor } from "../styles/designSystem";
 import ExerciseImage from "./ExerciseImage";
 import Card from "./ui/Card";
 import { Tag, Badge } from "./ui/Tag";
@@ -18,8 +18,8 @@ const listItemVariant = {
 };
 
 const MUSCLE_EMOJI = {
-  Chest: "🏋️", Back: "🔙", Legs: "🦵", Glutes: "🍑",
-  Shoulders: "💪", Arms: "💪", Core: "🔥", Cardio: "🏃",
+  Chest: <Activity size={14} />, Back: <Activity size={14} />, Legs: <Footprints size={14} />, Glutes: <Activity size={14} />,
+  Shoulders: <Dumbbell size={14} />, Arms: <Dumbbell size={14} />, Core: <Activity size={14} />, Cardio: <Heart size={14} />,
 };
 
 export default function ExerciseDetailModal({ exercise, open, onClose, onSelectExercise }) {
@@ -28,13 +28,13 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
   const similar = getSimilarExercises(exercise, EXERCISES);
 
   const infoRows = [
-    { label: "Equipment", value: details?.equipment || "Varies", icon: EQUIPMENT_ICONS[details?.equipment] || "🏋️" },
-    { label: "Primary Muscle", value: exercise.muscle, icon: MUSCLE_EMOJI[exercise.muscle] || "💪" },
-    { label: "Secondary Muscles", value: details?.secondaryMuscles?.join(", ") || "—", icon: "🔗" },
-    { label: "Difficulty", value: exercise.level, icon: exercise.level === "Beginner" ? "🌱" : exercise.level === "Intermediate" ? "⚡" : "🔥" },
-    { label: "Sets × Reps", value: `${exercise.sets} × ${exercise.reps}`, icon: "📋" },
-    { label: "Rest", value: `${exercise.rest}s`, icon: "⏱️" },
-    { label: "Calories", value: `~${exercise.cal} cal`, icon: "🔥" },
+    { label: "Equipment", value: details?.equipment || "Varies", icon: EQUIPMENT_ICONS[details?.equipment] || <Dumbbell size={16} /> },
+    { label: "Primary Muscle", value: exercise.muscle, icon: MUSCLE_EMOJI[exercise.muscle] || <Dumbbell size={16} /> },
+    { label: "Secondary Muscles", value: details?.secondaryMuscles?.join(", ") || "—", icon: <Activity size={16} /> },
+    { label: "Difficulty", value: exercise.level, icon: exercise.level === "Beginner" ? <Zap size={16} /> : exercise.level === "Intermediate" ? <Zap size={16} /> : <Flame size={16} /> },
+    { label: "Sets × Reps", value: `${exercise.sets} × ${exercise.reps}`, icon: <AlignJustify size={16} /> },
+    { label: "Rest", value: `${exercise.rest}s`, icon: <Clock size={16} /> },
+    { label: "Calories", value: `~${exercise.cal} cal`, icon: <Flame size={16} /> },
   ];
 
   return (
@@ -61,8 +61,8 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
             exit={{ opacity: 0, scale: 0.93, y: 30 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
             style={{
-              background: theme.bgCard,
-              border: `1px solid ${theme.border2}`,
+              background: "var(--bg-card)",
+              border: `1px solid var(--border2)`,
               borderRadius: radius.xl,
               width: "100%",
               maxWidth: 560,
@@ -99,14 +99,14 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
                   {exercise.name}
                 </div>
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  <Badge label={exercise.level} color={exercise.level === "Beginner" ? theme.green : exercise.level === "Intermediate" ? theme.yellow : theme.red} />
-                  <Tag label={exercise.muscle} color={muscleColor[exercise.muscle] || theme.red} />
+                  <Badge label={exercise.level} color={exercise.level === "Beginner" ? "var(--green)" : exercise.level === "Intermediate" ? "var(--yellow)" : "var(--accent)"} />
+                  <Tag label={exercise.muscle} color={muscleColor[exercise.muscle] || "var(--accent)"} />
                 </div>
               </div>
             </div>
 
             <div style={{ padding: "0 20px 20px" }}>
-              <p style={{ color: theme.textMuted, fontSize: 13, lineHeight: 1.7, margin: "16px 0 18px" }}>
+              <p style={{ color: "var(--text-muted)", fontSize: 13, lineHeight: 1.7, margin: "16px 0 18px" }}>
                 {exercise.desc}
               </p>
 
@@ -122,16 +122,16 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
                     initial="hidden"
                     animate="visible"
                     style={{
-                      background: theme.bgCard2,
+                      background: "var(--bg-card2)",
                       borderRadius: radius.md,
                       padding: "10px 10px",
-                      border: `1px solid ${theme.border}`,
+                      border: `1px solid var(--border)`,
                       textAlign: "center",
                     }}
                   >
                     <div style={{ fontSize: 18, marginBottom: 2 }}>{row.icon}</div>
-                    <div style={{ fontSize: 10, color: theme.textMuted, marginBottom: 1 }}>{row.label}</div>
-                    <div style={{ fontSize: 11, color: theme.text, fontWeight: 500, lineHeight: 1.3 }}>{row.value}</div>
+                    <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 1 }}>{row.label}</div>
+                    <div style={{ fontSize: 11, color: "var(--text)", fontWeight: 500, lineHeight: 1.3 }}>{row.value}</div>
                   </motion.div>
                 ))}
               </div>
@@ -139,10 +139,10 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
               {details?.instructions && (
                 <motion.div custom={1} variants={sectionVariant} initial="hidden" animate="visible" style={{ marginBottom: 20 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                    <div style={{ width: 24, height: 24, borderRadius: radius.sm, background: `${theme.blue}20`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <CheckCircle2 size={14} color={theme.blue} />
+                    <div style={{ width: 24, height: 24, borderRadius: radius.sm, background: `rgba(59,130,246,0.125)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <CheckCircle2 size={14} color={"var(--blue)"} />
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: theme.text }}>Step-by-Step Instructions</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>Step-by-Step Instructions</div>
                   </div>
                   <div style={{ paddingLeft: 0 }}>
                     {details.instructions.map((step, i) => (
@@ -151,13 +151,13 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
                         initial="hidden" animate="visible"
                         style={{
                           display: "flex", gap: 10, padding: "7px 0",
-                          borderBottom: i < details.instructions.length - 1 ? `1px solid ${theme.border}` : "none",
-                          fontSize: 12.5, color: theme.text, lineHeight: 1.6,
+                          borderBottom: i < details.instructions.length - 1 ? `1px solid var(--border)` : "none",
+                          fontSize: 12.5, color: "var(--text)", lineHeight: 1.6,
                         }}
                       >
                         <div style={{
                           width: 20, height: 20, borderRadius: radius.full,
-                          background: `${theme.blue}18`, color: theme.blue,
+                          background: `rgba(59,130,246,0.094)`, color: "var(--blue)",
                           fontSize: 10, fontWeight: 700,
                           display: "flex", alignItems: "center", justifyContent: "center",
                           flexShrink: 0, marginTop: 1,
@@ -175,10 +175,10 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
                 {details?.commonMistakes && (
                   <motion.div custom={2} variants={sectionVariant} initial="hidden" animate="visible">
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                      <div style={{ width: 24, height: 24, borderRadius: radius.sm, background: `${theme.red}20`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <AlertTriangle size={14} color={theme.red} />
+                      <div style={{ width: 24, height: 24, borderRadius: radius.sm, background: `rgba(239,68,68,0.125)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <AlertTriangle size={14} color={"var(--red)"} />
                       </div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>Common Mistakes</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Common Mistakes</div>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                       {details.commonMistakes.map((m, i) => (
@@ -187,10 +187,10 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
                           initial="hidden" animate="visible"
                           style={{
                             display: "flex", gap: 6, alignItems: "flex-start",
-                            fontSize: 11.5, color: theme.textMuted, lineHeight: 1.5,
+                            fontSize: 11.5, color: "var(--text-muted)", lineHeight: 1.5,
                           }}
                         >
-                          <span style={{ color: theme.red, flexShrink: 0, fontSize: 10 }}>✕</span>
+                          <span style={{ color: "var(--red)", flexShrink: 0, fontSize: 10 }}><X size={16} /></span>
                           <span>{m}</span>
                         </motion.div>
                       ))}
@@ -201,10 +201,10 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
                 {details?.proTips && (
                   <motion.div custom={3} variants={sectionVariant} initial="hidden" animate="visible">
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                      <div style={{ width: 24, height: 24, borderRadius: radius.sm, background: `${theme.yellow}20`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <Lightbulb size={14} color={theme.yellow} />
+                      <div style={{ width: 24, height: 24, borderRadius: radius.sm, background: `rgba(245,158,11,0.125)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <Lightbulb size={14} color={"var(--yellow)"} />
                       </div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>Pro Tips</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Pro Tips</div>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                       {details.proTips.map((tip, i) => (
@@ -213,10 +213,10 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
                           initial="hidden" animate="visible"
                           style={{
                             display: "flex", gap: 6, alignItems: "flex-start",
-                            fontSize: 11.5, color: theme.textMuted, lineHeight: 1.5,
+                            fontSize: 11.5, color: "var(--text-muted)", lineHeight: 1.5,
                           }}
                         >
-                          <span style={{ color: theme.yellow, flexShrink: 0, fontSize: 10 }}>✦</span>
+                          <span style={{ color: "var(--yellow)", flexShrink: 0, fontSize: 10 }}><Star size={12} /></span>
                           <span>{tip}</span>
                         </motion.div>
                       ))}
@@ -228,16 +228,16 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
               {details?.safety && (
                 <motion.div custom={4} variants={sectionVariant} initial="hidden" animate="visible" style={{ marginBottom: 20 }}>
                   <div style={{
-                    background: `${theme.red}08`,
-                    border: `1px solid ${theme.red}20`,
+                    background: `rgba(239,68,68,0.031)`,
+                    border: `1px solid rgba(239,68,68,0.125)`,
                     borderRadius: radius.md,
                     padding: "12px 14px",
                     display: "flex", gap: 10, alignItems: "flex-start",
                   }}>
-                    <Shield size={16} color={theme.red} style={{ flexShrink: 0, marginTop: 1 }} />
+                    <Shield size={16} color={"var(--red)"} style={{ flexShrink: 0, marginTop: 1 }} />
                     <div>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: theme.red, marginBottom: 3 }}>Safety Warning</div>
-                      <div style={{ fontSize: 11.5, color: theme.textMuted, lineHeight: 1.6 }}>{details.safety}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: "var(--red)", marginBottom: 3 }}>Safety Warning</div>
+                      <div style={{ fontSize: 11.5, color: "var(--text-muted)", lineHeight: 1.6 }}>{details.safety}</div>
                     </div>
                   </div>
                 </motion.div>
@@ -246,10 +246,10 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
               {similar.length > 0 && (
                 <motion.div custom={5} variants={sectionVariant} initial="hidden" animate="visible">
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                    <div style={{ width: 24, height: 24, borderRadius: radius.sm, background: `${theme.green}20`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <RefreshCw size={14} color={theme.green} />
+                    <div style={{ width: 24, height: 24, borderRadius: radius.sm, background: `rgba(16,185,129,0.125)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <RefreshCw size={14} color={"var(--green)"} />
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: theme.text }}>Similar Exercises</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>Similar Exercises</div>
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                     {similar.map((ex, i) => (
@@ -258,18 +258,18 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
                         initial="hidden" animate="visible"
                         onClick={() => { onClose(); onSelectExercise?.(ex); }}
                         style={{
-                          background: theme.bgCard2,
-                          border: `1px solid ${theme.border}`,
+                          background: "var(--bg-card2)",
+                          border: `1px solid var(--border)`,
                           borderRadius: radius.md,
                           padding: "10px 12px",
                           cursor: "pointer",
                         }}
-                        whileHover={{ y: -2, borderColor: `${muscleColor[ex.muscle] || theme.red}40` }}
+                        whileHover={{ y: -2, borderColor: `${muscleColor[ex.muscle] || "var(--accent)"}40` }}
                       >
-                        <div style={{ fontSize: 13, fontWeight: 500, color: theme.text, marginBottom: 3 }}>{ex.name}</div>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text)", marginBottom: 3 }}>{ex.name}</div>
                         <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                          <Tag label={ex.muscle} color={muscleColor[ex.muscle] || theme.red} />
-                          <span style={{ fontSize: 10, color: theme.textMuted }}>{ex.sets}×{ex.reps}</span>
+                          <Tag label={ex.muscle} color={muscleColor[ex.muscle] || "var(--accent)"} />
+                          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{ex.sets}×{ex.reps}</span>
                         </div>
                       </motion.div>
                     ))}
@@ -284,8 +284,8 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
                 style={{
                   width: "100%", marginTop: 18,
                   padding: "12px", borderRadius: radius.md,
-                  background: theme.bgCard2, border: `1px solid ${theme.border}`,
-                  color: theme.textMuted, fontSize: 13, fontWeight: 500,
+                  background: "var(--bg-card2)", border: `1px solid var(--border)`,
+                  color: "var(--text-muted)", fontSize: 13, fontWeight: 500,
                   cursor: "pointer",
                   transition: "all 0.2s ease",
                 }}
@@ -299,3 +299,5 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
     </AnimatePresence>
   );
 }
+
+

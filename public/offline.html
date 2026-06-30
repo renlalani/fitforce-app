@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Offline — FitForce</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0a0b; color: #fafafa; font-family: system-ui, -apple-system, sans-serif;
+      display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .card {
+      background: #141416; border: 1px solid #2a2a30; border-radius: 16px;
+      padding: 40px 32px; text-align: center; max-width: 380px; width: 100%;
+    }
+    .icon { width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, #ff3b3b, #cc2020); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 32px; font-weight: 800; color: #fff; }
+    h1 { font-size: 20px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.02em; }
+    p { font-size: 13px; color: #a1a1aa; line-height: 1.6; margin-bottom: 24px; }
+    .btn {
+      background: #1a1a1e; border: 1px solid #2a2a30; border-radius: 12px;
+      padding: 12px 24px; color: #fafafa; font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn:hover { background: #222226; }
+    .hint { font-size: 11px; color: #52525b; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">F</div>
+    <h1>You're offline</h1>
+    <p>FitForce needs an internet connection to sync your data. Check your connection and try again.</p>
+    <button class="btn" onclick="window.location.reload()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Retry
+    </button>
+    <div class="hint">Your saved data is safe and will sync when you're back online.</div>
+  </div>
+</body>
+</html>

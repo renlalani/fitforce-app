@@ -164,6 +164,7 @@ export const useWorkoutStore = create(
     }),
     {
       name: "fitforce-workout",
+      migrate: (persisted) => persisted,
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         const seen = new Set();

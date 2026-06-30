@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { forwardRef, useState } from "react";
-import { theme, radius, transition } from "../../styles/designSystem";
+import {  radius, transition } from "../../styles/designSystem";
 
 const Input = forwardRef(({ style, label, ...props }, ref) => {
   const [focused, setFocused] = useState(false);
@@ -11,12 +11,12 @@ const Input = forwardRef(({ style, label, ...props }, ref) => {
         <motion.label
           htmlFor={props.id || props.name}
           animate={{
-            color: focused ? theme.red : theme.textMuted,
+            color: focused ? "var(--accent)" : "var(--text-muted)",
             y: focused ? -2 : 0,
           }}
           style={{
             fontSize: 12,
-            color: theme.textMuted,
+            color: "var(--text-muted)",
             display: "block",
             marginBottom: 6,
             transition: transition.fast,
@@ -32,17 +32,17 @@ const Input = forwardRef(({ style, label, ...props }, ref) => {
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           style={{
-            background: theme.bgCard2,
-            border: `1px solid ${focused ? theme.red + "60" : theme.border2}`,
+            background: "var(--bg-card2)",
+            border: `1px solid ${focused ? "rgba(59,130,246,0.376)" : "var(--border2)"}`,
             borderRadius: radius.md,
             padding: "10px 14px",
-            color: theme.text,
+            color: "var(--text)",
             fontSize: 13,
             outline: "none",
             width: "100%",
             boxSizing: "border-box",
             transition: transition.fast,
-            boxShadow: focused ? `0 0 0 3px ${theme.red}15` : "none",
+            boxShadow: focused ? `0 0 0 3px rgba(59,130,246,0.082)` : "none",
             ...style,
           }}
           {...props}
@@ -59,7 +59,7 @@ const Input = forwardRef(({ style, label, ...props }, ref) => {
             left: 0,
             right: 0,
             height: 2,
-            background: `linear-gradient(90deg, ${theme.red}, ${theme.redLight})`,
+            background: `linear-gradient(90deg, var(--accent), var(--accent-light))`,
             borderRadius: "0 0 8px 8px",
             transformOrigin: "left",
           }}
@@ -71,3 +71,5 @@ const Input = forwardRef(({ style, label, ...props }, ref) => {
 
 Input.displayName = "Input";
 export default Input;
+
+

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, X, RotateCcw } from "lucide-react";
-import { theme, radius, shadow } from "../styles/designSystem";
+import {  radius, shadow } from "../styles/designSystem";
 
 export default function Toast({ message, sub, visible, onClose, onUndo, duration = 3000 }) {
   useEffect(() => {
@@ -23,10 +23,10 @@ export default function Toast({ message, sub, visible, onClose, onUndo, duration
             bottom: 24,
             left: "50%",
             zIndex: 9999,
-            background: theme.bgCard,
+            background: "var(--bg-card)",
             backdropFilter: "blur(16px)",
             WebkitBackdropFilter: "blur(16px)",
-            border: `1px solid ${theme.border2}`,
+            border: `1px solid var(--border2)`,
             borderRadius: radius.lg,
             padding: "14px 18px",
             boxShadow: shadow.modal,
@@ -43,30 +43,30 @@ export default function Toast({ message, sub, visible, onClose, onUndo, duration
             transition={{ type: "spring", stiffness: 400, delay: 0.1 }}
             style={{
               width: 28, height: 28,
-              background: `${theme.green}15`,
+              background: `rgba(16,185,129,0.082)`,
               borderRadius: "50%",
               display: "flex", alignItems: "center", justifyContent: "center",
               flexShrink: 0,
             }}
           >
-            <CheckCircle size={16} color={theme.green} />
+            <CheckCircle size={16} color={"var(--green)"} />
           </motion.div>
 
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>{message}</div>
-            {sub && <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 1 }}>{sub}</div>}
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{message}</div>
+            {sub && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>{sub}</div>}
           </div>
 
           {onUndo && (
             <motion.button
-              whileHover={{ scale: 1.05, borderColor: theme.red + "40" }}
+              whileHover={{ scale: 1.05, borderColor: "rgba(239,68,68,0.251)" }}
               whileTap={{ scale: 0.95 }}
               onClick={onUndo}
               style={{
-                background: `${theme.red}10`,
-                border: `1px solid ${theme.red}25`,
+                background: `rgba(239,68,68,0.063)`,
+                border: `1px solid rgba(239,68,68,0.145)`,
                 borderRadius: radius.sm,
-                color: theme.red,
+                color: "var(--red)",
                 cursor: "pointer",
                 fontSize: 11,
                 fontWeight: 600,
@@ -88,7 +88,7 @@ export default function Toast({ message, sub, visible, onClose, onUndo, duration
             style={{
               background: "transparent",
               border: "none",
-              color: theme.textDim,
+              color: "var(--text-dim)",
               cursor: "pointer",
               padding: 4,
               display: "flex",
@@ -102,3 +102,5 @@ export default function Toast({ message, sub, visible, onClose, onUndo, duration
     </AnimatePresence>
   );
 }
+
+

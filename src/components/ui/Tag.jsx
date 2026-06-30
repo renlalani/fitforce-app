@@ -1,4 +1,4 @@
-import { theme, radius } from "../../styles/designSystem";
+import { radius } from "../../styles/designSystem";
 
 export function Tag({ label, color }) {
   return (

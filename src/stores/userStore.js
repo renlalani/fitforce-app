@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+const STORAGE_VERSION = 1;
+
 const initialState = {
   profile: {
     name: "Athlete",
@@ -14,11 +16,11 @@ const initialState = {
   xp: 1240,
   streak: 7,
   bodyStats: [
-    { date: "Apr 1", weight: 76 },
-    { date: "Apr 5", weight: 75.5 },
-    { date: "Apr 8", weight: 75.2 },
-    { date: "Apr 10", weight: 75 },
-    { date: "Apr 12", weight: 74.8 },
+    { date: "Apr 1, 2026", weight: 76 },
+    { date: "Apr 5, 2026", weight: 75.5 },
+    { date: "Apr 8, 2026", weight: 75.2 },
+    { date: "Apr 10, 2026", weight: 75 },
+    { date: "Apr 12, 2026", weight: 74.8 },
   ],
   measurements: {
     chest: "100",
@@ -89,6 +91,13 @@ export const useUserStore = create(
     }),
     {
       name: "fitforce-user",
+      version: STORAGE_VERSION,
+      migrate: (persisted, version) => {
+        if (version < STORAGE_VERSION) {
+          return { ...initialState, ...persisted };
+        }
+        return persisted;
+      },
       onRehydrateStorage: () => (state) => {
         if (!state || !state.profile) return;
         state.profile = {
@@ -101,6 +110,8 @@ export const useUserStore = create(
           gender: state.profile.gender || "Male",
         };
         state.xp = Math.max(0, +state.xp || 0);
+        if (!Array.isArray(state.prs)) state.prs = [];
+        if (!Array.isArray(state.bodyStats)) state.bodyStats = [];
       },
     }
   )

@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Save, Check, ChefHat, ShoppingCart, Apple } from "lucide-react";
-import { theme, radius, shadow } from "../styles/designSystem";
+import { X, Save, Check, ChefHat, ShoppingCart, Apple, Flame, DollarSign, Utensils, Target, Dumbbell, Hash, Circle, Lightbulb, Star } from "lucide-react";
+import {  radius, shadow } from "../styles/designSystem";
 import Button from "./ui/Button";
 import { streamAI } from "../utils/api";
 import { useNutritionStore } from "../stores/nutritionStore";
@@ -17,7 +17,7 @@ function PillGroup({ options, value, onChange, label, icon }) {
     <div style={{ marginBottom: 18 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
         <span style={{ fontSize: 15 }}>{icon}</span>
-        <div style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>{label}</div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{label}</div>
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
         {options.map(opt => (
@@ -29,9 +29,9 @@ function PillGroup({ options, value, onChange, label, icon }) {
             style={{
               padding: "8px 16px",
               borderRadius: radius.full,
-              border: `1px solid ${value === opt ? theme.red : theme.border2}`,
-              background: value === opt ? `${theme.red}18` : theme.bgCard2,
-              color: value === opt ? theme.red : theme.textMuted,
+              border: `1px solid ${value === opt ? "var(--accent)" : "var(--border2)"}`,
+              background: value === opt ? `rgba(59,130,246,0.094)` : "var(--bg-card2)",
+              color: value === opt ? "var(--accent)" : "var(--text-muted)",
               cursor: "pointer",
               fontSize: 12,
               fontWeight: value === opt ? 600 : 400,
@@ -49,26 +49,26 @@ function PillGroup({ options, value, onChange, label, icon }) {
 function MealCard({ title, foods, cal }) {
   return (
     <div style={{
-      background: theme.bgCard2,
+      background: "var(--bg-card2)",
       borderRadius: radius.md,
-      border: `1px solid ${theme.border}`,
+      border: `1px solid var(--border)`,
       padding: "12px 14px",
     }}>
       <div style={{
         display: "flex", justifyContent: "space-between", alignItems: "center",
         marginBottom: 8,
       }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: theme.red }}>{title}</div>
-        <div style={{ fontSize: 11, color: theme.orange, fontWeight: 500 }}>~{cal} cal</div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--accent)" }}>{title}</div>
+        <div style={{ fontSize: 11, color: "var(--orange)", fontWeight: 500 }}>~{cal} cal</div>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         {foods?.map((f, i) => (
           <div key={i} style={{
             display: "flex", alignItems: "center", gap: 6,
-            fontSize: 12, color: theme.text, padding: "3px 0",
-            borderBottom: i < foods.length - 1 ? `1px solid ${theme.border}50` : "none",
+            fontSize: 12, color: "var(--text)", padding: "3px 0",
+            borderBottom: i < foods.length - 1 ? `1px solid rgba(0,0,0,0.314)` : "none",
           }}>
-            <span style={{ color: theme.textMuted }}>•</span>
+            <span style={{ color: "var(--text-muted)" }}>•</span>
             <span>{f}</span>
           </div>
         ))}
@@ -197,7 +197,8 @@ Include realistic food portions and a practical shopping list.`;
     ["Low Budget", "Moderate", "Premium"],
     ["2 meals", "3 meals", "3 meals + snack", "4 meals", "5 meals"],
   ];
-  const diLabels = ["🥩 Diet", "💰 Budget", "🍽️ Meals per day"];
+  const diLabels = ["Diet", "Budget", "Meals per day"];
+  const diIcons = [<Flame size={16} />, <DollarSign size={16} />, <Utensils size={16} />];
   const diValues = [[diet, setDiet], [budget, setBudget], [meals, setMeals]];
 
   return (
@@ -224,8 +225,8 @@ Include realistic food portions and a practical shopping list.`;
             exit={{ opacity: 0, scale: 0.93, y: 30 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
             style={{
-              background: theme.bgCard,
-              border: `1px solid ${theme.border2}`,
+              background: "var(--bg-card)",
+              border: `1px solid var(--border2)`,
               borderRadius: radius.xl,
               width: "100%",
               maxWidth: 520,
@@ -237,8 +238,8 @@ Include realistic food portions and a practical shopping list.`;
           >
             <div style={{
               position: "sticky", top: 0, zIndex: 10,
-              background: theme.bgCard,
-              borderBottom: `1px solid ${theme.border}`,
+              background: "var(--bg-card)",
+              borderBottom: `1px solid var(--border)`,
               padding: "16px 20px",
               display: "flex", alignItems: "center", justifyContent: "space-between",
               borderRadius: `${radius.xl}px ${radius.xl}px 0 0`,
@@ -246,14 +247,14 @@ Include realistic food portions and a practical shopping list.`;
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{
                   width: 32, height: 32, borderRadius: radius.md,
-                  background: `${theme.green}18`, display: "flex",
+                  background: `rgba(16,185,129,0.094)`, display: "flex",
                   alignItems: "center", justifyContent: "center",
                 }}>
-                  <ChefHat size={16} color={theme.green} />
+                  <ChefHat size={16} color={"var(--green)"} />
                 </div>
                 <div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: theme.text }}>AI Meal Planner</div>
-                  <div style={{ fontSize: 11, color: theme.textMuted }}>Generate a personalized meal plan</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text)" }}>AI Meal Planner</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Generate a personalized meal plan</div>
                 </div>
               </div>
               <motion.button
@@ -261,10 +262,10 @@ Include realistic food portions and a practical shopping list.`;
                 whileTap={{ scale: 0.9 }}
                 onClick={() => { onClose(); setResult(null); }}
                 style={{
-                  background: theme.bgCard2, border: "none",
+                  background: "var(--bg-card2)", border: "none",
                   borderRadius: radius.full, width: 32, height: 32,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  cursor: "pointer", color: theme.textMuted,
+                  cursor: "pointer", color: "var(--text-muted)",
                 }}
               >
                 <X size={16} />
@@ -276,27 +277,27 @@ Include realistic food portions and a practical shopping list.`;
                 <motion.div key="form" variants={stepVariant} initial="enter" animate="center" exit="exit">
                   <div style={{ marginBottom: 18 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                      <span style={{ fontSize: 15 }}>🎯</span>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>Daily Targets</div>
+                      <Target size={16} />
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Daily Targets</div>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                       <div>
-                        <label htmlFor="mp-calories" style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 4 }}>Calories</label>
+                        <label htmlFor="mp-calories" style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>Calories</label>
                         <input id="mp-calories" name="mpCalories" type="number" value={calories} onChange={e => setCalories(e.target.value)}
                           style={{
                             width: "100%", padding: "9px 12px", borderRadius: radius.md, boxSizing: "border-box",
-                            background: theme.bgCard2, border: `1px solid ${theme.border2}`,
-                            color: theme.text, fontSize: 13, outline: "none",
+                            background: "var(--bg-card2)", border: `1px solid var(--border2)`,
+                            color: "var(--text)", fontSize: 13, outline: "none",
                           }}
                         />
                       </div>
                       <div>
-                        <label htmlFor="mp-protein" style={{ fontSize: 11, color: theme.textMuted, display: "block", marginBottom: 4 }}>Protein (g)</label>
+                        <label htmlFor="mp-protein" style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>Protein (g)</label>
                         <input id="mp-protein" name="mpProtein" type="number" value={protein} onChange={e => setProtein(e.target.value)}
                           style={{
                             width: "100%", padding: "9px 12px", borderRadius: radius.md, boxSizing: "border-box",
-                            background: theme.bgCard2, border: `1px solid ${theme.border2}`,
-                            color: theme.text, fontSize: 13, outline: "none",
+                            background: "var(--bg-card2)", border: `1px solid var(--border2)`,
+                            color: "var(--text)", fontSize: 13, outline: "none",
                           }}
                         />
                       </div>
@@ -306,8 +307,8 @@ Include realistic food portions and a practical shopping list.`;
                   {diLabels.map((label, i) => (
                     <PillGroup
                       key={i}
-                      icon={label.split(" ")[0]}
-                      label={label.split(" ").slice(1).join(" ")}
+                      icon={diIcons[i]}
+                      label={label}
                       options={di[i]}
                       value={diValues[i][0]}
                       onChange={diValues[i][1]}
@@ -327,15 +328,15 @@ Include realistic food portions and a practical shopping list.`;
                     transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
                     style={{
                       width: 40, height: 40, borderRadius: "50%",
-                      border: `3px solid ${theme.border}`,
-                      borderTopColor: theme.green,
+                      border: `3px solid var(--border)`,
+                      borderTopColor: "var(--green)",
                       margin: "0 auto 16px",
                     }}
                   />
-                  <div style={{ fontSize: 14, fontWeight: 600, color: theme.text, marginBottom: 6 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", marginBottom: 6 }}>
                     Creating your meal plan...
                   </div>
-                  <div style={{ fontSize: 12, color: theme.textMuted }}>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
                     Crafting delicious meals that match your macros
                   </div>
                 </div>
@@ -345,33 +346,33 @@ Include realistic food portions and a practical shopping list.`;
                 <motion.div key="result" variants={stepVariant} initial="enter" animate="center" exit="exit">
                   {error && (
                     <div style={{
-                      background: `${theme.red}10`, border: `1px solid ${theme.red}25`,
+                      background: `rgba(239,68,68,0.063)`, border: `1px solid rgba(239,68,68,0.145)`,
                       borderRadius: radius.md, padding: "10px 14px", marginBottom: 16,
-                      fontSize: 12, color: theme.red,
+                      fontSize: 12, color: "var(--red)",
                     }}>{error}</div>
                   )}
 
                   <div style={{ marginBottom: 16 }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: theme.text, marginBottom: 4 }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>
                       {result.name || "Your Meal Plan"}
                     </div>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       <div style={{
                         fontSize: 11, padding: "3px 10px", borderRadius: radius.full,
-                        background: `${theme.red}15`, color: theme.red, fontWeight: 500,
-                      }}>🔥 {result.totalCalories || "—"} cal</div>
+                        background: `rgba(59,130,246,0.082)`, color: "var(--accent)", fontWeight: 500,
+                      }}><Flame size={14} /> {result.totalCalories || "—"} cal</div>
                       <div style={{
                         fontSize: 11, padding: "3px 10px", borderRadius: radius.full,
-                        background: `${theme.blue}15`, color: theme.blue, fontWeight: 500,
-                      }}>💪 {result.totalProtein || "—"}g protein</div>
+                        background: `rgba(59,130,246,0.082)`, color: "var(--blue)", fontWeight: 500,
+                      }}><Dumbbell size={14} /> {result.totalProtein || "—"}g protein</div>
                       <div style={{
                         fontSize: 11, padding: "3px 10px", borderRadius: radius.full,
-                        background: `${theme.yellow}15`, color: theme.yellow, fontWeight: 500,
-                      }}>🍚 {result.totalCarbs || "—"}g carbs</div>
+                        background: `rgba(245,158,11,0.082)`, color: "var(--yellow)", fontWeight: 500,
+                      }}><Hash size={14} /> {result.totalCarbs || "—"}g carbs</div>
                       <div style={{
                         fontSize: 11, padding: "3px 10px", borderRadius: radius.full,
-                        background: `${theme.orange}15`, color: theme.orange, fontWeight: 500,
-                      }}>🥑 {result.totalFat || "—"}g fat</div>
+                        background: `rgba(249,115,22,0.082)`, color: "var(--orange)", fontWeight: 500,
+                      }}><Circle size={14} /> {result.totalFat || "—"}g fat</div>
                     </div>
                   </div>
 
@@ -383,20 +384,20 @@ Include realistic food portions and a practical shopping list.`;
 
                   {result.shoppingList?.length > 0 && (
                     <div style={{
-                      background: `${theme.green}08`, border: `1px solid ${theme.green}20`,
+                      background: `rgba(16,185,129,0.031)`, border: `1px solid rgba(16,185,129,0.125)`,
                       borderRadius: radius.md, padding: "12px 14px", marginBottom: 16,
                     }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                        <ShoppingCart size={14} color={theme.green} />
-                        <span style={{ fontSize: 12, fontWeight: 600, color: theme.green }}>Shopping List</span>
+                        <ShoppingCart size={14} color={"var(--green)"} />
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--green)" }}>Shopping List</span>
                       </div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                         {result.shoppingList.map((item, i) => (
                           <div key={i} style={{
                             display: "flex", gap: 6, alignItems: "center",
-                            fontSize: 12, color: theme.textMuted,
+                            fontSize: 12, color: "var(--text-muted)",
                           }}>
-                            <span style={{ color: theme.green }}>•</span>
+                            <span style={{ color: "var(--green)" }}>•</span>
                             <span>{item}</span>
                           </div>
                         ))}
@@ -406,14 +407,14 @@ Include realistic food portions and a practical shopping list.`;
 
                   {result.tips?.length > 0 && (
                     <div style={{ marginBottom: 16 }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: theme.text, marginBottom: 6 }}>💡 Tips</div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text)", marginBottom: 6 }}><Lightbulb size={14} /> Tips</div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                         {result.tips.map((tip, i) => (
                           <div key={i} style={{
                             display: "flex", gap: 6, alignItems: "flex-start",
-                            fontSize: 11.5, color: theme.textMuted, lineHeight: 1.5,
+                            fontSize: 11.5, color: "var(--text-muted)", lineHeight: 1.5,
                           }}>
-                            <span style={{ color: theme.yellow }}>✦</span>
+                            <Star size={12} color={"var(--yellow)"} />
                             <span>{tip}</span>
                           </div>
                         ))}
@@ -430,8 +431,8 @@ Include realistic food portions and a practical shopping list.`;
                       disabled={saved}
                       style={{
                         flex: 1,
-                        background: saved ? `${theme.green}20` : undefined,
-                        color: saved ? theme.green : undefined,
+                        background: saved ? `rgba(16,185,129,0.125)` : undefined,
+                        color: saved ? "var(--green)" : undefined,
                       }}
                     >
                       {saved ? <><Check size={14} /> Saved!</> : <><Save size={14} /> Save Plan</>}
@@ -446,3 +447,5 @@ Include realistic food portions and a practical shopping list.`;
     </AnimatePresence>
   );
 }
+
+

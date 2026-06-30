@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Droplets, RotateCcw, Sparkles, Check } from "lucide-react";
-import { theme, radius, transition } from "../styles/designSystem";
+import { Plus, Droplets, RotateCcw, Sparkles, Check, Trophy } from "lucide-react";
+import {  radius, transition } from "../styles/designSystem";
 
 function ConfettiParticle({ delay }) {
-  const colors = [theme.teal, theme.blue, theme.green, theme.yellow, theme.red];
+  const colors = ["var(--teal)", "var(--blue)", "var(--green)", "var(--yellow)", "var(--red)"];
   const color = colors[Math.floor(Math.random() * colors.length)];
   const x = (Math.random() - 0.5) * 200;
   const y = -(60 + Math.random() * 100);
@@ -48,11 +48,11 @@ function CompletionCelebration() {
         style={{
           position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
           width: 48, height: 48, borderRadius: "50%",
-          background: `${theme.teal}20`,
+          background: `rgba(20,184,166,0.125)`,
           display: "flex", alignItems: "center", justifyContent: "center",
         }}
       >
-        <Check size={24} color={theme.teal} strokeWidth={3} />
+        <Check size={24} color={"var(--teal)"} strokeWidth={3} />
       </motion.div>
     </motion.div>
   );
@@ -129,14 +129,14 @@ export default function WaterTracker({ water, setWater }) {
           flex: 1, position: "relative",
           borderRadius: `${radius.sm}px ${radius.sm}px 0 0`,
           overflow: "hidden",
-          background: filled ? `linear-gradient(to top, ${theme.teal}80, transparent)` : theme.bgCard3,
-          border: `1px solid ${filled ? theme.teal + "50" : theme.border}`,
+          background: filled ? `linear-gradient(to top, rgba(20,184,166,0.502), transparent)` : "var(--bg-card3)",
+          border: `1px solid ${filled ? "rgba(20,184,166,0.314)" : "var(--border)"}`,
         }}
         animate={{
           height: `${h}px`,
           background: filled
-            ? `linear-gradient(to top, ${theme.teal}80, ${theme.teal}30)`
-            : theme.bgCard3,
+            ? `linear-gradient(to top, rgba(20,184,166,0.502), rgba(20,184,166,0.188))`
+            : "var(--bg-card3)",
         }}
         transition={{ ...transition.spring, delay: index * 0.04 }}
       >
@@ -150,7 +150,7 @@ export default function WaterTracker({ water, setWater }) {
                 position: "absolute", inset: 0, overflow: "hidden",
               }}
             >
-              <WaveSVG height={waveH} fill={theme.teal} />
+              <WaveSVG height={waveH} fill={"var(--teal)"} />
               {/* Light shimmer */}
               <motion.div
                 animate={{ x: ["-100%", "100%"] }}
@@ -174,8 +174,8 @@ export default function WaterTracker({ water, setWater }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
       style={{
-        background: `linear-gradient(135deg, ${theme.teal}08, ${theme.bgCard})`,
-        border: `1px solid ${theme.border}`,
+        background: `linear-gradient(135deg, rgba(20,184,166,0.031), var(--bg-card))`,
+        border: `1px solid var(--border)`,
         borderRadius: radius.lg,
         padding: "20px",
         position: "relative",
@@ -192,7 +192,7 @@ export default function WaterTracker({ water, setWater }) {
             exit={{ opacity: 0 }}
             style={{
               position: "absolute", inset: 0, zIndex: 10,
-              background: `${theme.teal}10`,
+              background: `rgba(20,184,166,0.063)`,
               backdropFilter: "blur(2px)",
               display: "flex", alignItems: "center", justifyContent: "center",
               borderRadius: radius.lg,
@@ -214,12 +214,12 @@ export default function WaterTracker({ water, setWater }) {
                   transition={{ duration: 1.5, ease: "easeInOut" }}
                   style={{ fontSize: 48 }}
                 >
-                  🎉
+                  <Sparkles size={48} />
                 </motion.div>
               </div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: theme.teal }}>Goal Complete!</div>
-              <div style={{ fontSize: 12, color: theme.textMuted }}>
-                You crushed your hydration target 🏆
+              <div style={{ fontSize: 16, fontWeight: 700, color: "var(--teal)" }}>Goal Complete!</div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Trophy size={16} /> You crushed your hydration target!</span>
               </div>
             </motion.div>
           </motion.div>
@@ -234,20 +234,20 @@ export default function WaterTracker({ water, setWater }) {
             transition={{ duration: 0.3 }}
             style={{
               width: 36, height: 36,
-              background: `${theme.teal}15`,
+              background: `rgba(20,184,166,0.082)`,
               borderRadius: radius.sm,
               display: "flex", alignItems: "center", justifyContent: "center",
             }}
           >
-            <Droplets size={18} color={theme.teal} />
+            <Droplets size={18} color={"var(--teal)"} />
           </motion.div>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: theme.text }}>Water Intake</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>Water Intake</div>
             <motion.div
               key={ml}
               initial={{ y: -4, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              style={{ fontSize: 11, color: theme.textMuted }}
+              style={{ fontSize: 11, color: "var(--text-muted)" }}
             >
               {ml}ml / {goal * 250}ml
             </motion.div>
@@ -259,7 +259,7 @@ export default function WaterTracker({ water, setWater }) {
           style={{
             width: 48, height: 48,
             borderRadius: "50%",
-            background: `conic-gradient(${theme.teal} ${pct}%, ${theme.bgCard3} ${pct}%)`,
+            background: `conic-gradient(var(--teal) ${pct}%, var(--bg-card3) ${pct}%)`,
             display: "flex", alignItems: "center", justifyContent: "center",
             position: "relative",
           }}
@@ -267,14 +267,14 @@ export default function WaterTracker({ water, setWater }) {
           <div style={{
             width: 36, height: 36,
             borderRadius: "50%",
-            background: theme.bgCard,
+            background: "var(--bg-card)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <motion.div
               animate={water >= goal ? { rotate: [0, -10, 10, -10, 0] } : {}}
               transition={{ duration: 1.5, ease: "easeInOut" }}
             >
-              <Droplets size={16} color={theme.teal} fill={water > 0 ? theme.teal : "none"} />
+              <Droplets size={16} color={"var(--teal)"} fill={water > 0 ? "var(--teal)" : "none"} />
             </motion.div>
           </div>
         </motion.div>
@@ -290,15 +290,15 @@ export default function WaterTracker({ water, setWater }) {
       {/* Quick buttons */}
       <div style={{ display: "flex", gap: 8, marginBottom: 4 }}>
         <motion.button
-          whileHover={{ scale: 1.03, borderColor: theme.teal + "50" }}
+          whileHover={{ scale: 1.03, borderColor: "rgba(20,184,166,0.314)" }}
           whileTap={{ scale: 0.95 }}
           onClick={() => addWater(1)}
           disabled={water >= goal}
           style={{
             flex: 1, padding: "10px",
-            background: `${theme.teal}10`,
-            border: `1px solid ${water >= goal ? theme.border : theme.teal + "30"}`,
-            color: water >= goal ? theme.textDim : theme.teal,
+            background: `rgba(20,184,166,0.063)`,
+            border: `1px solid ${water >= goal ? "var(--border)" : "rgba(20,184,166,0.188)"}`,
+            color: water >= goal ? "var(--text-dim)" : "var(--teal)",
             borderRadius: radius.md,
             cursor: water >= goal ? "not-allowed" : "pointer",
             fontSize: 12, fontWeight: 600,
@@ -314,7 +314,7 @@ export default function WaterTracker({ water, setWater }) {
                 initial={{ y: 0, opacity: 1 }}
                 animate={{ y: -20, opacity: 0 }}
                 exit={{ opacity: 0 }}
-                style={{ position: "absolute", fontSize: 14, color: theme.teal, fontWeight: 700, pointerEvents: "none" }}
+                style={{ position: "absolute", fontSize: 14, color: "var(--teal)", fontWeight: 700, pointerEvents: "none" }}
               >
                 +1
               </motion.div>
@@ -323,15 +323,15 @@ export default function WaterTracker({ water, setWater }) {
           <Plus size={14} /> +250ml
         </motion.button>
         <motion.button
-          whileHover={{ scale: 1.03, borderColor: theme.teal + "50" }}
+          whileHover={{ scale: 1.03, borderColor: "rgba(20,184,166,0.314)" }}
           whileTap={{ scale: 0.95 }}
           onClick={() => addWater(2)}
           disabled={water >= goal}
           style={{
             flex: 1, padding: "10px",
-            background: `${theme.teal}15`,
-            border: `1px solid ${water >= goal ? theme.border : theme.teal + "40"}`,
-            color: water >= goal ? theme.textDim : theme.teal,
+            background: `rgba(20,184,166,0.082)`,
+            border: `1px solid ${water >= goal ? "var(--border)" : "rgba(20,184,166,0.251)"}`,
+            color: water >= goal ? "var(--text-dim)" : "var(--teal)",
             borderRadius: radius.md,
             cursor: water >= goal ? "not-allowed" : "pointer",
             fontSize: 12, fontWeight: 600,
@@ -347,13 +347,13 @@ export default function WaterTracker({ water, setWater }) {
             initial={{ width: 0, opacity: 0, padding: 0 }}
             animate={{ width: "auto", opacity: 1, padding: "10px 12px" }}
             exit={{ width: 0, opacity: 0, padding: 0 }}
-            whileHover={{ scale: 1.03, borderColor: theme.textDim + "50" }}
+            whileHover={{ scale: 1.03, borderColor: "rgba(148,163,184,0.314)" }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setWater(0)}
             style={{
               background: "transparent",
-              border: `1px solid ${theme.border}`,
-              color: theme.textMuted,
+              border: `1px solid var(--border)`,
+              color: "var(--text-muted)",
               borderRadius: radius.md,
               cursor: "pointer",
               fontSize: 12,
@@ -380,7 +380,7 @@ export default function WaterTracker({ water, setWater }) {
           style={{
             textAlign: "center",
             fontSize: 11,
-            color: water >= goal ? theme.teal : theme.textMuted,
+            color: water >= goal ? "var(--teal)" : "var(--text-muted)",
             marginTop: 8,
             fontWeight: water >= goal ? 600 : 400,
           }}
@@ -413,3 +413,5 @@ export default function WaterTracker({ water, setWater }) {
     </motion.div>
   );
 }
+
+

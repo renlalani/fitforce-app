@@ -9,6 +9,7 @@ const initialState = {
   showExDetail: null,
   showWorkoutGenerator: false,
   showMealPlanner: false,
+  showFoodScanner: false,
   newBodyStat: "",
   orm1W: "100",
   orm1R: "5",
@@ -43,7 +44,8 @@ export const useUiStore = create(
 
       setShowWorkoutGenerator: (show) => set({ showWorkoutGenerator: show }),
       setShowMealPlanner: (show) => set({ showMealPlanner: show }),
+      setShowFoodScanner: (show) => set({ showFoodScanner: show }),
     }),
-    { name: "fitforce-ui" }
+    { name: "fitforce-ui", migrate: (persisted) => persisted }
   )
 );

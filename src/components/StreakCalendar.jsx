@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { theme, radius } from "../styles/designSystem";
+import { Flame } from "lucide-react";
+import {  radius } from "../styles/designSystem";
 
 function getLastNDays(n) {
   const days = [];
@@ -48,19 +49,19 @@ export default function StreakCalendar({ workoutDates = [], nutritionDates = [],
     return 0;
   };
 
-  const INTENSITY_COLORS = [
-    theme.bgCard2,
-    `${theme.green}25`,
-    `${theme.red}30`,
-    `${theme.yellow}35`,
-  ];
+  const INTENSITY_COLORS = useMemo(() => [
+    "var(--bg-card2)",
+    `rgba(16,185,129,0.145)`,
+    `rgba(59,130,246,0.188)`,
+    `rgba(245,158,11,0.208)`,
+  ], []);
 
   return (
     <div>
       <div style={{ display: "flex", gap: 2 }}>
         <div style={{
           display: "grid", gridTemplateRows: "repeat(7, 1fr)", gap: 2,
-          marginRight: 4, fontSize: 9, color: theme.textMuted,
+          marginRight: 4, fontSize: 9, color: "var(--text-muted)",
         }}>
           {DAY_LABELS.map((l, i) => (
             <div key={i} style={{ height: 12, display: "flex", alignItems: "center", justifyContent: "center", width: 24 }}>
@@ -85,7 +86,7 @@ export default function StreakCalendar({ workoutDates = [], nutritionDates = [],
                       width: 12, height: 12,
                       borderRadius: 3,
                       background: INTENSITY_COLORS[intensity],
-                      border: isToday ? `1px solid ${theme.red}` : `1px solid transparent`,
+                      border: isToday ? `1px solid var(--accent)` : `1px solid transparent`,
                       cursor: "pointer",
                     }}
                     title={`${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
@@ -97,17 +98,19 @@ export default function StreakCalendar({ workoutDates = [], nutritionDates = [],
         </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, fontSize: 10, color: theme.textMuted }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, fontSize: 10, color: "var(--text-muted)" }}>
         <span>Less</span>
         {INTENSITY_COLORS.map((c, i) => (
           <div key={i} style={{ width: 10, height: 10, borderRadius: 2, background: c }} />
         ))}
         <span>More</span>
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4 }}>
-          <span style={{ color: theme.yellow, fontWeight: 600 }}>🔥 {streak}</span>
+          <span style={{ color: "var(--yellow)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 3 }}><Flame size={16} /> {streak}</span>
           <span>day streak</span>
         </div>
       </div>
     </div>
   );
 }
+
+

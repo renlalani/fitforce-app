@@ -5,7 +5,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { motion } from "framer-motion";
 import { Copy, Check, Terminal, Code } from "lucide-react";
-import { theme, radius } from "../styles/designSystem";
+import {  radius } from "../styles/designSystem";
 
 const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
@@ -28,7 +28,7 @@ const CopyButton = ({ text }) => {
         borderRadius: 6,
         padding: "4px 8px",
         cursor: "pointer",
-        color: theme.textMuted,
+        color: "var(--text-muted)",
         fontSize: 11,
         display: "flex",
         alignItems: "center",
@@ -37,7 +37,7 @@ const CopyButton = ({ text }) => {
         transition: "all 0.15s ease",
       }}
     >
-      {copied ? <Check size={12} color={theme.green} /> : <Copy size={12} />}
+      {copied ? <Check size={12} color={"var(--green)"} /> : <Copy size={12} />}
       {copied ? "Copied" : "Copy"}
     </motion.button>
   );
@@ -50,16 +50,16 @@ const components = {
 
     if (!inline && match) {
       return (
-        <div style={{ position: "relative", margin: "12px 0", borderRadius: 10, overflow: "hidden", border: `1px solid ${theme.border}` }}>
+        <div style={{ position: "relative", margin: "12px 0", borderRadius: 10, overflow: "hidden", border: `1px solid var(--border)` }}>
           <div style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
             padding: "6px 12px",
             background: "rgba(0,0,0,0.3)",
-            borderBottom: `1px solid ${theme.border}`,
+            borderBottom: `1px solid var(--border)`,
           }}>
-            <span style={{ fontSize: 11, color: theme.textMuted, display: "flex", alignItems: "center", gap: 4 }}>
+            <span style={{ fontSize: 11, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4 }}>
               <Terminal size={11} />
               {match[1]}
             </span>
@@ -80,16 +80,16 @@ const components = {
 
     if (!inline) {
       return (
-        <div style={{ position: "relative", margin: "12px 0", borderRadius: 10, overflow: "hidden", border: `1px solid ${theme.border}` }}>
+        <div style={{ position: "relative", margin: "12px 0", borderRadius: 10, overflow: "hidden", border: `1px solid var(--border)` }}>
           <div style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
             padding: "6px 12px",
             background: "rgba(0,0,0,0.3)",
-            borderBottom: `1px solid ${theme.border}`,
+            borderBottom: `1px solid var(--border)`,
           }}>
-            <span style={{ fontSize: 11, color: theme.textMuted, display: "flex", alignItems: "center", gap: 4 }}>
+            <span style={{ fontSize: 11, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4 }}>
               <Code size={11} />
               code
             </span>
@@ -113,7 +113,7 @@ const components = {
         padding: "2px 6px",
         borderRadius: 4,
         fontSize: "0.9em",
-        color: theme.red,
+        color: "var(--accent)",
       }} {...props}>
         {children}
       </code>
@@ -123,13 +123,13 @@ const components = {
     return <p style={{ margin: "0 0 8px", lineHeight: 1.65, fontSize: 13 }} {...props}>{children}</p>;
   },
   h1({ children, ...props }) {
-    return <h1 style={{ fontSize: 18, fontWeight: 600, margin: "16px 0 8px", color: theme.text }} {...props}>{children}</h1>;
+    return <h1 style={{ fontSize: 18, fontWeight: 600, margin: "16px 0 8px", color: "var(--text)" }} {...props}>{children}</h1>;
   },
   h2({ children, ...props }) {
-    return <h2 style={{ fontSize: 16, fontWeight: 600, margin: "14px 0 6px", color: theme.text }} {...props}>{children}</h2>;
+    return <h2 style={{ fontSize: 16, fontWeight: 600, margin: "14px 0 6px", color: "var(--text)" }} {...props}>{children}</h2>;
   },
   h3({ children, ...props }) {
-    return <h3 style={{ fontSize: 14, fontWeight: 600, margin: "12px 0 6px", color: theme.text }} {...props}>{children}</h3>;
+    return <h3 style={{ fontSize: 14, fontWeight: 600, margin: "12px 0 6px", color: "var(--text)" }} {...props}>{children}</h3>;
   },
   ul({ children, ...props }) {
     return <ul style={{ margin: "0 0 8px", paddingLeft: 20, lineHeight: 1.8 }} {...props}>{children}</ul>;
@@ -145,10 +145,10 @@ const components = {
       <blockquote style={{
         margin: "8px 0",
         padding: "8px 14px",
-        borderLeft: `3px solid ${theme.red}`,
+        borderLeft: `3px solid var(--accent)`,
         background: "rgba(255,59,59,0.05)",
         borderRadius: "0 8px 8px 0",
-        color: theme.textMuted,
+        color: "var(--text-muted)",
         fontStyle: "italic",
         fontSize: 13,
       }} {...props}>
@@ -166,25 +166,25 @@ const components = {
     );
   },
   th({ children, ...props }) {
-    return <th style={{ padding: "8px 12px", border: `1px solid ${theme.border}`, background: theme.bgCard2, fontWeight: 600, textAlign: "left" }} {...props}>{children}</th>;
+    return <th style={{ padding: "8px 12px", border: `1px solid var(--border)`, background: "var(--bg-card2)", fontWeight: 600, textAlign: "left" }} {...props}>{children}</th>;
   },
   td({ children, ...props }) {
-    return <td style={{ padding: "6px 12px", border: `1px solid ${theme.border}`, color: theme.textMuted }} {...props}>{children}</td>;
+    return <td style={{ padding: "6px 12px", border: `1px solid var(--border)`, color: "var(--text-muted)" }} {...props}>{children}</td>;
   },
   a({ children, href, ...props }) {
     return (
       <a href={href} target="_blank" rel="noopener noreferrer"
-        style={{ color: theme.blue, textDecoration: "underline", textUnderlineOffset: 2 }}
+        style={{ color: "var(--blue)", textDecoration: "underline", textUnderlineOffset: 2 }}
         {...props}>
         {children}
       </a>
     );
   },
   hr() {
-    return <hr style={{ border: "none", borderTop: `1px solid ${theme.border}`, margin: "16px 0" }} />;
+    return <hr style={{ border: "none", borderTop: `1px solid var(--border)`, margin: "16px 0" }} />;
   },
   strong({ children, ...props }) {
-    return <strong style={{ fontWeight: 600, color: theme.text }} {...props}>{children}</strong>;
+    return <strong style={{ fontWeight: 600, color: "var(--text)" }} {...props}>{children}</strong>;
   },
 };
 
@@ -195,3 +195,5 @@ export default function MarkdownRenderer({ content }) {
     </ReactMarkdown>
   );
 }
+
+

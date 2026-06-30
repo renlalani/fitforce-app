@@ -3,14 +3,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Search, Plus, Minus, Utensils, Star, Clock, Salad, Zap,
   Heart, TrendingUp, Activity, Flame, Sparkles, ChevronRight,
+  Sunrise, Sun, Moon, Cookie,
 } from "lucide-react";
-import { theme, radius, shadow, transition } from "../styles/designSystem";
+import {  radius, shadow, transition } from "../styles/designSystem";
 import { FOOD_DB } from "../data/fitness";
 import Button from "./ui/Button";
 import EmptyState from "./ui/EmptyState";
 
 const MEAL_TIMES = ["Breakfast", "Lunch", "Post-Workout", "Dinner", "Snack"];
-const MEAL_ICONS = { Breakfast: "🌅", Lunch: "☀️", "Post-Workout": "⚡", Dinner: "🌙", Snack: "🍿" };
+const MEAL_ICONS = { Breakfast: Sunrise, Lunch: Sun, "Post-Workout": Zap, Dinner: Moon, Snack: Cookie };
 
 const RECENT_KEY = "fitforce_recent_foods";
 const FAV_KEY = "fitforce_fav_foods";
@@ -25,7 +26,7 @@ function save(key, data) {
 }
 
 function HealthyScore({ score, size = 20 }) {
-  const color = score >= 8 ? theme.green : score >= 6 ? theme.yellow : theme.orange;
+  const color = score >= 8 ? "var(--green)" : score >= 6 ? "var(--yellow)" : "var(--orange)";
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
       <Heart size={size - 6} color={color} fill={color} />
@@ -53,65 +54,65 @@ function FoodDetailCard({ food, qty, onQtyChange, isFav, onToggleFav }) {
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: "auto" }}
       exit={{ opacity: 0, height: 0 }}
-      style={{ background: theme.bgCard2, borderRadius: radius.md, padding: "14px", marginBottom: 12, border: `1px solid ${theme.border}` }}
+      style={{ background: "var(--bg-card2)", borderRadius: radius.md, padding: "14px", marginBottom: 12, border: `1px solid var(--border)` }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 22 }}>{c.emoji || "🍽️"}</span>
+          <span style={{ fontSize: 22 }}>{c.emoji || <Utensils size={14} />}</span>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: theme.text }}>{c.name}</div>
-            <div style={{ fontSize: 10, color: theme.textMuted }}>Per {c.serving || "serving"} · <HealthyScore score={c.healthyScore || 5} size={16} /></div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{c.name}</div>
+            <div style={{ fontSize: 10, color: "var(--text-muted)" }}>Per {c.serving || "serving"} · <HealthyScore score={c.healthyScore || 5} size={16} /></div>
           </div>
         </div>
         <motion.button whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}
           onClick={(e) => { e.stopPropagation(); onToggleFav(c.name); }}
-          style={{ background: "transparent", border: "none", color: isFav ? theme.yellow : theme.textDim, cursor: "pointer", padding: 4 }}
+          style={{ background: "transparent", border: "none", color: isFav ? "var(--yellow)" : "var(--text-dim)", cursor: "pointer", padding: 4 }}
           aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
         >
-          <Star size={16} fill={isFav ? theme.yellow : "none"} />
+          <Star size={16} fill={isFav ? "var(--yellow)" : "none"} />
         </motion.button>
       </div>
 
       {/* Macro ratio bar */}
       <div style={{ display: "flex", gap: 2, height: 4, marginBottom: 10, borderRadius: 2, overflow: "hidden" }}>
-        <div style={{ flex: calPct * 3, background: theme.red, opacity: 0.6 }} title="Calorie density" />
-        <div style={{ flex: protPct * 3, background: theme.blue, opacity: 0.6 }} title="Protein" />
-        <div style={{ flex: carbsPct, background: theme.yellow, opacity: 0.6 }} title="Carbs" />
-        <div style={{ flex: fatPct * 2, background: theme.green, opacity: 0.6 }} title="Fat" />
+        <div style={{ flex: calPct * 3, background: "var(--accent)", opacity: 0.6 }} title="Calorie density" />
+        <div style={{ flex: protPct * 3, background: "var(--blue)", opacity: 0.6 }} title="Protein" />
+        <div style={{ flex: carbsPct, background: "var(--yellow)", opacity: 0.6 }} title="Carbs" />
+        <div style={{ flex: fatPct * 2, background: "var(--green)", opacity: 0.6 }} title="Fat" />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
         {[
-          ["Calories", totalCal, theme.red, "kcal"],
-          ["Protein", totalProt, theme.blue, "g"],
-          ["Carbs", totalCarbs, theme.yellow, "g"],
-          ["Fat", totalFat, theme.green, "g"],
-          ["Fiber", totalFiber, theme.teal, "g"],
-          ["Sugar", totalSugar, theme.orange, "g"],
+          ["Calories", totalCal.accent, "kcal"],
+          ["Protein", totalProt.blue, "g"],
+          ["Carbs", totalCarbs.yellow, "g"],
+          ["Fat", totalFat.green, "g"],
+          ["Fiber", totalFiber.teal, "g"],
+          ["Sugar", totalSugar.orange, "g"],
         ].map(([l, v, c, u]) => (
-          <div key={l} style={{ background: theme.bgCard3, borderRadius: radius.sm, padding: "6px 8px", textAlign: "center" }}>
+          <div key={l} style={{ background: "var(--bg-card3)", borderRadius: radius.sm, padding: "6px 8px", textAlign: "center" }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: c }}>{v}</div>
-            <div style={{ fontSize: 9, color: theme.textMuted }}>{l}</div>
+            <div style={{ fontSize: 9, color: "var(--text-muted)" }}>{l}</div>
           </div>
         ))}
       </div>
 
       {/* Quantity selector */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 10 }}>
-        <span style={{ fontSize: 11, color: theme.textMuted }}>Servings:</span>
+        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Servings:</span>
         <motion.button whileTap={{ scale: 0.9 }}
           onClick={() => onQtyChange(Math.max(0.5, qty - 0.5))}
-          style={{ background: theme.bgCard3, border: `1px solid ${theme.border2}`, borderRadius: radius.sm, color: theme.text, cursor: "pointer", padding: "4px 8px", display: "flex" }}
+          style={{ background: "var(--bg-card3)", border: `1px solid var(--border2)`, borderRadius: radius.sm, color: "var(--text)", cursor: "pointer", padding: "4px 8px", display: "flex" }}
           aria-label="Decrease serving"
         >
           <Minus size={13} />
         </motion.button>
-        <span style={{ fontSize: 14, fontWeight: 600, color: theme.text, minWidth: 30, textAlign: "center", fontVariantNumeric: "tabular-nums" }}>
+        <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", minWidth: 30, textAlign: "center", fontVariantNumeric: "tabular-nums" }}>
           {qty}
         </span>
         <motion.button whileTap={{ scale: 0.9 }}
           onClick={() => onQtyChange(qty + 0.5)}
-          style={{ background: theme.bgCard3, border: `1px solid ${theme.border2}`, borderRadius: radius.sm, color: theme.text, cursor: "pointer", padding: "4px 8px", display: "flex" }}
+          style={{ background: "var(--bg-card3)", border: `1px solid var(--border2)`, borderRadius: radius.sm, color: "var(--text)", cursor: "pointer", padding: "4px 8px", display: "flex" }}
           aria-label="Increase serving"
         >
           <Plus size={13} />
@@ -213,7 +214,7 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
         exit={{ opacity: 0, scale: 0.93, y: 20 }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
         style={{
-          background: theme.bgCard, border: `1px solid ${theme.border2}`,
+          background: "var(--bg-card)", border: `1px solid var(--border2)`,
           borderRadius: radius.xl, padding: "24px", width: "100%", maxWidth: 520,
           boxShadow: shadow.modal, maxHeight: "90vh", overflowY: "auto",
         }}
@@ -224,14 +225,14 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 34, height: 34, background: `${theme.red}15`, borderRadius: radius.sm, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Utensils size={16} color={theme.red} />
+            <div style={{ width: 34, height: 34, background: `rgba(59,130,246,0.082)`, borderRadius: radius.sm, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Utensils size={16} color={"var(--accent)"} />
             </div>
-            <h3 style={{ color: theme.text, margin: 0, fontSize: 16, fontWeight: 600 }}>Add Food</h3>
+            <h3 style={{ color: "var(--text)", margin: 0, fontSize: 16, fontWeight: 600 }}>Add Food</h3>
           </div>
           <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
             onClick={onClose}
-            style={{ background: "transparent", border: "none", color: theme.textMuted, cursor: "pointer", padding: 4 }}
+            style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4 }}
             aria-label="Close"
           >
             <X size={20} />
@@ -241,12 +242,12 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
         {/* Search always visible */}
         <div style={{
           display: "flex", alignItems: "center", gap: 8,
-          background: theme.bgCard2,
-          border: `1px solid ${search ? theme.red + "40" : theme.border2}`,
+          background: "var(--bg-card2)",
+          border: `1px solid ${search ? "rgba(59,130,246,0.251)" : "var(--border2)"}`,
           borderRadius: radius.md, padding: "0 12px", marginBottom: 12,
           transition: transition.fast,
         }}>
-          <Search size={16} color={search ? theme.red : theme.textMuted} />
+          <Search size={16} color={search ? "var(--accent)" : "var(--text-muted)"} />
           <input
             id="food-search" name="foodSearch" type="text" ref={searchRef}
             placeholder="Search foods..."
@@ -254,7 +255,7 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
             onChange={e => { setSearch(e.target.value); setSelected(null); }}
             style={{
               flex: 1, background: "transparent", border: "none", padding: "12px 8px",
-              color: theme.text, fontSize: 13, outline: "none",
+              color: "var(--text)", fontSize: 13, outline: "none",
             }}
             autoFocus
             aria-label="Search foods"
@@ -262,7 +263,7 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
           {search && (
             <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} whileTap={{ scale: 0.9 }}
               onClick={() => { setSearch(""); setSelected(null); }}
-              style={{ background: "transparent", border: "none", color: theme.textMuted, cursor: "pointer", padding: 4 }}
+              style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4 }}
               aria-label="Clear search"
             >
               <X size={14} />
@@ -278,9 +279,9 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
               onClick={() => { setMode(id); setSelected(null); if (id === "search") searchRef.current?.focus(); }}
               style={{
                 flex: 1, padding: "8px 4px",
-                background: mode === id ? `${theme.red}15` : "transparent",
-                border: `1px solid ${mode === id ? theme.red : theme.border2}`,
-                borderRadius: radius.sm, color: mode === id ? theme.red : theme.textMuted,
+                background: mode === id ? `rgba(59,130,246,0.082)` : "transparent",
+                border: `1px solid ${mode === id ? "var(--accent)" : "var(--border2)"}`,
+                borderRadius: radius.sm, color: mode === id ? "var(--accent)" : "var(--text-muted)",
                 cursor: "pointer", fontSize: 10, fontWeight: mode === id ? 600 : 400,
                 display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
                 transition: transition.fast,
@@ -319,24 +320,24 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
                           style={{
                             display: "flex", justifyContent: "space-between", alignItems: "center",
                             padding: "10px 12px",
-                            background: isSelected ? `${theme.red}10` : "transparent",
+                            background: isSelected ? `rgba(59,130,246,0.063)` : "transparent",
                             borderRadius: radius.md, cursor: "pointer",
-                            border: `1px solid ${isSelected ? theme.red + "30" : "transparent"}`,
+                            border: `1px solid ${isSelected ? "rgba(59,130,246,0.188)" : "transparent"}`,
                             marginBottom: 4, transition: transition.fast,
                           }}
                           role="option"
                           aria-selected={isSelected}
                         >
                           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
-                            <span style={{ fontSize: 20, flexShrink: 0 }}>{food.emoji || "🍽️"}</span>
+                            <span style={{ fontSize: 20, flexShrink: 0 }}>{food.emoji || <Utensils size={14} />}</span>
                             <div style={{ minWidth: 0 }}>
-                              <div style={{ fontSize: 13, fontWeight: 500, color: theme.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                 {food.name}
                               </div>
-                              <div style={{ display: "flex", gap: 6, fontSize: 10, color: theme.textMuted, marginTop: 1 }}>
-                                <span style={{ color: theme.red }}>{food.cal} kcal</span>
-                                <span style={{ color: theme.blue }}>{food.protein}g P</span>
-                                <span style={{ color: theme.teal }}>{food.fiber}g fiber</span>
+                              <div style={{ display: "flex", gap: 6, fontSize: 10, color: "var(--text-muted)", marginTop: 1 }}>
+                                <span style={{ color: "var(--accent)" }}>{food.cal} kcal</span>
+                                <span style={{ color: "var(--blue)" }}>{food.protein}g P</span>
+                                <span style={{ color: "var(--teal)" }}>{food.fiber}g fiber</span>
                               </div>
                             </div>
                           </div>
@@ -344,10 +345,10 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
                             <HealthyScore score={food.healthyScore || 5} size={16} />
                             <motion.button whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}
                               onClick={(e) => { e.stopPropagation(); toggleFav(food.name); }}
-                              style={{ background: "transparent", border: "none", color: isFav ? theme.yellow : theme.textDim, cursor: "pointer", padding: 4 }}
+                              style={{ background: "transparent", border: "none", color: isFav ? "var(--yellow)" : "var(--text-dim)", cursor: "pointer", padding: 4 }}
                               aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
                             >
-                              <Star size={14} fill={isFav ? theme.yellow : "none"} />
+                              <Star size={14} fill={isFav ? "var(--yellow)" : "none"} />
                             </motion.button>
                           </div>
                         </motion.div>
@@ -371,15 +372,15 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
                 favItems.map((food, i) => (
                   <motion.div key={`fav-${food.name}-${i}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
                     onClick={() => handleSelect(food)}
-                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", background: selected?.name === food.name ? `${theme.red}10` : theme.bgCard2, borderRadius: radius.md, cursor: "pointer", marginBottom: 6, border: `1px solid ${selected?.name === food.name ? theme.red + "30" : theme.border}` }}>
+                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", background: selected?.name === food.name ? `rgba(59,130,246,0.063)` : "var(--bg-card2)", borderRadius: radius.md, cursor: "pointer", marginBottom: 6, border: `1px solid ${selected?.name === food.name ? "rgba(59,130,246,0.188)" : "var(--border)"}` }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 18 }}>{food.emoji || "🍽️"}</span>
+                      <span style={{ fontSize: 18 }}>{food.emoji || <Utensils size={14} />}</span>
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 500, color: theme.text }}>{food.name}</div>
-                        <div style={{ fontSize: 10, color: theme.textMuted }}>{food.cal} kcal · {food.protein}g P · {food.fiber}g fiber</div>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text)" }}>{food.name}</div>
+                        <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{food.cal} kcal · {food.protein}g P · {food.fiber}g fiber</div>
                       </div>
                     </div>
-                    <Star size={14} color={theme.yellow} fill={theme.yellow} />
+                    <Star size={14} color={"var(--yellow)"} fill={"var(--yellow)"} />
                   </motion.div>
                 ))
               )}
@@ -394,15 +395,15 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
                 recentItems.map((food, i) => (
                   <motion.div key={`recent-${food.name}-${i}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
                     onClick={() => handleSelect(food)}
-                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", background: selected?.name === food.name ? `${theme.red}10` : theme.bgCard2, borderRadius: radius.md, cursor: "pointer", marginBottom: 6, border: `1px solid ${selected?.name === food.name ? theme.red + "30" : theme.border}` }}>
+                    style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", background: selected?.name === food.name ? `rgba(59,130,246,0.063)` : "var(--bg-card2)", borderRadius: radius.md, cursor: "pointer", marginBottom: 6, border: `1px solid ${selected?.name === food.name ? "rgba(59,130,246,0.188)" : "var(--border)"}` }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 18 }}>{food.emoji || "🍽️"}</span>
+                      <span style={{ fontSize: 18 }}>{food.emoji || <Utensils size={14} />}</span>
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 500, color: theme.text }}>{food.name}</div>
-                        <div style={{ fontSize: 10, color: theme.textMuted }}>{food.cal} kcal · {food.protein}g P</div>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text)" }}>{food.name}</div>
+                        <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{food.cal} kcal · {food.protein}g P</div>
                       </div>
                     </div>
-                    <Clock size={13} color={theme.textMuted} />
+                    <Clock size={13} color={"var(--text-muted)"} />
                   </motion.div>
                 ))
               )}
@@ -413,29 +414,29 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
             <motion.div key="custom" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
                 <input id="food-custom-name" name="foodCustomName" placeholder="Food name" value={custom.name}
-                  onChange={e => setCustom(p => ({ ...p, name: e.target.value }))} style={inputStyle} aria-label="Food name" />
+                  onChange={e => setCustom(p => ({ ...p, name: e.target.value }))} style={inputStyle()} aria-label="Food name" />
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   <div>
-                    <label htmlFor="food-custom-cal" style={{ fontSize: 10, color: theme.textMuted, marginBottom: 4, display: "block" }}>Calories</label>
+                    <label htmlFor="food-custom-cal" style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 4, display: "block" }}>Calories</label>
                     <input id="food-custom-cal" name="foodCustomCal" type="number" placeholder="0" value={custom.cal}
-                      onChange={e => setCustom(p => ({ ...p, cal: e.target.value }))} style={inputStyle} aria-label="Calories" />
+                      onChange={e => setCustom(p => ({ ...p, cal: e.target.value }))} style={inputStyle()} aria-label="Calories" />
                   </div>
                   <div>
-                    <label htmlFor="food-custom-protein" style={{ fontSize: 10, color: theme.textMuted, marginBottom: 4, display: "block" }}>Protein (g)</label>
+                    <label htmlFor="food-custom-protein" style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 4, display: "block" }}>Protein (g)</label>
                     <input id="food-custom-protein" name="foodCustomProtein" type="number" placeholder="0" value={custom.protein}
-                      onChange={e => setCustom(p => ({ ...p, protein: e.target.value }))} style={inputStyle} aria-label="Protein" />
+                      onChange={e => setCustom(p => ({ ...p, protein: e.target.value }))} style={inputStyle()} aria-label="Protein" />
                   </div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   <div>
-                    <label htmlFor="food-custom-carbs" style={{ fontSize: 10, color: theme.textMuted, marginBottom: 4, display: "block" }}>Carbs (g)</label>
+                    <label htmlFor="food-custom-carbs" style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 4, display: "block" }}>Carbs (g)</label>
                     <input id="food-custom-carbs" name="foodCustomCarbs" type="number" placeholder="0" value={custom.carbs}
-                      onChange={e => setCustom(p => ({ ...p, carbs: e.target.value }))} style={inputStyle} aria-label="Carbs" />
+                      onChange={e => setCustom(p => ({ ...p, carbs: e.target.value }))} style={inputStyle()} aria-label="Carbs" />
                   </div>
                   <div>
-                    <label htmlFor="food-custom-fat" style={{ fontSize: 10, color: theme.textMuted, marginBottom: 4, display: "block" }}>Fat (g)</label>
+                    <label htmlFor="food-custom-fat" style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 4, display: "block" }}>Fat (g)</label>
                     <input id="food-custom-fat" name="foodCustomFat" type="number" placeholder="0" value={custom.fat}
-                      onChange={e => setCustom(p => ({ ...p, fat: e.target.value }))} style={inputStyle} aria-label="Fat" />
+                      onChange={e => setCustom(p => ({ ...p, fat: e.target.value }))} style={inputStyle()} aria-label="Fat" />
                   </div>
                 </div>
               </div>
@@ -458,25 +459,28 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
 
         {/* Meal time selector */}
         <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 11, color: theme.textMuted, marginBottom: 6, display: "block" }} id="meal-time-label">Add to</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 6, display: "block" }} id="meal-time-label">Add to</div>
           <div style={{ display: "flex", gap: 6 }} role="radiogroup" aria-labelledby="meal-time-label">
-            {MEAL_TIMES.map(mt => (
-              <motion.button key={mt} whileTap={{ scale: 0.95 }}
-                onClick={() => setMealTime(mt)}
-                style={{
-                  flex: 1, padding: "8px 4px",
-                  background: mealTime === mt ? `${theme.red}15` : "transparent",
-                  border: `1px solid ${mealTime === mt ? theme.red : theme.border2}`,
-                  borderRadius: radius.sm, color: mealTime === mt ? theme.red : theme.textMuted,
-                  cursor: "pointer", fontSize: 11, fontWeight: mealTime === mt ? 600 : 400,
-                  transition: transition.fast,
-                }}
-                role="radio"
-                aria-checked={mealTime === mt}
-              >
-                {MEAL_ICONS[mt]} {mt}
-              </motion.button>
-            ))}
+            {MEAL_TIMES.map(mt => {
+              const Icon = MEAL_ICONS[mt];
+              return (
+                <motion.button key={mt} whileTap={{ scale: 0.95 }}
+                  onClick={() => setMealTime(mt)}
+                  style={{
+                    flex: 1, padding: "8px 4px",
+                    background: mealTime === mt ? `rgba(59,130,246,0.082)` : "transparent",
+                    border: `1px solid ${mealTime === mt ? "var(--accent)" : "var(--border2)"}`,
+                    borderRadius: radius.sm, color: mealTime === mt ? "var(--accent)" : "var(--text-muted)",
+                    cursor: "pointer", fontSize: 11, fontWeight: mealTime === mt ? 600 : 400,
+                    transition: transition.fast,
+                  }}
+                  role="radio"
+                  aria-checked={mealTime === mt}
+                >
+                  {Icon ? <Icon size={14} style={{ verticalAlign: "middle" }} /> : null} {mt}
+                </motion.button>
+              );
+            })}
           </div>
         </div>
 
@@ -495,14 +499,16 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
   );
 }
 
-const inputStyle = {
-  background: theme.bgCard2,
-  border: `1px solid ${theme.border2}`,
+const inputStyle = () => ({
+  background: "var(--bg-card2)",
+  border: `1px solid var(--border2)`,
   borderRadius: radius.md,
   padding: "10px 12px",
-  color: theme.text,
+  color: "var(--text)",
   fontSize: 13,
   outline: "none",
   width: "100%",
   boxSizing: "border-box",
-};
+});
+
+

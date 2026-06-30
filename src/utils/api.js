@@ -1,8 +1,9 @@
 const API_KEY = "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";
 const MODEL = "poolside/laguna-xs.2:free";
+const VISION_MODEL = "qwen/qwen2.5-vl-72b-instruct:free";
 const BASE = "https://openrouter.ai/api/v1/chat/completions";
 
-export async function streamAI({ messages, system, maxTokens = 2048, temperature = 0.7, signal, onChunk }) {
+export async function streamAI({ messages, system, maxTokens = 2048, temperature = 0.7, model, signal, onChunk }) {
   const res = await fetch(BASE, {
     method: "POST",
     headers: {
@@ -12,7 +13,7 @@ export async function streamAI({ messages, system, maxTokens = 2048, temperature
       "X-Title": "FitForce",
     },
     body: JSON.stringify({
-      model: MODEL,
+      model: model || MODEL,
       max_tokens: maxTokens,
       temperature,
       stream: true,
@@ -65,13 +66,14 @@ export async function streamAI({ messages, system, maxTokens = 2048, temperature
   return fullContent;
 }
 
-export async function callAI({ messages, system, maxTokens = 1024, temperature = 0.7 }) {
+export async function callAI({ messages, system, maxTokens = 1024, temperature = 0.7, model }) {
   let result = "";
   await streamAI({
     messages,
     system,
     maxTokens,
     temperature,
+    model,
     onChunk: (text) => { result = text; },
   });
   return result;

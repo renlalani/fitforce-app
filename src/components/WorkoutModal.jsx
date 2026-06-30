@@ -4,8 +4,9 @@ import {
   X, Play, SkipForward, Trophy, Clock, Dumbbell, Zap,
   CheckCircle, Plus, Minus, Pause, ChevronRight, Target,
   Activity, Sparkles, Star, RotateCcw, ChevronDown,
+  Heart, Footprints, Flame,
 } from "lucide-react";
-import { theme, radius, shadow, transition, muscleColor } from "../styles/designSystem";
+import {  radius, shadow, transition, muscleColor } from "../styles/designSystem";
 import { EXERCISES } from "../data/fitness";
 import ExerciseImage from "./ExerciseImage";
 import { Tag } from "./ui/Tag";
@@ -13,17 +14,17 @@ import ConfettiEffect from "./ConfettiEffect";
 import { useWorkoutStore } from "../stores/workoutStore";
 import { useUserStore } from "../stores/userStore";
 
-const LEVEL_COLOR = { Beginner: theme.green, Intermediate: theme.yellow, Advanced: theme.red };
+const LEVEL_COLOR = () => ({ Beginner: "var(--green)", Intermediate: "var(--yellow)", Advanced: "var(--accent)" });
 const MUSCLE_EMOJI = {
-  Chest: "🔥", Back: "🦍", Legs: "🦵", Glutes: "🍑",
-  Shoulders: "💪", Arms: "💪", Core: "🔥", Cardio: "🏃",
+  Chest: <Activity size={12} />, Back: <Activity size={12} />, Legs: <Footprints size={12} />, Glutes: <Activity size={12} />,
+  Shoulders: <Dumbbell size={12} />, Arms: <Dumbbell size={12} />, Core: <Activity size={12} />, Cardio: <Heart size={12} />,
 };
 
-const ACHIEVEMENTS_DATA = [
-  { id: "complete", icon: "💪", label: "Workout Complete", unlocked: true, color: theme.red },
-  { id: "streak", icon: "🔥", label: "Streak Kept", unlocked: true, color: theme.orange },
-  { id: "pr", icon: "⚡", label: "New PR!", unlocked: false, color: theme.yellow },
-  { id: "xp", icon: "⭐", label: "XP Boost", unlocked: true, color: theme.purple },
+const ACHIEVEMENTS_DATA = () => [
+  { id: "complete", icon: <Dumbbell size={18} />, label: "Workout Complete", unlocked: true, color: "var(--accent)" },
+  { id: "streak", icon: <Flame size={18} />, label: "Streak Kept", unlocked: true, color: "var(--orange)" },
+  { id: "pr", icon: <Zap size={18} />, label: "New PR!", unlocked: false, color: "var(--yellow)" },
+  { id: "xp", icon: <Star size={18} />, label: "XP Boost", unlocked: true, color: "var(--purple)" },
 ];
 
 function fmt(s) {
@@ -34,7 +35,7 @@ function CircularTimer({ total, remaining, phase }) {
   const r = 90;
   const circ = 2 * Math.PI * r;
   const progress = phase === "rest" ? remaining / total : 1;
-  const color = phase === "rest" ? theme.blue : theme.green;
+  const color = phase === "rest" ? "var(--blue)" : "var(--green)";
 
   return (
     <svg width="220" height="220" viewBox="0 0 220 220">
@@ -45,7 +46,7 @@ function CircularTimer({ total, remaining, phase }) {
         </linearGradient>
       </defs>
       {/* Background ring */}
-      <circle cx="110" cy="110" r={r} fill="none" stroke={theme.border3} strokeWidth="8" />
+      <circle cx="110" cy="110" r={r} fill="none" stroke={"var(--border3)"} strokeWidth="8" />
       {/* Background glow */}
       <circle cx="110" cy="110" r={r + 4} fill="none" stroke={color + "08"} strokeWidth="16" />
       {/* Progress ring */}
@@ -199,10 +200,10 @@ export default function WorkoutModal({ plan, onClose }) {
     const xpGained = 50 + totalSetsDone * 5 + Math.floor(estCal / 10);
 
     const achievementsData = [
-      { id: "complete", icon: "💪", label: "Workout Complete", unlocked: true, color: theme.red },
-      { id: "streak", icon: "🔥", label: "Streak Kept", unlocked: true, color: theme.orange },
-      { id: "pr", icon: "⚡", label: "New PR!", unlocked: newPrFound, color: theme.yellow },
-      { id: "xp", icon: "⭐", label: "XP Boost", unlocked: true, color: theme.purple },
+      { id: "complete", icon: <Dumbbell size={18} />, label: "Workout Complete", unlocked: true, color: "var(--accent)" },
+      { id: "streak", icon: <Flame size={18} />, label: "Streak Kept", unlocked: true, color: "var(--orange)" },
+      { id: "pr", icon: <Zap size={18} />, label: "New PR!", unlocked: newPrFound, color: "var(--yellow)" },
+      { id: "xp", icon: <Star size={18} />, label: "XP Boost", unlocked: true, color: "var(--purple)" },
     ];
     const newAchievements = achievementsData.filter(a => a.unlocked);
 
@@ -225,8 +226,8 @@ export default function WorkoutModal({ plan, onClose }) {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 25, delay: 0.2 }}
             style={{
-              background: theme.bgCard,
-              border: `1px solid ${theme.border2}`,
+              background: "var(--bg-card)",
+              border: `1px solid var(--border2)`,
               borderRadius: radius.xl,
               padding: "32px 28px",
               width: "100%",
@@ -242,11 +243,11 @@ export default function WorkoutModal({ plan, onClose }) {
               transition={{ type: "spring", stiffness: 300, delay: 0.4 }}
               style={{
                 width: 72, height: 72,
-                background: `linear-gradient(135deg, ${theme.yellow}, ${theme.orange})`,
+                background: `linear-gradient(135deg, var(--yellow), var(--orange))`,
                 borderRadius: "50%",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 margin: "0 auto 16px",
-                boxShadow: shadow.glow(theme.yellow),
+                boxShadow: shadow.glow("var(--yellow)"),
               }}
             >
               <Trophy size={36} color="#fff" />
@@ -256,7 +257,7 @@ export default function WorkoutModal({ plan, onClose }) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              style={{ color: theme.text, margin: "0 0 4px", fontSize: 24, fontWeight: 700 }}
+              style={{ color: "var(--text)", margin: "0 0 4px", fontSize: 24, fontWeight: 700 }}
             >
               Workout Complete!
             </motion.h2>
@@ -264,11 +265,11 @@ export default function WorkoutModal({ plan, onClose }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
-              style={{ color: theme.textMuted, fontSize: 13, marginBottom: 20, lineHeight: 1.5 }}
+              style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 20, lineHeight: 1.5 }}
             >
               {plan.name}
               <br />
-              <span style={{ color: theme.textDim, fontSize: 12 }}>
+              <span style={{ color: "var(--text-dim)", fontSize: 12 }}>
                 {["Great job!", "You crushed it!", "Amazing effort!", "Keep it up!", "Outstanding!"][plan.name.length % 5]}
               </span>
             </motion.p>
@@ -281,27 +282,27 @@ export default function WorkoutModal({ plan, onClose }) {
               style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 20 }}
             >
               {[
-                { label: "Duration", value: fmt(elapsed), icon: Clock, color: theme.yellow },
-                { label: "Sets", value: totalSetsDone, icon: Dumbbell, color: theme.blue },
-                { label: "Calories", value: estCal, icon: Zap, color: theme.red },
-                { label: "Reps", value: totalReps || "—", icon: Activity, color: theme.green },
-                { label: "Volume", value: totalVol.toLocaleString(), icon: Target, color: theme.purple, suffix: "kg" },
-                { label: "XP", value: `+${xpGained}`, icon: Sparkles, color: theme.orange },
+                { label: "Duration", value: fmt(elapsed), icon: Clock, color: "var(--yellow)" },
+                { label: "Sets", value: totalSetsDone, icon: Dumbbell, color: "var(--blue)" },
+                { label: "Calories", value: estCal, icon: Zap, color: "var(--accent)" },
+                { label: "Reps", value: totalReps || "—", icon: Activity, color: "var(--green)" },
+                { label: "Volume", value: totalVol.toLocaleString(), icon: Target, color: "var(--purple)", suffix: "kg" },
+                { label: "XP", value: `+${xpGained}`, icon: Sparkles, color: "var(--orange)" },
               ].map(({ label, value, icon: Icon, color, suffix }) => (
                 <motion.div
                   key={label}
                   whileHover={{ y: -1 }}
                   style={{
-                    background: theme.bgCard2,
+                    background: "var(--bg-card2)",
                     borderRadius: radius.md,
                     padding: "10px 4px",
                     textAlign: "center",
-                    border: `1px solid ${theme.border}`,
+                    border: `1px solid var(--border)`,
                   }}
                 >
                   <Icon size={14} color={color} style={{ margin: "0 auto 4px" }} />
                   <div style={{ fontSize: 15, fontWeight: 700, color }}>{value}{suffix ? ` ${suffix}` : ""}</div>
-                  <div style={{ fontSize: 9, color: theme.textMuted }}>{label}</div>
+                  <div style={{ fontSize: 9, color: "var(--text-muted)" }}>{label}</div>
                 </motion.div>
               ))}
             </motion.div>
@@ -332,7 +333,7 @@ export default function WorkoutModal({ plan, onClose }) {
                   <motion.span
                     animate={{ rotate: [0, -10, 10, -5, 0] }}
                     transition={{ delay: 1.2 + i * 0.15, duration: 0.5 }}
-                    style={{ fontSize: 18 }}
+                    style={{ display: "inline-flex", alignItems: "center" }}
                   >
                     {a.icon}
                   </motion.span>
@@ -347,18 +348,18 @@ export default function WorkoutModal({ plan, onClose }) {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 1.3 }}
               style={{
-                background: `linear-gradient(135deg, ${theme.yellow}15, ${theme.orange}08)`,
-                border: `1px solid ${theme.yellow}30`,
+                background: `linear-gradient(135deg, rgba(245,158,11,0.082), rgba(249,115,22,0.031))`,
+                border: `1px solid rgba(245,158,11,0.188)`,
                 borderRadius: radius.md,
                 padding: "12px",
                 marginBottom: 20,
               }}
             >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                <Zap size={20} color={theme.yellow} />
-                <span style={{ fontSize: 18, fontWeight: 700, color: theme.yellow }}>+{xpGained} XP</span>
+                <Zap size={20} color={"var(--yellow)"} />
+                <span style={{ fontSize: 18, fontWeight: 700, color: "var(--yellow)" }}>+{xpGained} XP</span>
               </div>
-              <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 4 }}>
+              <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
                 Level up progress: {Math.min(100, ((xp + xpGained) % 500) / 5)}%
               </div>
             </motion.div>
@@ -374,7 +375,7 @@ export default function WorkoutModal({ plan, onClose }) {
               style={{
                 width: "100%",
                 padding: "14px",
-                background: `linear-gradient(135deg, ${theme.red}, ${theme.redDark})`,
+                background: "var(--accent-gradient)",
                 color: "#fff",
                 border: "none",
                 borderRadius: radius.md,
@@ -385,7 +386,7 @@ export default function WorkoutModal({ plan, onClose }) {
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 8,
-                boxShadow: shadow.glow(theme.red),
+                boxShadow: shadow.glow("var(--accent)"),
               }}
             >
               <Zap size={18} /> Save & Collect Rewards
@@ -417,8 +418,8 @@ export default function WorkoutModal({ plan, onClose }) {
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
         style={{
-          background: theme.bgCard,
-          border: `1px solid ${theme.border2}`,
+          background: "var(--bg-card)",
+          border: `1px solid var(--border2)`,
           borderRadius: radius.xl,
           padding: "24px",
           width: "100%",
@@ -431,18 +432,18 @@ export default function WorkoutModal({ plan, onClose }) {
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <div>
-            <div style={{ fontSize: 11, color: theme.textMuted, marginBottom: 2, letterSpacing: 1, textTransform: "uppercase" }}>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 2, letterSpacing: 1, textTransform: "uppercase" }}>
               {plan.name}
             </div>
-            <div style={{ fontSize: 13, color: theme.red, fontWeight: 500, display: "flex", alignItems: "center", gap: 4 }}>
+            <div style={{ fontSize: 13, color: "var(--accent)", fontWeight: 500, display: "flex", alignItems: "center", gap: 4 }}>
               <Activity size={12} />
               Exercise {idx + 1}/{exList.length} · Set {setNum}/{cur?.sets || 3}
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <Clock size={13} color={theme.yellow} />
-              <span style={{ fontSize: 18, fontWeight: 700, color: theme.yellow, fontVariantNumeric: "tabular-nums" }}>
+              <Clock size={13} color={"var(--yellow)"} />
+              <span style={{ fontSize: 18, fontWeight: 700, color: "var(--yellow)", fontVariantNumeric: "tabular-nums" }}>
                 {fmt(elapsed)}
               </span>
             </div>
@@ -451,7 +452,7 @@ export default function WorkoutModal({ plan, onClose }) {
 
         {/* Progress Bar */}
         <div style={{
-          height: 5, background: theme.border, borderRadius: radius.full,
+          height: 5, background: "var(--border)", borderRadius: radius.full,
           marginBottom: 4, overflow: "hidden",
         }}>
           <motion.div
@@ -460,13 +461,13 @@ export default function WorkoutModal({ plan, onClose }) {
             transition={{ duration: 0.5, ease: "easeOut" }}
             style={{
               height: "100%",
-              background: `linear-gradient(90deg, ${theme.red}, ${theme.redLight}, ${theme.orange})`,
+              background: `linear-gradient(90deg, var(--accent), var(--accent-light), var(--cyan))`,
               borderRadius: radius.full,
-              boxShadow: `0 0 8px ${theme.red}40`,
+              boxShadow: `0 0 8px rgba(59,130,246,0.251)`,
             }}
           />
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: theme.textDim, marginBottom: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--text-dim)", marginBottom: 16 }}>
           <span>{doneSets + 1}/{totalSets} sets</span>
           <span>{completedSets.length} done</span>
           <span>~{estCal} cal</span>
@@ -482,7 +483,7 @@ export default function WorkoutModal({ plan, onClose }) {
               exit={{ opacity: 0, y: -10 }}
             >
               <div style={{ textAlign: "center", padding: "8px 0 4px" }}>
-                <div style={{ fontSize: 10, color: theme.textMuted, marginBottom: 6, letterSpacing: 3, textTransform: "uppercase" }}>
+                <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 6, letterSpacing: 3, textTransform: "uppercase" }}>
                   Rest
                 </div>
 
@@ -501,19 +502,19 @@ export default function WorkoutModal({ plan, onClose }) {
                       transition={{ duration: 0.15 }}
                       style={{
                         fontSize: 48, fontWeight: 700,
-                        color: restCount <= 10 ? theme.red : theme.blue,
+                        color: restCount <= 10 ? "var(--red)" : "var(--blue)",
                         fontVariantNumeric: "tabular-nums",
                         lineHeight: 1,
                       }}
                     >
                       {restCount}
                     </motion.div>
-                    <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>seconds</div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>seconds</div>
                   </div>
                 </div>
 
                 {/* Set info */}
-                <p style={{ color: theme.textMuted, fontSize: 12, marginTop: 10 }}>
+                <p style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 10 }}>
                   Next: Set {setNum + 1} of {cur?.sets} · {cur?.name}
                 </p>
 
@@ -524,8 +525,8 @@ export default function WorkoutModal({ plan, onClose }) {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => addRest(-15)}
                     style={{
-                      padding: "8px 14px", background: theme.bgCard3,
-                      border: `1px solid ${theme.border2}`, color: restCount <= 15 ? theme.textDim : theme.text,
+                      padding: "8px 14px", background: "var(--bg-card3)",
+                      border: `1px solid var(--border2)`, color: restCount <= 15 ? "var(--text-dim)" : "var(--text)",
                       borderRadius: radius.md, cursor: restCount <= 15 ? "not-allowed" : "pointer",
                       fontSize: 12, display: "flex", alignItems: "center", gap: 4,
                       opacity: restCount <= 15 ? 0.4 : 1,
@@ -541,9 +542,9 @@ export default function WorkoutModal({ plan, onClose }) {
                     onClick={toggleRestPause}
                     style={{
                       padding: "8px 18px",
-                      background: restPaused ? `${theme.green}18` : theme.bgCard3,
-                      border: `1px solid ${restPaused ? theme.green : theme.border2}`,
-                      color: restPaused ? theme.green : theme.text,
+                      background: restPaused ? `rgba(16,185,129,0.094)` : "var(--bg-card3)",
+                      border: `1px solid ${restPaused ? "var(--green)" : "var(--border2)"}`,
+                      color: restPaused ? "var(--green)" : "var(--text)",
                       borderRadius: radius.md, cursor: "pointer",
                       fontSize: 12, display: "flex", alignItems: "center", gap: 4,
                       fontWeight: 500,
@@ -558,8 +559,8 @@ export default function WorkoutModal({ plan, onClose }) {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => addRest(15)}
                     style={{
-                      padding: "8px 14px", background: theme.bgCard3,
-                      border: `1px solid ${theme.border2}`, color: theme.text,
+                      padding: "8px 14px", background: "var(--bg-card3)",
+                      border: `1px solid var(--border2)`, color: "var(--text)",
                       borderRadius: radius.md, cursor: "pointer",
                       fontSize: 12, display: "flex", alignItems: "center", gap: 4,
                     }}
@@ -572,8 +573,8 @@ export default function WorkoutModal({ plan, onClose }) {
                     whileTap={{ scale: 0.95 }}
                     onClick={skipRest}
                     style={{
-                      padding: "8px 16px", background: theme.bgCard3,
-                      border: `1px solid ${theme.border2}`, color: theme.blue,
+                      padding: "8px 16px", background: "var(--bg-card3)",
+                      border: `1px solid var(--border2)`, color: "var(--blue)",
                       borderRadius: radius.md, cursor: "pointer",
                       fontSize: 12, display: "flex", alignItems: "center", gap: 4,
                     }}
@@ -591,13 +592,13 @@ export default function WorkoutModal({ plan, onClose }) {
                   transition={{ delay: 0.3 }}
                   style={{
                     marginTop: 16,
-                    background: theme.bgCard2,
+                    background: "var(--bg-card2)",
                     borderRadius: radius.md,
-                    border: `1px solid ${theme.border}`,
+                    border: `1px solid var(--border)`,
                     padding: "12px",
                   }}
                 >
-                  <div style={{ fontSize: 10, color: theme.textMuted, marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" }}>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" }}>
                     <ChevronRight size={10} style={{ verticalAlign: "middle" }} /> Next Exercise
                   </div>
                   <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
@@ -605,18 +606,18 @@ export default function WorkoutModal({ plan, onClose }) {
                       exercise={nextEx}
                       width={44}
                       height={44}
-                      style={{ flexShrink: 0, border: `1px solid ${theme.border}` }}
+                      style={{ flexShrink: 0, border: `1px solid var(--border)` }}
                     />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>{nextEx.name}</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{nextEx.name}</div>
                       <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
-                        <Tag label={`${nextEx.sets} sets`} color={theme.red} />
-                        <Tag label={`${nextEx.reps}`} color={theme.blue} />
+                        <Tag label={`${nextEx.sets} sets`} color={"var(--accent)"} />
+                        <Tag label={`${nextEx.reps}`} color={"var(--blue)"} />
                       </div>
                     </div>
-                    <div style={{ fontSize: 11, color: theme.textMuted, textAlign: "right" }}>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "right" }}>
                       <div>~{nextEx.cal} cal</div>
-                      <div style={{ color: muscleColor[nextEx.muscle] || theme.textMuted, fontSize: 10 }}>
+                      <div style={{ color: muscleColor[nextEx.muscle] || "var(--text-muted)", fontSize: 10 }}>
                         {MUSCLE_EMOJI[nextEx.muscle] || ""} {nextEx.muscle}
                       </div>
                     </div>
@@ -637,9 +638,9 @@ export default function WorkoutModal({ plan, onClose }) {
                 whileHover={{ y: -1 }}
                 onClick={() => setExerciseExpanded(p => !p)}
                 style={{
-                  background: `linear-gradient(135deg, ${theme.bgCard2}, ${(muscleColor[cur?.muscle] || theme.red) + "08"})`,
+                  background: `linear-gradient(135deg, var(--bg-card2), ${(muscleColor[cur?.muscle] || "var(--accent)") + "08"})`,
                   borderRadius: radius.md,
-                  border: `1px solid ${theme.border}`,
+                  border: `1px solid var(--border)`,
                   padding: "16px",
                   marginBottom: 12,
                   cursor: "pointer",
@@ -652,7 +653,7 @@ export default function WorkoutModal({ plan, onClose }) {
                   position: "absolute", top: -40, right: -40,
                   width: 120, height: 120,
                   borderRadius: "50%",
-                  background: `radial-gradient(circle, ${(muscleColor[cur?.muscle] || theme.red) + "10"}, transparent 70%)`,
+                  background: `radial-gradient(circle, ${(muscleColor[cur?.muscle] || "var(--accent)") + "10"}, transparent 70%)`,
                 }} />
 
                 <div style={{ display: "flex", gap: 14, alignItems: "flex-start", position: "relative" }}>
@@ -662,34 +663,34 @@ export default function WorkoutModal({ plan, onClose }) {
                     height={72}
                     style={{
                       flexShrink: 0,
-                      border: `2px solid ${(muscleColor[cur?.muscle] || theme.red) + "30"}`,
-                      boxShadow: shadow.glow(muscleColor[cur?.muscle] || theme.red),
+                      border: `2px solid ${(muscleColor[cur?.muscle] || "var(--accent)") + "30"}`,
+                      boxShadow: shadow.glow(muscleColor[cur?.muscle] || "var(--accent)"),
                     }}
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <h3 style={{ color: theme.text, margin: "0 0 4px", fontSize: 17, fontWeight: 600 }}>
+                      <h3 style={{ color: "var(--text)", margin: "0 0 4px", fontSize: 17, fontWeight: 600 }}>
                         {cur?.name}
                       </h3>
-                      <Badge label={cur?.level} color={LEVEL_COLOR[cur?.level]} />
+                      <Badge label={cur?.level} color={LEVEL_COLOR()[cur?.level]} />
                     </div>
                     <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                      <Tag label={cur?.muscle || "General"} color={muscleColor[cur?.muscle] || theme.red} />
-                      <Tag label={`${cur?.rest}s rest`} color={theme.yellow} />
-                      <Tag label={`~${cur?.cal} cal`} color={theme.orange} />
+                      <Tag label={cur?.muscle || "General"} color={muscleColor[cur?.muscle] || "var(--accent)"} />
+                      <Tag label={`${cur?.rest}s rest`} color={"var(--yellow)"} />
+                      <Tag label={`~${cur?.cal} cal`} color={"var(--orange)"} />
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
                       {Array.from({ length: { Beginner: 1, Intermediate: 2, Advanced: 3 }[cur?.level] || 1 }).map((_, si) => (
-                        <Star key={si} size={11} color={LEVEL_COLOR[cur?.level]} fill={LEVEL_COLOR[cur?.level]} />
+                        <Star key={si} size={11} color={LEVEL_COLOR()[cur?.level]} fill={LEVEL_COLOR()[cur?.level]} />
                       ))}
-                      <span style={{ fontSize: 10, color: theme.textMuted }}>{cur?.level}</span>
+                      <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{cur?.level}</span>
                     </div>
                   </div>
                   <motion.div
                     animate={{ rotate: exerciseExpanded ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <ChevronDown size={16} color={theme.textMuted} />
+                    <ChevronDown size={16} color={"var(--text-muted)"} />
                   </motion.div>
                 </div>
 
@@ -702,37 +703,37 @@ export default function WorkoutModal({ plan, onClose }) {
                       exit={{ height: 0, opacity: 0 }}
                       style={{ overflow: "hidden" }}
                     >
-                      <div style={{ borderTop: `1px solid ${theme.border}`, marginTop: 12, paddingTop: 12 }}>
-                        <p style={{ color: theme.textMuted, fontSize: 12, lineHeight: 1.7, margin: 0 }}>
+                      <div style={{ borderTop: `1px solid var(--border)`, marginTop: 12, paddingTop: 12 }}>
+                        <p style={{ color: "var(--text-muted)", fontSize: 12, lineHeight: 1.7, margin: 0 }}>
                           {cur?.desc}
                         </p>
                         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
                           <div style={{
                             padding: "6px 10px",
-                            background: `${theme.blue}10`,
+                            background: `rgba(59,130,246,0.063)`,
                             borderRadius: radius.sm,
-                            border: `1px solid ${theme.blue}20`,
+                            border: `1px solid rgba(59,130,246,0.125)`,
                           }}>
-                            <div style={{ fontSize: 10, color: theme.textMuted }}>Sets</div>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: theme.blue }}>{cur?.sets}</div>
+                            <div style={{ fontSize: 10, color: "var(--text-muted)" }}>Sets</div>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--blue)" }}>{cur?.sets}</div>
                           </div>
                           <div style={{
                             padding: "6px 10px",
-                            background: `${theme.red}10`,
+                            background: `rgba(59,130,246,0.063)`,
                             borderRadius: radius.sm,
-                            border: `1px solid ${theme.red}20`,
+                            border: `1px solid rgba(59,130,246,0.125)`,
                           }}>
-                            <div style={{ fontSize: 10, color: theme.textMuted }}>Reps</div>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: theme.red }}>{cur?.reps}</div>
+                            <div style={{ fontSize: 10, color: "var(--text-muted)" }}>Reps</div>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--accent)" }}>{cur?.reps}</div>
                           </div>
                           <div style={{
                             padding: "6px 10px",
-                            background: `${theme.yellow}10`,
+                            background: `rgba(245,158,11,0.063)`,
                             borderRadius: radius.sm,
-                            border: `1px solid ${theme.yellow}20`,
+                            border: `1px solid rgba(245,158,11,0.125)`,
                           }}>
-                            <div style={{ fontSize: 10, color: theme.textMuted }}>Rest</div>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: theme.yellow }}>{cur?.rest}s</div>
+                            <div style={{ fontSize: 10, color: "var(--text-muted)" }}>Rest</div>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--yellow)" }}>{cur?.rest}s</div>
                           </div>
                         </div>
                       </div>
@@ -743,12 +744,12 @@ export default function WorkoutModal({ plan, onClose }) {
 
               {/* Set Tracker */}
               <div style={{
-                background: theme.bgCard2, borderRadius: radius.md,
-                border: `1px solid ${theme.border}`,
+                background: "var(--bg-card2)", borderRadius: radius.md,
+                border: `1px solid var(--border)`,
                 padding: "14px", marginBottom: 12,
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                  <span style={{ color: theme.textMuted, fontSize: 12 }}>Set {setNum} of {cur?.sets}</span>
+                  <span style={{ color: "var(--text-muted)", fontSize: 12 }}>Set {setNum} of {cur?.sets}</span>
                   <div style={{ display: "flex", gap: 4 }}>
                     {Array.from({ length: cur?.sets || 3 }).map((_, si) => {
                       const setIdx = si + 1;
@@ -760,8 +761,8 @@ export default function WorkoutModal({ plan, onClose }) {
                           initial={isDone ? { scale: 0 } : {}}
                           animate={{
                             scale: 1,
-                            background: isDone ? theme.green : isCurrent ? `${theme.red}20` : theme.bgCard3,
-                            borderColor: isDone ? theme.green : isCurrent ? theme.red : theme.border,
+                            background: isDone ? "var(--green)" : isCurrent ? `rgba(59,130,246,0.125)` : "var(--bg-card3)",
+                            borderColor: isDone ? "var(--green)" : isCurrent ? "var(--accent)" : "var(--border)",
                           }}
                           style={{
                             width: 28, height: 28,
@@ -772,11 +773,11 @@ export default function WorkoutModal({ plan, onClose }) {
                           }}
                         >
                           {isDone ? (
-                            <CheckCircle size={14} color={theme.green} />
+                            <CheckCircle size={14} color={"var(--green)"} />
                           ) : (
                             <span style={{
                               fontSize: 11, fontWeight: 600,
-                              color: isCurrent ? theme.red : theme.textMuted,
+                              color: isCurrent ? "var(--accent)" : "var(--text-muted)",
                             }}>
                               {setIdx}
                             </span>
@@ -789,13 +790,13 @@ export default function WorkoutModal({ plan, onClose }) {
 
                 {/* Completed sets summary */}
                 {setsInCurrent.length > 0 && (
-                  <div style={{ marginBottom: 10, fontSize: 11, color: theme.textMuted, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <div style={{ marginBottom: 10, fontSize: 11, color: "var(--text-muted)", display: "flex", gap: 8, flexWrap: "wrap" }}>
                     {setsInCurrent.map((s, si) => (
                       <span key={`${s.exId}-${s.set}`} style={{
-                        background: `${theme.green}10`, padding: "3px 8px",
+                        background: `rgba(16,185,129,0.063)`, padding: "3px 8px",
                         borderRadius: radius.sm,
-                        border: `1px solid ${theme.green}20`,
-                        color: theme.green,
+                        border: `1px solid rgba(16,185,129,0.125)`,
+                        color: "var(--green)",
                       }}>
                         #{s.set}: {s.weight || "BW"} kg
                       </span>
@@ -808,7 +809,7 @@ export default function WorkoutModal({ plan, onClose }) {
                     <label htmlFor="workout-weight" style={{
                       position: "absolute", left: 12, top: "50%",
                       transform: "translateY(-50%)",
-                      fontSize: 11, color: theme.textMuted,
+                      fontSize: 11, color: "var(--text-muted)",
                     }}>
                       kg
                     </label>
@@ -820,11 +821,11 @@ export default function WorkoutModal({ plan, onClose }) {
                       value={weights[`${cur?.id}_${setNum}`] || ""}
                       onChange={e => setWeight(`${cur?.id}_${setNum}`, e.target.value)}
                       style={{
-                        background: theme.bgCard3,
-                        border: `1px solid ${theme.border2}`,
+                        background: "var(--bg-card3)",
+                        border: `1px solid var(--border2)`,
                         borderRadius: radius.md,
                         padding: "10px 14px 10px 36px",
-                        color: theme.text,
+                        color: "var(--text)",
                         fontSize: 14,
                         fontWeight: 600,
                         outline: "none",
@@ -835,14 +836,14 @@ export default function WorkoutModal({ plan, onClose }) {
                   </div>
                   <div style={{
                     display: "flex", alignItems: "center", gap: 4,
-                    background: theme.bgCard3,
-                    border: `1px solid ${theme.border2}`,
+                    background: "var(--bg-card3)",
+                    border: `1px solid var(--border2)`,
                     borderRadius: radius.md,
                     padding: "10px 14px",
                   }}>
-                    <span style={{ color: theme.textMuted, fontSize: 11 }}>×</span>
-                    <span style={{ color: theme.text, fontSize: 14, fontWeight: 600 }}>{cur?.reps}</span>
-                    <span style={{ color: theme.textMuted, fontSize: 11 }}>reps</span>
+                    <span style={{ color: "var(--text-muted)", fontSize: 11 }}>×</span>
+                    <span style={{ color: "var(--text)", fontSize: 14, fontWeight: 600 }}>{cur?.reps}</span>
+                    <span style={{ color: "var(--text-muted)", fontSize: 11 }}>reps</span>
                   </div>
                 </div>
               </div>
@@ -855,7 +856,7 @@ export default function WorkoutModal({ plan, onClose }) {
                 style={{
                   width: "100%",
                   padding: "14px",
-                  background: `linear-gradient(135deg, ${theme.red}, ${theme.redDark})`,
+                  background: "var(--accent-gradient)",
                   color: "#fff",
                   border: "none",
                   borderRadius: radius.md,
@@ -866,7 +867,7 @@ export default function WorkoutModal({ plan, onClose }) {
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 8,
-                  boxShadow: shadow.glow(theme.red),
+                  boxShadow: shadow.glow("var(--accent)"),
                 }}
               >
                 <motion.div
@@ -891,8 +892,8 @@ export default function WorkoutModal({ plan, onClose }) {
               flex: 1,
               padding: "10px",
               background: "transparent",
-              border: `1px solid ${theme.border}`,
-              color: theme.textMuted,
+              border: `1px solid var(--border)`,
+              color: "var(--text-muted)",
               borderRadius: radius.md,
               cursor: "pointer",
               fontSize: 13,
@@ -906,15 +907,15 @@ export default function WorkoutModal({ plan, onClose }) {
           </motion.button>
           {phase === "work" && (
             <motion.button
-              whileHover={{ scale: 1.01, borderColor: theme.blue + "40" }}
+              whileHover={{ scale: 1.01, borderColor: "rgba(59,130,246,0.251)" }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setPhase("rest")}
               style={{
                 flex: 1,
                 padding: "10px",
-                background: `${theme.blue}08`,
-                border: `1px solid ${theme.border}`,
-                color: theme.blue,
+                background: `rgba(59,130,246,0.031)`,
+                border: `1px solid var(--border)`,
+                color: "var(--blue)",
                 borderRadius: radius.md,
                 cursor: "pointer",
                 fontSize: 13,
@@ -947,3 +948,5 @@ function Badge({ label, color }) {
     </span>
   );
 }
+
+

@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
-import { theme, radius } from "../styles/designSystem";
+import {  radius } from "../styles/designSystem";
 
-export default function MiniChart({ data, color, label }) {
+export default function MiniChart({ data, color, label, gradientId }) {
   if (!data || data.length < 2) return null;
   const vals = data.map(d => +(d.value || d.weight || 0));
   const min = Math.min(...vals),
@@ -16,6 +16,8 @@ export default function MiniChart({ data, color, label }) {
         `${pad + (i * (W - pad * 2)) / (vals.length - 1)},${H - pad - ((v - min) / range) * (H - pad * 2)}`
     )
     .join(" ");
+  const areaPts = `${pad},${H - pad} ${pts} ${W - pad},${H - pad}`;
+  const gid = gradientId || `chart-grad-${label?.replace(/\s/g, "") || "default"}`;
 
   return (
     <motion.div
@@ -25,11 +27,11 @@ export default function MiniChart({ data, color, label }) {
       style={{ marginBottom: 12 }}
     >
       {label && (
-        <div style={{ fontSize: 11, color: theme.textMuted, marginBottom: 6 }}>{label}</div>
+        <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 6 }}>{label}</div>
       )}
       <div
         style={{
-          background: theme.bgCard2,
+          background: "var(--bg-card2)",
           borderRadius: radius.md,
           padding: "8px",
           overflow: "hidden",
@@ -41,6 +43,19 @@ export default function MiniChart({ data, color, label }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
+          <defs>
+            <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity="0.25" />
+              <stop offset="100%" stopColor={color} stopOpacity="0.02" />
+            </linearGradient>
+          </defs>
+          <motion.polygon
+            points={areaPts}
+            fill={`url(#${gid})`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          />
           <motion.polyline
             points={pts}
             fill="none"
@@ -64,10 +79,10 @@ export default function MiniChart({ data, color, label }) {
               transition={{ delay: 0.5 + i * 0.1 }}
             />
           ))}
-          <text x={pad} y={H} fill={theme.textMuted} fontSize="8">
+          <text x={pad} y={H} fill={"var(--text-dim)"} fontSize="8">
             {data[0]?.date || ""}
           </text>
-          <text x={W - pad} y={H} fill={theme.textMuted} fontSize="8" textAnchor="end">
+          <text x={W - pad} y={H} fill={"var(--text-dim)"} fontSize="8" textAnchor="end">
             {data[data.length - 1]?.date || ""}
           </text>
           <text
@@ -85,3 +100,5 @@ export default function MiniChart({ data, color, label }) {
     </motion.div>
   );
 }
+
+
