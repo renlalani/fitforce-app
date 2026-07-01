@@ -82,14 +82,14 @@ function FoodDetailCard({ food, qty, onQtyChange, isFav, onToggleFav }) {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-        {[
-          ["Calories", totalCal.accent, "kcal"],
-          ["Protein", totalProt.blue, "g"],
-          ["Carbs", totalCarbs.yellow, "g"],
-          ["Fat", totalFat.green, "g"],
-          ["Fiber", totalFiber.teal, "g"],
-          ["Sugar", totalSugar.orange, "g"],
-        ].map(([l, v, c, u]) => (
+      {[
+        ["Calories", totalCal, "var(--accent)", "kcal"],
+        ["Protein", totalProt, "var(--blue)", "g"],
+        ["Carbs", totalCarbs, "var(--yellow)", "g"],
+        ["Fat", totalFat, "var(--green)", "g"],
+        ["Fiber", totalFiber, "var(--teal)", "g"],
+        ["Sugar", totalSugar, "var(--orange)", "g"],
+      ].map(([l, v, c, u]) => (
           <div key={l} style={{ background: "var(--bg-card3)", borderRadius: radius.sm, padding: "6px 8px", textAlign: "center" }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: c }}>{v}</div>
             <div style={{ fontSize: 9, color: "var(--text-muted)" }}>{l}</div>

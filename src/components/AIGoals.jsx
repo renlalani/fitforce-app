@@ -171,17 +171,16 @@ export default function AIGoals() {
               </div>
             </div>
             <div style={{
-              height: 4, background: "var(--border)", borderRadius: radius.full,
+              height: 5, background: "var(--track)", borderRadius: radius.full,
               overflow: "hidden",
             }}>
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${goal.progress}%` }}
-                transition={{ duration: 0.6, delay: i * 0.05 }}
+              <div
                 style={{
+                  width: `${goal.progress || 0}%`,
                   height: "100%",
                   background: cat?.color || "var(--accent)",
                   borderRadius: radius.full,
+                  transition: "width 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)",
                 }}
               />
             </div>

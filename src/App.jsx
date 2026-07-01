@@ -41,7 +41,8 @@ const SettingsPage = lazy(() => import("./components/Settings"));
 import useAddFood from "./hooks/useAddFood";
 import useNotifications from "./hooks/useNotifications";
 import { useHydrated } from "./hooks/useHydrated";
-import { useState, useCallback, lazy, Suspense } from "react";
+import { useMediaQuery } from "./hooks/useMediaQuery";
+import { useState, useCallback, useMemo, lazy, Suspense } from "react";
 function AppSkeleton() {
   return (
     <div style={{ maxWidth: 480, margin: "0 auto", padding: 20 }}>
@@ -151,6 +152,7 @@ export default function FitForce() {
   const { addFoodToMeal, undoAddFood, toast, clearToast } = useAddFood();
   const { notification: smartNotification, dismiss: dismissNotification, checkNow } = useNotifications();
   const [preselectedFood, setPreselectedFood] = useState(null);
+  const isMobile = useMediaQuery("(max-width: 760px)");
   const handleOpenModal = useCallback((food) => {
     setPreselectedFood(food || null);
     setShowMealModal(true);
@@ -214,29 +216,30 @@ export default function FitForce() {
         style={{
           background: `linear-gradient(180deg, var(--bg)dd, var(--bg-card3)aa)`,
           borderBottom: `1px solid var(--border)`,
-          padding: "14px 24px",
+          padding: `${isMobile ? "10px" : "14px"} ${isMobile ? "16px" : "24px"}`,
           display: "flex",
           alignItems: "center",
-          gap: 16,
+          gap: isMobile ? 10 : 16,
           position: "sticky",
           top: 0,
           zIndex: 100,
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
+          minHeight: isMobile ? 50 : "auto",
         }}
       >
         <motion.div
           whileHover={{ scale: 1.05, rotate: -5 }}
           transition={{ type: "spring", stiffness: 400, damping: 10 }}
           style={{
-            width: 34, height: 34,
+            width: isMobile ? 30 : 34, height: isMobile ? 30 : 34,
             background: "var(--accent-gradient)",
             borderRadius: radius.lg,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontWeight: 800,
-            fontSize: 15,
+            fontSize: isMobile ? 13 : 15,
             color: "#fff",
             boxShadow: shadow.glow("var(--accent)"),
             flexShrink: 0,
@@ -244,17 +247,22 @@ export default function FitForce() {
         >
           F
         </motion.div>
+        {!isMobile && (
         <div style={{ marginRight: 8 }}>
           <div style={{ fontWeight: 700, fontSize: 16, letterSpacing: "-0.03em" }}>FitForce</div>
           <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.04em", textTransform: "uppercase" }}>AI Gym Companion</div>
         </div>
+        )}
 
         {/* Search Bar */}
+        {!isMobile && (
         <div style={{
           flex: 1, maxWidth: 360, position: "relative", marginLeft: 12,
         }}>
           <Search size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", pointerEvents: "none" }} />
           <input
+            id="search-exercises"
+            name="search"
             placeholder="Search exercises, workouts..."
             style={{
               width: "100%", padding: "8px 12px 8px 34px",
@@ -266,21 +274,28 @@ export default function FitForce() {
             onBlur={e => { e.target.style.borderColor = "var(--border)"; e.target.style.boxShadow = "none"; }}
           />
         </div>
+        )}
 
-        <div style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
+        <div style={{ marginLeft: isMobile ? "auto" : "auto", display: "flex", gap: isMobile ? 6 : 12, alignItems: "center" }}>
           {/* XP */}
           <div style={{ textAlign: "right" }}>
             <div style={{ fontSize: 11, color: "var(--accent-light)", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
               <Zap size={11} /> Lv.{level}
             </div>
-            <div style={{ width: 70, height: 3, background: "var(--bg-card3)", borderRadius: radius.full, overflow: "hidden", marginTop: 3 }}>
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${((xp % 500) / 500) * 100}%` }}
-                transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-                style={{ height: "100%", background: "var(--accent-gradient)", borderRadius: radius.full, boxShadow: `0 0 8px rgba(59,130,246,0.251)` }}
+            {!isMobile && (
+            <div style={{ width: 70, height: 4, background: "var(--track)", borderRadius: radius.full, overflow: "hidden", marginTop: 4 }}>
+              <div
+                style={{
+                  width: `${((xp % 500) / 500) * 100 || 0}%`,
+                  height: "100%",
+                  background: "var(--accent-gradient)",
+                  borderRadius: radius.full,
+                  boxShadow: `0 0 8px rgba(59,130,246,0.251)`,
+                  transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+                }}
               />
             </div>
+            )}
           </div>
 
           {/* Streak */}
@@ -291,7 +306,7 @@ export default function FitForce() {
               color: "var(--accent-light)",
               border: `1px solid rgba(59,130,246,0.082)`,
               borderRadius: radius.lg,
-              padding: "6px 10px",
+              padding: isMobile ? "4px 8px" : "6px 10px",
               fontSize: 11,
               fontWeight: 600,
               display: "flex",
@@ -299,10 +314,11 @@ export default function FitForce() {
               gap: 5,
             }}
           >
-            <Flame size={13} /> {streak}
+            <Flame size={isMobile ? 11 : 13} /> {streak}
           </motion.div>
 
           {/* Notification */}
+          {!isMobile && (
           <motion.button
             whileHover={{ scale: 1.08, background: "var(--bg-card3)" }}
             onClick={checkNow}
@@ -321,17 +337,18 @@ export default function FitForce() {
               background: "var(--accent)", boxShadow: `0 0 6px rgba(59,130,246,0.376)`,
             }} />
           </motion.button>
+          )}
 
           {/* Avatar */}
           <motion.button
             whileHover={{ scale: 1.08, boxShadow: shadow.softGlow("var(--accent)") }}
             onClick={() => setTab("profile")}
             style={{
-              width: 34, height: 34,
+              width: isMobile ? 30 : 34, height: isMobile ? 30 : 34,
               background: "var(--accent-gradient)",
               borderRadius: radius.full,
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontWeight: 700, fontSize: 13, color: "#fff",
+              fontWeight: 700, fontSize: isMobile ? 11 : 13, color: "#fff",
               cursor: "pointer",
               border: `2px solid rgba(59,130,246,0.188)`,
               padding: 0,
@@ -343,6 +360,7 @@ export default function FitForce() {
       </motion.div>
 
       {/* Premium Pill-Style Nav */}
+      {!isMobile && (
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -404,9 +422,10 @@ export default function FitForce() {
           })}
         </motion.div>
       </motion.div>
+      )}
 
       {/* Main Content */}
-      <div style={{ padding: "32px 24px 40px", maxWidth: 1400, margin: "0 auto", width: "92vw" }}>
+      <div style={{ padding: isMobile ? "16px 16px 88px" : "32px 24px 40px", maxWidth: isMobile ? "100%" : 1400, margin: "0 auto", width: isMobile ? "100%" : "92vw", overflowX: "hidden" }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={tab}
@@ -648,12 +667,16 @@ export default function FitForce() {
                             <span style={{ fontSize: 11, color: "var(--text-muted)" }}>kg</span>
                           </div>
                         </div>
-                        <div style={{ height: 4, background: "var(--border)", borderRadius: radius.full, overflow: "hidden" }}>
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${Math.min(100, (p.weight / 160) * 100)}%` }}
-                            transition={{ duration: 0.6, delay: i * 0.1 }}
-                            style={{ height: "100%", background: "var(--accent)", borderRadius: radius.full }}
+                        <div style={{ height: 5, background: "var(--track)", borderRadius: radius.full, overflow: "hidden" }}>
+                          <div
+                            style={{
+                              width: `${Math.min(100, (p.weight / 160) * 100) || 0}%`,
+                              height: "100%",
+                              background: "var(--accent)",
+                              borderRadius: radius.full,
+                              transition: "width 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)",
+                              transitionDelay: `${i * 0.1}s`,
+                            }}
                           />
                         </div>
                       </div>
@@ -763,12 +786,16 @@ export default function FitForce() {
                       </div>
                       <div style={{ textAlign: "right" }}>
                         <div style={{ fontSize: 12, color: "var(--text)", marginBottom: 6 }}>{xpToNext} XP to Level {level + 1}</div>
-                        <div style={{ width: 140, height: 6, background: "var(--border)", borderRadius: radius.full, overflow: "hidden" }}>
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${((xp % 500) / 500) * 100}%` }}
-                            transition={{ duration: 0.6 }}
-                            style={{ height: "100%", background: "var(--yellow)", borderRadius: radius.full, boxShadow: `0 0 8px rgba(245,158,11,0.251)` }}
+                        <div style={{ width: 140, height: 6, background: "var(--track)", borderRadius: radius.full, overflow: "hidden" }}>
+                          <div
+                            style={{
+                  width: `${((xp % 500) / 500) * 100 || 0}%`,
+                              height: "100%",
+                              background: "var(--yellow)",
+                              borderRadius: radius.full,
+                              boxShadow: `0 0 8px rgba(245,158,11,0.251)`,
+                              transition: "width 0.6s ease",
+                            }}
                           />
                         </div>
                       </div>
@@ -1074,6 +1101,47 @@ export default function FitForce() {
         </AnimatePresence>
       </div>
 
+      {/* Mobile Bottom Navigation */}
+      {isMobile && (
+        <nav className="bottom-nav" role="tablist" aria-label="Main navigation">
+          {[
+            { id: "dashboard", label: "Home", icon: Activity },
+            { id: "workouts", label: "Workouts", icon: Dumbbell },
+            { id: "nutrition", label: "Nutrition", icon: Apple },
+            { id: "progress", label: "Progress", icon: TrendingUp },
+            { id: "profile", label: "Profile", icon: User },
+          ].map((t) => {
+            const active = tab === t.id;
+            const Icon = t.icon;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className="bottom-nav-btn"
+                role="tab"
+                aria-selected={active}
+                aria-label={t.label}
+                style={{
+                  color: active ? "var(--accent)" : "var(--text-dim)",
+                }}
+              >
+                {active && (
+                  <div style={{
+                    position: "absolute", top: 0, left: "20%", right: "20%",
+                    height: 2, background: "var(--accent)", borderRadius: "0 0 2px 2px",
+                    boxShadow: `0 0 8px rgba(59,130,246,0.4)`,
+                  }} />
+                )}
+                <Icon size={active ? 22 : 20} strokeWidth={active ? 2.5 : 2} />
+                <span style={{ fontSize: active ? 10 : 9, fontWeight: active ? 600 : 400, marginTop: 1 }}>
+                  {t.label}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
+      )}
+
       <NotificationToast
         notification={smartNotification}
         onDismiss={dismissNotification}
@@ -1100,11 +1168,11 @@ export default function FitForce() {
         whileTap={{ scale: 0.95 }}
         style={{
           position: "fixed",
-          bottom: 24,
-          right: 24,
+          bottom: isMobile ? 80 : 24,
+          right: isMobile ? 16 : 24,
           zIndex: 999,
-          width: 56,
-          height: 56,
+          width: isMobile ? 50 : 56,
+          height: isMobile ? 50 : 56,
           borderRadius: "50%",
           background: `linear-gradient(135deg, var(--accent), var(--highlight))`,
           border: "none",

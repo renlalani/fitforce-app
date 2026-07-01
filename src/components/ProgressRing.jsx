@@ -23,7 +23,7 @@ export default function ProgressRing({ value, max, size = 100, strokeWidth = 8, 
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="rgba(255,255,255,0.06)"
+            stroke="var(--border2)"
             strokeWidth={strokeWidth}
           />
           <motion.circle
@@ -52,8 +52,8 @@ export default function ProgressRing({ value, max, size = 100, strokeWidth = 8, 
           </span>
         </div>
       </div>
-      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", fontWeight: 500 }}>{label}</div>
-      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>{sub || `${Math.round(value)}/${max}`}</div>
+      <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>{label}</div>
+      <div style={{ fontSize: 10, color: "var(--text-dim)" }}>{sub || `${Math.round(value)}/${max}`}</div>
     </div>
   );
 }

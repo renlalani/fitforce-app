@@ -52,9 +52,9 @@ const Button = forwardRef(({
 
   const v = variants[variant] || variants.primary;
   const sizes = {
-    sm: { padding: "6px 14px", fontSize: 11, borderRadius: radius.lg },
-    md: { padding: "10px 20px", fontSize: 12, borderRadius: radius.lg },
-    lg: { padding: "12px 28px", fontSize: 13, borderRadius: radius.xl },
+    sm: { padding: "6px 14px", fontSize: 11, borderRadius: radius.lg, minHeight: 36 },
+    md: { padding: "10px 20px", fontSize: 12, borderRadius: radius.lg, minHeight: 44 },
+    lg: { padding: "12px 28px", fontSize: 13, borderRadius: radius.xl, minHeight: 50 },
   };
   const s = sizes[size] || sizes.md;
   const rc = rippleColor || "rgba(255,255,255,0.2)";

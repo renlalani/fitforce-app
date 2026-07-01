@@ -1,26 +1,24 @@
 import { useEffect, useRef, useState } from "react";
-import { useInView } from "framer-motion";
 
 export default function AnimatedCounter({ value, decimals = 0, suffix = "", duration = 800, style }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
   const safeValue = +value || 0;
-  const [display, setDisplay] = useState(0);
-  const started = useRef(false);
+  const [display, setDisplay] = useState(safeValue);
+  const prevValue = useRef(safeValue);
 
   useEffect(() => {
-    if (!isInView || started.current) return;
-    started.current = true;
+    const from = prevValue.current;
+    prevValue.current = safeValue;
+    if (from === safeValue) return;
+
     const steps = Math.min(60, Math.max(20, Math.floor(duration / 16)));
-    const increment = safeValue / steps;
-    let current = 0;
+    const increment = (safeValue - from) / steps;
+    let current = from;
     let frame;
 
     const animate = () => {
       current += increment;
-      if (current >= safeValue) {
+      if ((increment >= 0 && current >= safeValue) || (increment < 0 && current <= safeValue)) {
         setDisplay(safeValue);
-        cancelAnimationFrame(frame);
       } else {
         setDisplay(current);
         frame = requestAnimationFrame(animate);
@@ -29,14 +27,10 @@ export default function AnimatedCounter({ value, decimals = 0, suffix = "", dura
 
     frame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(frame);
-  }, [isInView, safeValue, duration]);
-
-  useEffect(() => {
-    if (!isInView) started.current = false;
-  }, [isInView]);
+  }, [safeValue, duration]);
 
   return (
-    <span ref={ref} style={{ fontVariantNumeric: "tabular-nums", ...style }}>
+    <span style={{ fontVariantNumeric: "tabular-nums", ...style }}>
       {display.toFixed(decimals)}{suffix}
     </span>
   );

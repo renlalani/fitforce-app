@@ -5,8 +5,9 @@ import {
   Zap, Copy, Check, RefreshCw, Square, ThumbsUp, ThumbsDown,
   ChevronDown, MessageSquare, Brain, StopCircle
 } from "lucide-react";
-import {  radius, shadow, transition } from "../styles/designSystem";
+import { radius, shadow, transition } from "../styles/designSystem";
 import MarkdownRenderer from "./MarkdownRenderer";
+import { useIsMobile } from "../hooks/useMediaQuery";
 
 const SUGGESTIONS = [
   { icon: DumbbellIcon, title: "Create a workout plan", desc: "Personalized for your level and goals" },
@@ -68,6 +69,7 @@ function PillIcon(props) { return (
 ); }
 
 export default function AICoach({ profile, totalCal, totalProt, water, level, xp, latestWeight }) {
+  const isMobile = useIsMobile();
   const [msgs, setMsgs] = useState([{
     role: "ai",
     text: "Hey! I'm your AI coach — no login needed on any device. Ask me about workouts, nutrition, form, recovery, or supplements!",
@@ -483,13 +485,13 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
             }}
             style={{
               flex: 1,
-              padding: "10px 12px",
+              padding: isMobile ? "8px 8px" : "10px 12px",
               borderRadius: radius.md,
               border: `1px solid ${mode === id ? "var(--accent)" : "var(--border2)"}`,
               background: mode === id ? `rgba(59,130,246,0.071)` : "transparent",
               color: mode === id ? "var(--accent)" : "var(--text-muted)",
               cursor: "pointer",
-              fontSize: 12,
+              fontSize: isMobile ? 10 : 12,
               fontWeight: mode === id ? 500 : 400,
               display: "flex",
               alignItems: "center",
@@ -497,8 +499,8 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
               gap: 6,
             }}
           >
-            <Icon size={14} />
-            {label}
+            <Icon size={isMobile ? 12 : 14} />
+            {isMobile && id === "analyze" ? "Analyze" : label}
           </motion.button>
         ))}
       </div>
@@ -619,15 +621,15 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
           >
             {/* Chat Header */}
             <div style={{
-              padding: "16px 20px",
+              padding: isMobile ? "12px 14px" : "16px 20px",
               borderBottom: `1px solid var(--border)`,
               background: `linear-gradient(180deg, var(--bg-card2), var(--bg-card))`,
               display: "flex",
               alignItems: "center",
-              gap: 10,
+              gap: isMobile ? 8 : 10,
             }}>
               <div style={{
-                width: 36, height: 36,
+                width: isMobile ? 30 : 36, height: isMobile ? 30 : 36,
                 background: "var(--accent-gradient3)",
                 borderRadius: radius.md,
                 display: "flex",
@@ -635,23 +637,25 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
                 justifyContent: "center",
                 boxShadow: shadow.glow("var(--accent)"),
               }}>
-                <Brain size={18} color="#fff" />
+                <Brain size={isMobile ? 15 : 18} color="#fff" />
               </div>
               <div>
-                <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text)" }}>FitForce AI</div>
+                <div style={{ fontWeight: 600, fontSize: isMobile ? 13 : 14, color: "var(--text)" }}>FitForce AI</div>
                 <div style={{ fontSize: 11, color: "var(--green)", display: "flex", alignItems: "center", gap: 4 }}>
                   <motion.span
                     animate={{ opacity: [1, 0.4, 1] }}
                     transition={{ repeat: Infinity, duration: 2 }}
                     style={{ width: 6, height: 6, background: "var(--green)", borderRadius: "50%", display: "inline-block" }}
                   />
-                  Online · Laguna XS
+                  {isMobile ? "Online" : "Online · Laguna XS"}
                 </div>
               </div>
+              {!isMobile && (
               <div style={{ marginLeft: "auto", fontSize: 11, color: "var(--text-muted)", textAlign: "right" }}>
                 <div>{totalCal} kcal · {totalProt}g P</div>
                 <div style={{ color: "var(--yellow)" }}>Lv.{level}</div>
               </div>
+              )}
             </div>
 
             {/* Messages */}
@@ -659,9 +663,9 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
               ref={chatRef}
               onScroll={checkAtBottom}
               style={{
-                height: 400,
+                height: isMobile ? 300 : 400,
                 overflowY: "auto",
-                padding: "20px",
+                padding: isMobile ? "12px" : "20px",
                 display: "flex",
                 flexDirection: "column",
                 gap: 10,
@@ -693,8 +697,8 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
                     )}
                     <div
                       style={{
-                        maxWidth: "80%",
-                        padding: m.role === "user" ? "10px 16px" : "12px 16px",
+                        maxWidth: isMobile ? "88%" : "80%",
+                        padding: m.role === "user" ? (isMobile ? "8px 14px" : "10px 16px") : (isMobile ? "10px 14px" : "12px 16px"),
                         borderRadius: m.role === "user"
                           ? "16px 16px 4px 16px"
                           : "16px 16px 16px 4px",
@@ -900,7 +904,7 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
                   <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 8, letterSpacing: 0.5, fontWeight: 500 }}>
                     Try asking about
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: 8 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill,minmax(200px,1fr))", gap: 8 }}>
                     {SUGGESTIONS.map((s, i) => (
                       <motion.div
                         key={s.title}
@@ -938,7 +942,7 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
 
             {/* Input Area */}
             <div style={{
-              padding: "16px 20px",
+              padding: isMobile ? "12px 14px" : "16px 20px",
               borderTop: `1px solid var(--border)`,
               background: "var(--bg-card)",
             }}>

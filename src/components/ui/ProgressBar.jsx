@@ -1,10 +1,9 @@
-import { motion } from "framer-motion";
 import {  radius } from "../../styles/designSystem";
 
 export default function ProgressBar({ value, max, color: colorProp, height = 4, label }) {
   const color = colorProp ?? "var(--accent)";
   const safeMax = max > 0 ? max : 1;
-  const p = Math.min(100, Math.round((value / safeMax) * 100));
+  const p = Math.min(100, Math.round((value / safeMax) * 100)) || 0;
   return (
     <div style={{ marginBottom: 10 }}>
       {label && (
@@ -26,20 +25,19 @@ export default function ProgressBar({ value, max, color: colorProp, height = 4, 
       <div
         style={{
           height,
-          background: "var(--border)",
+          background: "var(--track)",
           borderRadius: radius.full,
           overflow: "hidden",
         }}
       >
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${p}%` }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
+        <div
           style={{
+            width: `${p}%`,
             height: "100%",
             background: `linear-gradient(90deg, ${color}, ${color}dd)`,
             borderRadius: radius.full,
             boxShadow: `0 0 8px ${color}40`,
+            transition: "width 0.6s ease",
           }}
         />
       </div>

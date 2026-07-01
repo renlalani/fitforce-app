@@ -15,7 +15,7 @@ export default function Card({
     background: "var(--bg-card)",
     border: `1px solid var(--border2)`,
     borderRadius: "var(--radius-card)",
-    padding: "24px",
+    padding: "var(--card-padding, 24px)",
     boxShadow: "var(--shadow-card)",
   };
 
@@ -25,7 +25,7 @@ export default function Card({
     WebkitBackdropFilter: "blur(24px) saturate(1.4)",
     border: `1px solid rgba(0,0,0,0.04)`,
     borderRadius: "var(--radius-card)",
-    padding: "24px",
+    padding: "var(--card-padding, 24px)",
     boxShadow: "var(--shadow-card)",
   };
 
@@ -34,7 +34,7 @@ export default function Card({
     position: "relative",
     background: "var(--bg-card)",
     borderRadius: "var(--radius-card)",
-    padding: "24px",
+    padding: "var(--card-padding, 24px)",
     boxShadow: "var(--shadow-card)",
   } : {};
 

@@ -5,7 +5,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { motion } from "framer-motion";
 import { Copy, Check, Terminal, Code } from "lucide-react";
-import {  radius } from "../styles/designSystem";
+import { radius } from "../styles/designSystem";
 
 const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
@@ -23,8 +23,8 @@ const CopyButton = ({ text }) => {
         position: "absolute",
         top: 8,
         right: 8,
-        background: "rgba(0,0,0,0.4)",
-        border: `1px solid rgba(255,255,255,0.1)`,
+        background: "var(--bg-card3)",
+        border: `1px solid var(--border2)`,
         borderRadius: 6,
         padding: "4px 8px",
         cursor: "pointer",
@@ -33,7 +33,6 @@ const CopyButton = ({ text }) => {
         display: "flex",
         alignItems: "center",
         gap: 4,
-        backdropFilter: "blur(8px)",
         transition: "all 0.15s ease",
       }}
     >
@@ -56,7 +55,7 @@ const components = {
             justifyContent: "space-between",
             alignItems: "center",
             padding: "6px 12px",
-            background: "rgba(0,0,0,0.3)",
+            background: "var(--bg-card3)",
             borderBottom: `1px solid var(--border)`,
           }}>
             <span style={{ fontSize: 11, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4 }}>
@@ -86,7 +85,7 @@ const components = {
             justifyContent: "space-between",
             alignItems: "center",
             padding: "6px 12px",
-            background: "rgba(0,0,0,0.3)",
+            background: "var(--bg-card3)",
             borderBottom: `1px solid var(--border)`,
           }}>
             <span style={{ fontSize: 11, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4 }}>
@@ -109,7 +108,7 @@ const components = {
 
     return (
       <code style={{
-        background: "rgba(255,255,255,0.08)",
+        background: "var(--bg-card2)",
         padding: "2px 6px",
         borderRadius: 4,
         fontSize: "0.9em",
@@ -146,7 +145,7 @@ const components = {
         margin: "8px 0",
         padding: "8px 14px",
         borderLeft: `3px solid var(--accent)`,
-        background: "rgba(255,59,59,0.05)",
+        background: "var(--bg-card2)",
         borderRadius: "0 8px 8px 0",
         color: "var(--text-muted)",
         fontStyle: "italic",
@@ -195,5 +194,3 @@ export default function MarkdownRenderer({ content }) {
     </ReactMarkdown>
   );
 }
-
-

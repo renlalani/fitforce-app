@@ -75,6 +75,9 @@
   --mesh2: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(34,211,238,0.02) 0%, transparent 100%), radial-gradient(ellipse 50% 60% at 100% 50%, rgba(37,99,235,0.015) 0%, transparent 100%);
   --mesh3: radial-gradient(ellipse 60% 70% at 0% 100%, rgba(16,185,129,0.02) 0%, transparent 100%), radial-gradient(ellipse 50% 50% at 100% 0%, rgba(34,211,238,0.015) 0%, transparent 100%);
 
+  /* Progress track */
+  --track: #374151;
+
   /* Card radius */
   --radius-card: 16px;
   --radius-sm: 8px;
@@ -209,4 +212,139 @@ img { max-width: 100%; display: block; }
 
 .animated-number {
   font-variant-numeric: tabular-nums;
+}
+
+/* Mobile responsive CSS variables */
+@media (max-width: 760px) {
+  :root {
+    --page-padding-x: 16px;
+    --page-padding-y: 16px;
+    --page-padding-bottom: 88px;
+    --card-padding: 16px;
+    --grid-gap: 10px;
+    --header-padding-x: 16px;
+    --header-padding-y: 10px;
+    --font-size-xs: 10px;
+    --font-size-sm: 11px;
+    --font-size-base: 12px;
+    --font-size-md: 13px;
+    --font-size-lg: 14px;
+    --icon-size-sm: 14px;
+    --icon-size-md: 16px;
+    --progress-ring-size: 80px;
+    --chart-height: 120px;
+    --touch-target-min: 44px;
+    --preserve-bottom: 80px;
+  }
+}
+
+@media (min-width: 761px) {
+  :root {
+    --page-padding-x: 24px;
+    --page-padding-y: 32px;
+    --page-padding-bottom: 40px;
+    --card-padding: 24px;
+    --grid-gap: 14px;
+    --header-padding-x: 24px;
+    --header-padding-y: 14px;
+    --font-size-xs: 10px;
+    --font-size-sm: 11px;
+    --font-size-base: 12px;
+    --font-size-md: 13px;
+    --font-size-lg: 14px;
+    --icon-size-sm: 14px;
+    --icon-size-md: 16px;
+    --progress-ring-size: 110px;
+    --chart-height: 150px;
+    --touch-target-min: 40px;
+    --preserve-bottom: 0px;
+  }
+}
+
+/* Even smaller screens */
+@media (max-width: 380px) {
+  :root {
+    --page-padding-x: 12px;
+    --page-padding-y: 12px;
+    --card-padding: 14px;
+    --grid-gap: 8px;
+    --progress-ring-size: 72px;
+    --chart-height: 100px;
+  }
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border-top: 1px solid var(--border);
+  padding: 4px env(safe-area-inset-bottom, 4px) env(safe-area-inset-bottom, 8px);
+  box-shadow: 0 -1px 2px rgba(0,0,0,0.04), 0 -4px 12px rgba(0,0,0,0.04);
+}
+
+.bottom-nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 6px 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 500;
+  transition: color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  min-height: var(--touch-target-min);
+}
+
+.bottom-nav-btn span {
+  line-height: 1.2;
+}
+
+/* Hide pill nav on mobile */
+@media (max-width: 760px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 761px) {
+  .show-on-mobile {
+    display: none !important;
+  }
+}
+
+/* Prevent body scroll when modal open on mobile */
+body.modal-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+/* Safe area for bottom nav */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom, 8px);
+  }
+}
+
+/* Mobile-optimized scrollbar */
+@media (max-width: 760px) {
+  ::-webkit-scrollbar {
+    width: 2px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.06);
+  }
 }

@@ -17,6 +17,7 @@ import EmptyState from "./ui/EmptyState";
 import { FOOD_DB } from "../data/fitness";
 import { useNutritionStore } from "../stores/nutritionStore";
 import { useUserStore } from "../stores/userStore";
+import { useIsMobile } from "../hooks/useMediaQuery";
 
 const MEAL_TIMES = ["Breakfast", "Lunch", "Post-Workout", "Dinner", "Snack"];
 const MEAL_ICONS = { Breakfast: Sunrise, Lunch: Sun, "Post-Workout": Zap, Dinner: Moon, Snack: Cookie };
@@ -98,12 +99,12 @@ function FoodCard({ meal, onDelete, index }) {
             {meal.name}
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 3 }}>
-            {[
-              ["Cal", meal.cal.accent, "kcal"],
-              ["Prot", meal.protein.blue, "g"],
-              ["Carbs", meal.carbs.yellow, "g"],
-              ["Fat", meal.fat.green, "g"],
-            ].map(([l, v, c, u]) => (
+    {[
+      ["Cal", meal.cal, "var(--accent)", "kcal"],
+      ["Prot", meal.protein, "var(--blue)", "g"],
+      ["Carbs", meal.carbs, "var(--yellow)", "g"],
+      ["Fat", meal.fat, "var(--green)", "g"],
+    ].map(([l, v, c, u]) => (
               <span key={l + u} style={{ fontSize: 10, color: c, fontWeight: 500 }}>
                 {Math.round(v || 0)}{u}
               </span>
@@ -134,7 +135,7 @@ function FoodCard({ meal, onDelete, index }) {
   );
 }
 
-function MealSection({ time, items, secCal, secProt, secCarbs, secFat, totalCal, onOpenModal, onDeleteMeal }) {
+function MealSection({ time, items, totalCal: secCal, totalProt: secProt, totalCarbs: secCarbs, totalFat: secFat, totalCal, onOpenModal, onDeleteMeal }) {
   const [expanded, setExpanded] = useState(true);
   const isEmpty = items.length === 0;
   const color = MEAL_COLORS()[time] || "var(--accent)";
@@ -272,6 +273,7 @@ export default function MealHub({ calGoal, protGoal, onOpenModal }) {
   const nutritionStreak = useNutritionStore(s => s.nutritionStreak);
   const totalDaysLogged = useNutritionStore(s => s.totalDaysLogged);
   const xp = useUserStore(s => s.xp);
+  const isMobile = useIsMobile();
 
   const safeMeals = meals || [];
   const safeCalGoal = calGoal > 0 ? calGoal : 2400;
@@ -362,7 +364,7 @@ export default function MealHub({ calGoal, protGoal, onOpenModal }) {
         <motion.div key="dashboard">
           {/* Premium Hero */}
           <motion.div variants={itemVariants}>
-            <Card variant="glass" style={{ padding: "20px", marginBottom: 14, position: "relative", overflow: "hidden" }}>
+            <Card variant="glass" style={{ padding: isMobile ? "16px" : "20px", marginBottom: 14, position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: -80, right: -80, width: 250, height: 250, borderRadius: "50%", background: `radial-gradient(circle, rgba(59,130,246,0.031), transparent 70%)` }} />
               <div style={{ position: "relative" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
@@ -370,7 +372,7 @@ export default function MealHub({ calGoal, protGoal, onOpenModal }) {
                     <div style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: 2, textTransform: "uppercase", marginBottom: 2 }}>
                       Daily Nutrition
                     </div>
-                    <h2 style={{ color: "var(--text)", fontSize: 24, fontWeight: 700, margin: 0, letterSpacing: "-0.02em" }}>
+                    <h2 style={{ color: "var(--text)", fontSize: isMobile ? 20 : 24, fontWeight: 700, margin: 0, letterSpacing: "-0.02em" }}>
                       {formatCal(totalCal)} / {formatCal(safeCalGoal)} kcal
                     </h2>
                   </div>
@@ -397,36 +399,40 @@ export default function MealHub({ calGoal, protGoal, onOpenModal }) {
                       {remainingCal > 0 ? `${formatCal(remainingCal)} kcal` : "Over goal!"}
                     </span>
                   </div>
-                  <div style={{ height: 6, background: "var(--border)", borderRadius: radius.full, overflow: "hidden" }}>
-                    <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, (totalCal / safeCalGoal) * 100)}%` }}
-                      transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
-                      style={{ height: "100%", background: `linear-gradient(90deg, ${totalCal > safeCalGoal ? "var(--accent)" : "var(--accent)"}, ${totalCal > safeCalGoal ? "var(--accent-light)" : "var(--accent-light)"})`, borderRadius: radius.full, boxShadow: `0 0 8px ${totalCal > safeCalGoal ? "var(--accent)" : "var(--accent)"}40` }} />
+                  <div style={{ height: 6, background: "var(--track)", borderRadius: radius.full, overflow: "hidden" }}>
+                    <div style={{
+                      width: `${Math.min(100, (totalCal / safeCalGoal) * 100) || 0}%`,
+                      height: "100%", background: `linear-gradient(90deg, var(--accent), var(--accent-light))`, borderRadius: radius.full, boxShadow: `0 0 8px var(--accent)40`,
+                    }} />
                   </div>
                 </div>
 
                 {/* Macro rings row */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8 }}>
-                  <MacroRing value={totalCal} goal={safeCalGoal} label="Cal" color={"var(--accent)"} icon={Flame} size={72} />
-                  <MacroRing value={totalProt} goal={protGoalActual} label="Protein" color={"var(--blue)"} icon={Zap} size={72} />
-                  <MacroRing value={totalCarbs} goal={300} label="Carbs" color={"var(--yellow)"} icon={Activity} size={72} />
-                  <MacroRing value={totalFat} goal={80} label="Fat" color={"var(--green)"} icon={Apple} size={72} />
-                  <MacroRing value={totalFiber} goal={fiberGoal} label="Fiber" color={"var(--teal)"} icon={Heart} size={72} />
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(5, 1fr)", gap: isMobile ? 6 : 8 }}>
+                  <MacroRing value={totalCal} goal={safeCalGoal} label="Cal" color={"var(--accent)"} icon={Flame} size={isMobile ? 64 : 72} />
+                  <MacroRing value={totalProt} goal={protGoalActual} label="Protein" color={"var(--blue)"} icon={Zap} size={isMobile ? 64 : 72} />
+                  <MacroRing value={totalCarbs} goal={300} label="Carbs" color={"var(--yellow)"} icon={Activity} size={isMobile ? 64 : 72} />
+                  <MacroRing value={totalFat} goal={80} label="Fat" color={"var(--green)"} icon={Apple} size={isMobile ? 64 : 72} />
+                  <MacroRing value={totalFiber} goal={fiberGoal} label="Fiber" color={"var(--teal)"} icon={Heart} size={isMobile ? 64 : 72} />
                 </div>
 
                 {/* Mini macro bars */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6, marginTop: 10 }}>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(5, 1fr)", gap: isMobile ? 4 : 6, marginTop: 10 }}>
                   {[
                     { label: "Fiber", value: totalFiber, goal: fiberGoal, color: "var(--teal)" },
                     { label: "Sugar", value: totalSugar, goal: sugarLimit, color: totalSugar > sugarLimit ? "var(--red)" : "var(--orange)" },
                     { label: "Water", value: water, goal: waterGoal, color: "var(--blue)" },
                   ].map(({ label, value, goal, color }) => {
-                    const pct = Math.min(100, (value / Math.max(1, goal)) * 100);
+                    const pct = Math.min(100, (value / Math.max(1, goal)) * 100) || 0;
                     return (
                       <div key={label} style={{ textAlign: "center" }}>
                         <div style={{ fontSize: 12, fontWeight: 600, color }}><AnimatedCounter value={Math.round(value)} /></div>
-                        <div style={{ height: 3, background: "var(--border)", borderRadius: radius.full, margin: "2px 4px", overflow: "hidden" }}>
-                          <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.6 }}
-                            style={{ height: "100%", background: color, borderRadius: radius.full }} />
+                        <div style={{ height: 4, background: "var(--track)", borderRadius: radius.full, margin: "2px 4px", overflow: "hidden" }}>
+                          <div style={{
+                            width: `${pct}%`,
+                            height: "100%", background: `linear-gradient(90deg, ${color}, ${color}dd)`, borderRadius: radius.full,
+                            transition: "width 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)",
+                          }} />
                         </div>
                         <div style={{ fontSize: 8, color: "var(--text-dim)" }}>{label}</div>
                       </div>
@@ -438,7 +444,7 @@ export default function MealHub({ calGoal, protGoal, onOpenModal }) {
           </motion.div>
 
           {/* Quick Stats Row */}
-          <motion.div variants={itemVariants} style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 14 }}>
+          <motion.div variants={itemVariants} style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: 8, marginBottom: 14 }}>
             {[
               { label: "Foods", value: meals.length, color: "var(--accent)" },
               { label: "Protein", value: `${Math.round(totalProt)}g`, color: "var(--blue)" },
@@ -576,7 +582,7 @@ export default function MealHub({ calGoal, protGoal, onOpenModal }) {
                   { label: "Fiber", value: totalFiber, goal: fiberGoal, color: "var(--teal)" },
                   { label: "Sugar", value: totalSugar, goal: sugarLimit, color: "var(--orange)" },
                 ].map(({ label, value, goal, color }) => {
-                  const pct = Math.min(100, (value / Math.max(1, goal)) * 100);
+                  const pct = Math.min(100, (value / Math.max(1, goal)) * 100) || 0;
                   return (
                     <div key={label}>
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 3 }}>
@@ -585,9 +591,12 @@ export default function MealHub({ calGoal, protGoal, onOpenModal }) {
                           <AnimatedCounter value={Math.round(value)} /> / {goal}
                         </span>
                       </div>
-                      <div style={{ height: 4, background: "var(--border)", borderRadius: radius.full, overflow: "hidden" }}>
-                        <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-                          style={{ height: "100%", background: `linear-gradient(90deg, ${color}, ${color}dd)`, borderRadius: radius.full }} />
+                      <div style={{ height: 5, background: "var(--track)", borderRadius: radius.full, overflow: "hidden" }}>
+                        <div style={{
+                          width: `${pct}%`,
+                          height: "100%", background: `linear-gradient(90deg, ${color}, ${color}dd)`, borderRadius: radius.full,
+                          transition: "width 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)",
+                        }} />
                       </div>
                     </div>
                   );

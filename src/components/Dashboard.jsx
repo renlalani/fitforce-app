@@ -17,6 +17,7 @@ import StreakCalendar from "./StreakCalendar";
 import { useWorkoutStore } from "../stores/workoutStore";
 import { useUserStore } from "../stores/userStore";
 import { useNutritionStore } from "../stores/nutritionStore";
+import { useIsMobile } from "../hooks/useMediaQuery";
 
 const hour = new Date().getHours();
 const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
@@ -73,6 +74,7 @@ export default function Dashboard({
   const water = useNutritionStore(s => s.water);
   const setWater = useNutritionStore(s => s.setWater);
   const bodyStats = useUserStore(s => s.bodyStats);
+  const isMobile = useIsMobile();
 
   const mealCalories = useMemo(() => {
     return MEAL_TIMES.map(t => ({
@@ -102,9 +104,6 @@ export default function Dashboard({
     return days;
   }, [workoutSessions]);
 
-  const bodyWeight = useMemo(() => {
-    return (bodyStats || []).map(b => ({ day: b.date, value: b.weight }));
-  }, [bodyStats]);
   const xpPct = ((xp % 500) / 500) * 100;
 
   const workoutDates = useMemo(() => {
@@ -161,8 +160,8 @@ export default function Dashboard({
         background: `linear-gradient(135deg, var(--gradient-card1) 0%, var(--bg-card) 50%, var(--bg-card2) 100%)`,
         border: `1px solid var(--border)`,
         borderRadius: radius["2xl"],
-        padding: "36px 32px",
-        marginBottom: 32,
+        padding: isMobile ? "20px 18px" : "36px 32px",
+        marginBottom: isMobile ? 20 : 32,
         position: "relative",
         overflow: "hidden",
         boxShadow: shadow.floating,
@@ -193,7 +192,7 @@ export default function Dashboard({
         }} />
 
         {/* Two-Column Layout */}
-        <div style={{ display: "flex", gap: 40, alignItems: "stretch", position: "relative", zIndex: 1 }}>
+        <div style={{ display: "flex", gap: isMobile ? 16 : 40, alignItems: "stretch", position: "relative", zIndex: 1, flexDirection: isMobile ? "column" : "row" }}>
           {/* Left Column — Content */}
           <div style={{ flex: 1.4, display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
@@ -207,7 +206,7 @@ export default function Dashboard({
               <span style={{ color: "var(--text-muted)", fontSize: 12 }}>{greeting}</span>
             </div>
             <h1 style={{
-              fontSize: 34, fontWeight: 800, color: "var(--text)", margin: "0 0 4px",
+              fontSize: isMobile ? 26 : 34, fontWeight: 800, color: "var(--text)", margin: "0 0 4px",
               letterSpacing: "-0.03em", lineHeight: 1.15,
             }}>
               {profile.name}
@@ -236,10 +235,10 @@ export default function Dashboard({
 
             {/* Quote */}
             <div style={{
-              padding: "12px 16px",
+              padding: isMobile ? "10px 14px" : "12px 16px",
               background: `linear-gradient(135deg, var(--ambient) 0%, rgba(255,255,255,0.02) 100%)`,
               borderRadius: radius.lg,
-              fontSize: 12,
+              fontSize: isMobile ? 11 : 12,
               color: "var(--text-secondary)",
               fontStyle: "italic",
               borderLeft: `3px solid rgba(59,130,246,0.314)`,
@@ -251,6 +250,7 @@ export default function Dashboard({
           </div>
 
           {/* Right Column — Premium AI Visualization */}
+          {!isMobile && (
           <div style={{
             flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
             position: "relative", minHeight: 180,
@@ -282,7 +282,6 @@ export default function Dashboard({
                 borderRadius: "50%",
                 background: `radial-gradient(circle at 40% 40%, rgba(255,255,255,0.4) 0%, transparent 70%)`,
               }} />
-              {/* Ring orbits */}
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
@@ -311,6 +310,7 @@ export default function Dashboard({
               }} />
             </motion.div>
           </div>
+          )}
         </div>
 
         {/* Bottom glow bar */}
@@ -324,9 +324,9 @@ export default function Dashboard({
       {/* Premium Progress Rings */}
       <motion.div variants={itemVariants} style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-        gap: 14,
-        marginBottom: 28,
+        gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fit, minmax(140px, 1fr))",
+        gap: isMobile ? 10 : 14,
+        marginBottom: isMobile ? 20 : 28,
       }}>
         {[
           { value: totalCal, max: calGoal, label: "Calories", color: "var(--accent)", icon: Flame },
@@ -338,7 +338,7 @@ export default function Dashboard({
             background: `linear-gradient(180deg, var(--bg-card) 0%, var(--bg-card2) 100%)`,
             border: `1px solid var(--border)`,
             borderRadius: radius.xl,
-            padding: "16px 12px",
+            padding: isMobile ? "12px 8px" : "16px 12px",
             display: "flex",
             justifyContent: "center",
             position: "relative",
@@ -351,8 +351,8 @@ export default function Dashboard({
             <ProgressRing
               value={ring.value}
               max={ring.max}
-              size={110}
-              strokeWidth={8}
+              size={isMobile ? 80 : 110}
+              strokeWidth={isMobile ? 6 : 8}
               color={ring.color}
               label={ring.label}
               sub={ring.value === ring.max ? "Goal met!" : `${Math.round(ring.value)}/${ring.max}`}
@@ -365,9 +365,9 @@ export default function Dashboard({
       {/* Premium Macro Cards */}
       <motion.div variants={itemVariants} style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-        gap: 12,
-        marginBottom: 28,
+        gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fit, minmax(160px, 1fr))",
+        gap: isMobile ? 10 : 12,
+        marginBottom: isMobile ? 20 : 28,
       }}>
         {[
           { label: "Calories", value: totalCal, max: calGoal, color: "var(--accent)", gradient: "var(--accent-gradient)" },
@@ -375,13 +375,13 @@ export default function Dashboard({
           { label: "Carbs", value: totalCarbs, max: 300, color: "var(--yellow)", gradient: "var(--yellow-gradient)" },
           { label: "Fat", value: totalFat, max: 80, color: "var(--green)", gradient: "var(--green-gradient)" },
         ].map((m) => {
-          const pct = Math.min(100, (m.value / m.max) * 100);
+          const pct = Math.min(100, (m.value / Math.max(1, m.max)) * 100) || 0;
           return (
             <motion.div key={m.label} whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 300, damping: 20 }} style={{
               background: `linear-gradient(180deg, var(--bg-card) 0%, var(--bg-card2) 100%)`,
               border: `1px solid var(--border)`,
               borderRadius: radius.xl,
-              padding: "14px 16px",
+              padding: isMobile ? "12px 14px" : "14px 16px",
               position: "relative",
               overflow: "hidden",
             }}>
@@ -392,15 +392,13 @@ export default function Dashboard({
                 pointerEvents: "none",
               }} />
               <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 6, letterSpacing: "0.03em", fontWeight: 500 }}>{m.label}</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text)", letterSpacing: "-0.03em" }}>
+              <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: "var(--text)", letterSpacing: "-0.03em" }}>
                 <AnimatedCounter value={m.value} /> <span style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 500 }}>/ {m.max}</span>
               </div>
-              <div style={{ height: 3, background: "var(--bg-card3)", borderRadius: radius.full, marginTop: 10, overflow: "hidden" }}>
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${pct}%` }}
-                  transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+              <div style={{ height: 5, background: "var(--track)", borderRadius: radius.full, marginTop: 10, overflow: "hidden" }}>
+                <div
                   style={{
+                    width: `${pct}%`,
                     height: "100%",
                     background: `linear-gradient(90deg, ${m.color}, ${m.color}dd)`,
                     borderRadius: radius.full,
@@ -416,38 +414,38 @@ export default function Dashboard({
       {/* Premium Charts Section */}
       <motion.div variants={itemVariants} style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-        gap: 14,
-        marginBottom: 28,
+        gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(300px, 1fr))",
+        gap: isMobile ? 10 : 14,
+        marginBottom: isMobile ? 20 : 28,
       }}>
         {/* Calories by Meal Area Chart */}
         <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 300, damping: 20 }} style={{
           background: `linear-gradient(180deg, var(--bg-card) 0%, var(--bg-card2) 100%)`,
           border: `1px solid var(--border)`,
           borderRadius: radius.xl,
-          padding: "24px",
+          padding: isMobile ? "16px" : "24px",
           boxShadow: shadow.floating,
           position: "relative",
           overflow: "hidden",
         }}>
           <div style={{
             position: "absolute", top: 0, left: 0, right: 0, height: 1,
-            background: `linear-gradient(90deg, transparent, rgba(59,130,246,0.125), transparent)`,
-          }} />
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Calories by Meal</div>
-              <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>per meal time</div>
-            </div>
-            <div style={{
-              width: 32, height: 32, borderRadius: radius.lg,
-              background: `rgba(59,130,246,0.071)`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <Flame size={14} color={"var(--accent)"} />
-            </div>
+              background: `linear-gradient(90deg, transparent, var(--ambient), transparent)`,
+            }} />
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 600, color: "var(--text)" }}>Calories by Meal</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>per meal time</div>
+              </div>
+              <div style={{
+                width: 32, height: 32, borderRadius: radius.lg,
+                background: "var(--ambient)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Flame size={14} color={"var(--accent)"} />
+              </div>
           </div>
-          <ResponsiveContainer width="100%" height={150}>
+          <ResponsiveContainer width="100%" height={isMobile ? 120 : 150}>
             <AreaChart data={mealCalories.length > 0 ? mealCalories : [{ day: "No data", value: 0 }]}>
               <defs>
                 <linearGradient id="calGrad2" x1="0" y1="0" x2="0" y2="1">
@@ -455,7 +453,7 @@ export default function Dashboard({
                   <stop offset="100%" stopColor={"var(--accent)"} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "var(--text-dim)", fontSize: 10 }} />
+              <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "var(--text-dim)", fontSize: isMobile ? 9 : 10 }} />
               <YAxis hide />
               <Tooltip content={<TooltipContent />} />
               <Area type="monotone" dataKey="value" stroke={"var(--accent)"} strokeWidth={2} fill="url(#calGrad2)" dot={false} activeDot={{ r: 4, stroke: "var(--accent)", strokeWidth: 2, fill: "#fff" }} />
@@ -468,7 +466,7 @@ export default function Dashboard({
           background: `linear-gradient(180deg, var(--bg-card) 0%, var(--bg-card2) 100%)`,
           border: `1px solid var(--border)`,
           borderRadius: radius.xl,
-          padding: "24px",
+          padding: isMobile ? "16px" : "24px",
           boxShadow: shadow.floating,
           position: "relative",
           overflow: "hidden",
@@ -479,7 +477,7 @@ export default function Dashboard({
           }} />
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Protein by Meal</div>
+              <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 600, color: "var(--text)" }}>Protein by Meal</div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>grams per meal</div>
             </div>
             <div style={{
@@ -490,7 +488,7 @@ export default function Dashboard({
               <TrendingUp size={14} color={"var(--accent)"} />
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={150}>
+          <ResponsiveContainer width="100%" height={isMobile ? 120 : 150}>
             <BarChart data={mealProtein.length > 0 ? mealProtein : [{ day: "No data", value: 0 }]}>
               <defs>
                 <linearGradient id="proteinGrad" x1="0" y1="0" x2="0" y2="1">
@@ -498,7 +496,7 @@ export default function Dashboard({
                   <stop offset="100%" stopColor={"var(--highlight)"} stopOpacity={0.6} />
                 </linearGradient>
               </defs>
-              <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "var(--text-dim)", fontSize: 10 }} />
+              <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "var(--text-dim)", fontSize: isMobile ? 9 : 10 }} />
               <YAxis hide />
               <Tooltip content={<TooltipContent />} />
               <Bar dataKey="value" fill="url(#proteinGrad)" radius={[6, 6, 0, 0]} />
@@ -511,7 +509,7 @@ export default function Dashboard({
           background: `linear-gradient(180deg, var(--bg-card) 0%, var(--bg-card2) 100%)`,
           border: `1px solid var(--border)`,
           borderRadius: radius.xl,
-          padding: "24px",
+          padding: isMobile ? "16px" : "24px",
           boxShadow: shadow.floating,
           position: "relative",
           overflow: "hidden",
@@ -522,7 +520,7 @@ export default function Dashboard({
           }} />
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Workout Volume</div>
+              <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 600, color: "var(--text)" }}>Workout Volume</div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>total kg per day</div>
             </div>
             <div style={{
@@ -533,7 +531,7 @@ export default function Dashboard({
               <Dumbbell size={14} color={"var(--green)"} />
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={150}>
+          <ResponsiveContainer width="100%" height={isMobile ? 120 : 150}>
             <BarChart data={weeklyVolume}>
               <defs>
                 <linearGradient id="volumeGrad" x1="0" y1="0" x2="0" y2="1">
@@ -541,7 +539,7 @@ export default function Dashboard({
                   <stop offset="100%" stopColor={"var(--teal)"} stopOpacity={0.5} />
                 </linearGradient>
               </defs>
-              <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "var(--text-dim)", fontSize: 10 }} />
+              <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "var(--text-dim)", fontSize: isMobile ? 9 : 10 }} />
               <YAxis hide />
               <Tooltip content={<TooltipContent />} />
               <Bar dataKey="value" fill="url(#volumeGrad)" radius={[6, 6, 0, 0]} />
@@ -549,48 +547,6 @@ export default function Dashboard({
           </ResponsiveContainer>
         </motion.div>
 
-        {/* Body Weight Line Chart */}
-        <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 300, damping: 20 }} style={{
-          background: `linear-gradient(180deg, var(--bg-card) 0%, var(--bg-card2) 100%)`,
-          border: `1px solid var(--border)`,
-          borderRadius: radius.xl,
-          padding: "24px",
-          boxShadow: shadow.floating,
-          position: "relative",
-          overflow: "hidden",
-        }}>
-          <div style={{
-            position: "absolute", top: 0, left: 0, right: 0, height: 1,
-            background: `linear-gradient(90deg, transparent, rgba(139,92,246,0.125), transparent)`,
-          }} />
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Body Weight</div>
-              <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>kg trend</div>
-            </div>
-            <div style={{
-              width: 32, height: 32, borderRadius: radius.lg,
-              background: `rgba(139,92,246,0.071)`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <TrendingUp size={14} color={"var(--purple)"} />
-            </div>
-          </div>
-          <ResponsiveContainer width="100%" height={150}>
-            <AreaChart data={bodyWeight}>
-              <defs>
-                <linearGradient id="weightGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={"var(--purple)"} stopOpacity={0.2} />
-                  <stop offset="100%" stopColor={"var(--purple)"} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "var(--text-dim)", fontSize: 10 }} />
-              <YAxis hide domain={['dataMin - 1', 'dataMax + 1']} />
-              <Tooltip content={<TooltipContent />} />
-              <Area type="monotone" dataKey="value" stroke={"var(--purple)"} strokeWidth={2} fill="url(#weightGrad)" dot={{ fill: "var(--purple)", r: 3 }} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </motion.div>
       </motion.div>
 
       {/* Quick Actions + Today Overview */}
@@ -656,60 +612,58 @@ export default function Dashboard({
         <div>
           <h3 style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", margin: "0 0 10px", letterSpacing: "-0.01em" }}>Today's Overview</h3>
           <motion.div whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 300, damping: 20 }} style={{
-            background: `linear-gradient(180deg, var(--bg-card) 0%, var(--bg-card2) 100%)`,
-            border: `1px solid var(--border)`,
-            borderRadius: radius.xl,
-            padding: "24px",
-            boxShadow: shadow.floating,
+            background: "var(--bg-card)",
+            border: `1px solid var(--border2)`,
+            borderRadius: "var(--radius-card)",
+            padding: isMobile ? "16px" : "24px",
+            boxShadow: "var(--shadow-card)",
             position: "relative",
             overflow: "hidden",
           }}>
             <div style={{
               position: "absolute", top: 0, left: 0, right: 0, height: 1,
-              background: `linear-gradient(90deg, transparent, rgba(59,130,246,0.082), transparent)`,
+              background: `linear-gradient(90deg, transparent, var(--ambient), transparent)`,
             }} />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <div style={{
                   width: 28, height: 28, borderRadius: radius.lg,
-                  background: `rgba(59,130,246,0.071)`,
+                  background: "var(--ambient)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
                   <Target size={14} color={"var(--accent)"} />
                 </div>
                 <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Daily Goal</span>
               </div>
-              <span style={{ fontSize: 11, color: "var(--text-muted)", background: `rgba(59,130,246,0.031)`, padding: "2px 10px", borderRadius: radius.full }}>{profile.goal}</span>
+              <span style={{ fontSize: 11, color: "var(--text-muted)", background: "var(--ambient)", padding: "2px 10px", borderRadius: radius.full }}>{profile.goal}</span>
             </div>
             {[
               { label: "Calories", value: totalCal, max: calGoal, color: "var(--accent)" },
               { label: "Protein", value: totalProt, max: protGoal, color: "var(--accent)" },
               { label: "Water", value: water, max: 8, color: "var(--teal)" },
-            ].map((item) => {
-              const pct = Math.min(100, (item.value / item.max) * 100);
+            ].map((item, i) => {
+              const pct = Math.min(100, (item.value / Math.max(1, item.max)) * 100) || 0;
               const rem = Math.max(0, item.max - item.value);
               return (
-                <div key={item.label} style={{ marginBottom: 10 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 4 }}>
-                    <span style={{ color: "var(--text-muted)" }}>{item.label}</span>
+                <div key={item.label} style={{ marginBottom: 12 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 5 }}>
+                    <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>{item.label}</span>
                     <span style={{ color: item.color, fontWeight: 600 }}>
                       <AnimatedCounter value={Math.round(item.value)} /> / {item.max}
                     </span>
                   </div>
-                  <div style={{ height: 4, background: "var(--bg-card3)", borderRadius: radius.full, overflow: "hidden" }}>
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${pct}%` }}
-                      transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+                  <div style={{ height: 6, background: "var(--track)", borderRadius: radius.full, overflow: "hidden" }}>
+                    <div
                       style={{
+                        width: `${pct}%`,
                         height: "100%",
                         background: `linear-gradient(90deg, ${item.color}, ${item.color}dd)`,
                         borderRadius: radius.full,
-                        boxShadow: `0 0 6px ${item.color}30`,
+                        boxShadow: `0 0 8px ${item.color}40`,
                       }}
                     />
                   </div>
-                  <div style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 2 }}>
+                  <div style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 3 }}>
                     {rem > 0 ? `${rem} remaining` : "Goal met!"}
                   </div>
                 </div>
@@ -722,8 +676,8 @@ export default function Dashboard({
       {/* Achievements + Recent Activity */}
       <motion.div variants={itemVariants} style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-        gap: 14,
+        gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(280px, 1fr))",
+        gap: isMobile ? 10 : 14,
         marginBottom: 28,
       }}>
         {/* Achievements */}
@@ -838,7 +792,7 @@ export default function Dashboard({
             position: "absolute", top: 0, left: 0, right: 0, height: 1,
             background: `linear-gradient(90deg, transparent, rgba(59,130,246,0.082), transparent)`,
           }} />
-          <div style={{ padding: "24px" }}>
+          <div style={{ padding: isMobile ? "16px" : "24px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{
@@ -868,7 +822,7 @@ export default function Dashboard({
           background: `linear-gradient(180deg, var(--bg-card) 0%, var(--bg-card2) 100%)`,
           border: `1px solid var(--border)`,
           borderRadius: radius.xl,
-          padding: "24px",
+          padding: isMobile ? "16px" : "24px",
           boxShadow: shadow.floating,
           position: "relative",
           overflow: "hidden",
@@ -895,7 +849,7 @@ export default function Dashboard({
               <Sparkles size={14} color={"var(--highlight)"} />
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(200px, 1fr))", gap: isMobile ? 8 : 10 }}>
             {[
               { icon: TrendingUp, text: `You need ${Math.max(0, protGoal - totalProt)}g more protein today.`, color: "var(--accent)" },
               { icon: Droplets, text: `Drink ${Math.max(0, 8 - water)} more glasses of water.`, color: "var(--teal)" },

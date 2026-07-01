@@ -46,8 +46,8 @@ function Toggle({ checked, onChange, id }) {
         transition={{ type: "spring", stiffness: 500, damping: 30 }}
         style={{
           width: 20, height: 20, borderRadius: "50%",
-          background: "#fff", position: "absolute", top: 2,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+          background: "var(--bg-card)", position: "absolute", top: 2,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
         }}
       />
     </motion.button>

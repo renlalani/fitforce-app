@@ -66,7 +66,7 @@ function MealCard({ title, foods, cal }) {
           <div key={i} style={{
             display: "flex", alignItems: "center", gap: 6,
             fontSize: 12, color: "var(--text)", padding: "3px 0",
-            borderBottom: i < foods.length - 1 ? `1px solid rgba(0,0,0,0.314)` : "none",
+            borderBottom: i < foods.length - 1 ? `1px solid var(--border)` : "none",
           }}>
             <span style={{ color: "var(--text-muted)" }}>•</span>
             <span>{f}</span>

@@ -14,6 +14,7 @@ import { Tag, Badge } from "./ui/Tag";
 import ProgressRing from "./ProgressRing";
 import { useWorkoutStore, selectWeeklyWorkouts, selectWeeklyVolume, selectWeeklyMinutes, selectWeeklyCalories, selectWeeklyXP } from "../stores/workoutStore";
 import { useUserStore } from "../stores/userStore";
+import { useIsMobile } from "../hooks/useMediaQuery";
 
 const containerVariants = { animate: { transition: { staggerChildren: 0.04 } } };
 const itemVariants = {
@@ -33,9 +34,9 @@ const DIFFICULTY_STARS = { Beginner: 1, Intermediate: 2, Advanced: 3 };
 
 const QUICK_ACTIONS = () => [
   { id: "start", label: "Start Workout", icon: Play, color: "var(--accent)", gradient: `linear-gradient(135deg, var(--accent), var(--accent-dark))` },
-  { id: "ai", label: "AI Workout", icon: Brain, color: "var(--purple)", gradient: `linear-gradient(135deg, var(--purple), #7c3aed)` },
+  { id: "ai", label: "AI Workout", icon: Brain, color: "var(--purple)", gradient: `linear-gradient(135deg, var(--purple), var(--indigo))` },
   { id: "repeat", label: "Repeat Last", icon: RotateCcw, color: "var(--blue)", gradient: `linear-gradient(135deg, var(--blue), var(--blue-dark))` },
-  { id: "favorite", label: "Favorites", icon: Star, color: "var(--yellow)", gradient: `linear-gradient(135deg, var(--yellow), #d97706)` },
+  { id: "favorite", label: "Favorites", icon: Star, color: "var(--yellow)", gradient: `linear-gradient(135deg, var(--yellow), var(--orange))` },
 ];
 
 const TIPS = [
@@ -63,6 +64,7 @@ export default function WorkoutHub({
   const weeklyMinutes = useWorkoutStore(selectWeeklyMinutes);
   const weeklyCalories = useWorkoutStore(selectWeeklyCalories);
   const weeklyXp = useWorkoutStore(selectWeeklyXP);
+  const isMobile = useIsMobile();
   const [filterMuscle, setFilterMuscle] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState(
@@ -245,7 +247,7 @@ export default function WorkoutHub({
       </motion.div>
 
       {/* Quick Stats Row */}
-      <motion.div variants={itemVariants} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(120px,1fr))", gap: 10, margin: "16px 0" }}>
+      <motion.div variants={itemVariants} style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fit,minmax(120px,1fr))", gap: isMobile ? 8 : 10, margin: isMobile ? "12px 0" : "16px 0" }}>
         {[
           { label: "This Week", value: weeklyWorkouts || 0, suffix: " workouts", icon: Calendar, color: "var(--blue)" },
           { label: "Volume", value: weeklyVolume || 0, suffix: " kg", icon: Dumbbell, color: "var(--accent)" },
@@ -257,12 +259,12 @@ export default function WorkoutHub({
             whileHover={{ y: -2 }}
             style={{
               background: "var(--bg-card2)", borderRadius: radius.md,
-              padding: "14px", border: `1px solid var(--border)`,
+              padding: isMobile ? "10px" : "14px", border: `1px solid var(--border)`,
               textAlign: "center",
             }}
           >
-            <Icon size={16} color={color} style={{ margin: "0 auto 6px" }} />
-            <div style={{ fontSize: 16, fontWeight: 600, color: "var(--text)" }}>{value}{suffix || ""}</div>
+            <Icon size={isMobile ? 14 : 16} color={color} style={{ margin: "0 auto 6px" }} />
+            <div style={{ fontSize: isMobile ? 14 : 16, fontWeight: 600, color: "var(--text)" }}>{value}{suffix || ""}</div>
             <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>{label}</div>
           </motion.div>
         ))}
@@ -679,7 +681,7 @@ export default function WorkoutHub({
                                   <div key={`wh-${w.uid || `${w.date}-${w.name}-${wi}`}`} style={{
                                     display: "flex", justifyContent: "space-between",
                                     padding: "6px 0", fontSize: 12,
-                                    borderBottom: wi < exercises.length - 1 ? `1px solid rgba(0,0,0,0.314)` : "none",
+                                    borderBottom: wi < exercises.length - 1 ? `1px solid var(--border)` : "none",
                                   }}>
                                     <span style={{ color: "var(--text)" }}>{w.name}</span>
                                     <span style={{ color: "var(--text-muted)" }}>

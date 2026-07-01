@@ -451,20 +451,19 @@ export default function WorkoutModal({ plan, onClose }) {
         </div>
 
         {/* Progress Bar */}
-        <div style={{
-          height: 5, background: "var(--border)", borderRadius: radius.full,
-          marginBottom: 4, overflow: "hidden",
-        }}>
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${((doneSets + 1) / Math.max(1, totalSets)) * 100}%` }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            style={{
-              height: "100%",
-              background: `linear-gradient(90deg, var(--accent), var(--accent-light), var(--cyan))`,
-              borderRadius: radius.full,
-              boxShadow: `0 0 8px rgba(59,130,246,0.251)`,
-            }}
+          <div style={{
+            height: 6, background: "var(--track)", borderRadius: radius.full,
+            marginBottom: 4, overflow: "hidden",
+          }}>
+            <div
+              style={{
+                width: `${(((doneSets + 1) / Math.max(1, totalSets)) * 100) || 0}%`,
+                height: "100%",
+                background: `linear-gradient(90deg, var(--accent), var(--accent-light), var(--cyan))`,
+                borderRadius: radius.full,
+                boxShadow: `0 0 8px var(--accent)40`,
+                transition: "width 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)",
+              }}
           />
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--text-dim)", marginBottom: 16 }}>
