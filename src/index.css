@@ -18,8 +18,8 @@
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
 
-  /* Premium light theme background */
-  --bg: #F8FAFC;
+  /* Premium light theme background - subtle white → light blue gradient */
+  --bg: linear-gradient(180deg, #FFFFFF 0%, #F6F9FC 40%, #F0F5FF 100%);
   --bg-card: #FFFFFF;
   --bg-card2: #FAFAFA;
   --bg-card3: #F1F5F9;
@@ -75,8 +75,11 @@
   --mesh2: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(34,211,238,0.02) 0%, transparent 100%), radial-gradient(ellipse 50% 60% at 100% 50%, rgba(37,99,235,0.015) 0%, transparent 100%);
   --mesh3: radial-gradient(ellipse 60% 70% at 0% 100%, rgba(16,185,129,0.02) 0%, transparent 100%), radial-gradient(ellipse 50% 50% at 100% 0%, rgba(34,211,238,0.015) 0%, transparent 100%);
 
+  /* Modal overlay */
+  --overlay: rgba(0,0,0,0.06);
+
   /* Progress track */
-  --track: #374151;
+  --track: #E2E8F0;
 
   /* Card radius */
   --radius-card: 16px;

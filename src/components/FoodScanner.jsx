@@ -136,9 +136,9 @@ export default function FoodScanner({ open, onClose }) {
           transition={{ duration: 0.2 }}
           style={{
             position: "fixed", inset: 0,
-            background: "rgba(0,0,0,0.85)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
+            background: "var(--overlay)",
+            backdropFilter: "blur(24px) saturate(1.4)",
+            WebkitBackdropFilter: "blur(24px) saturate(1.4)",
             display: "flex", alignItems: "center", justifyContent: "center",
             zIndex: 1000, padding: 12, overflowY: "auto",
           }}

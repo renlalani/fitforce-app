@@ -319,7 +319,12 @@ export default function MealHub({ calGoal, protGoal, onOpenModal }) {
   ];
 
   return (
-    <motion.div variants={containerVariants} initial="initial" animate="animate">
+    <motion.div variants={containerVariants} initial="initial" animate="animate"
+      style={isMobile ? {
+        display: "flex", flexDirection: "column",
+        maxHeight: "calc(100vh - 154px)",
+        overflow: "hidden",
+      } : {}}>
       {/* Tab navigation */}
       <motion.div variants={itemVariants} style={{
         display: "flex", gap: 0, marginBottom: 16,
@@ -327,8 +332,8 @@ export default function MealHub({ calGoal, protGoal, onOpenModal }) {
         background: "var(--bg-card)",
         borderRadius: `${radius.lg}px ${radius.lg}px 0 0`,
         padding: "0 4px",
-        position: "sticky", top: 130, zIndex: 10,
-        backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+        flexShrink: 0,
+        ...(isMobile ? {} : { position: "sticky", top: 130, zIndex: 10, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }),
       }}>
         {tabs.map(({ id, label, icon: Icon }) => {
           const active = selectedTab === id;
@@ -360,6 +365,7 @@ export default function MealHub({ calGoal, protGoal, onOpenModal }) {
         })}
       </motion.div>
 
+      <div style={isMobile ? { flex: 1, overflowY: "auto", minHeight: 0, WebkitOverflowScrolling: "touch" } : {}}>
       {selectedTab === "dashboard" && (
         <motion.div key="dashboard">
           {/* Premium Hero */}
@@ -606,6 +612,7 @@ export default function MealHub({ calGoal, protGoal, onOpenModal }) {
           </motion.div>
         </motion.div>
       )}
+      </div>
 
       {/* SVG Gradients */}
       <svg width="0" height="0" style={{ position: "absolute" }}>

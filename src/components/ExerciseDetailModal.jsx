@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, CheckCircle2, AlertTriangle, Lightbulb, Shield, RefreshCw, Activity, Dumbbell, Heart, Footprints, Flame, Zap, Clock, Star, AlignJustify } from "lucide-react";
-import {  radius, shadow, transition, muscleColor } from "../styles/designSystem";
+import { radius, shadow, muscleColor } from "../styles/designSystem";
 import ExerciseImage from "./ExerciseImage";
 import Card from "./ui/Card";
 import { Tag, Badge } from "./ui/Tag";
@@ -47,9 +47,9 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
           transition={{ duration: 0.2 }}
           style={{
             position: "fixed", inset: 0,
-            background: "rgba(0,0,0,0.85)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
+            background: "var(--overlay)",
+            backdropFilter: "blur(24px) saturate(1.4)",
+            WebkitBackdropFilter: "blur(24px) saturate(1.4)",
             display: "flex", alignItems: "center", justifyContent: "center",
             zIndex: 1000, padding: 12, overflowY: "auto",
           }}
@@ -111,7 +111,7 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
               </p>
 
               <div style={{
-                display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))",
+                display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
                 gap: 8, marginBottom: 20,
               }}>
                 {infoRows.map((row, i) => (
@@ -121,17 +121,27 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
                     variants={sectionVariant}
                     initial="hidden"
                     animate="visible"
+                    whileHover={{ y: -2 }}
                     style={{
-                      background: "var(--bg-card2)",
+                      background: `linear-gradient(135deg, rgba(59,130,246,0.031), var(--bg-card2))`,
                       borderRadius: radius.md,
-                      padding: "10px 10px",
+                      padding: "12px 8px",
                       border: `1px solid var(--border)`,
                       textAlign: "center",
+                      transition: "all 0.2s ease",
                     }}
                   >
-                    <div style={{ fontSize: 18, marginBottom: 2 }}>{row.icon}</div>
+                    <div style={{
+                      width: 28, height: 28,
+                      background: `rgba(59,130,246,0.071)`,
+                      borderRadius: radius.sm,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      margin: "0 auto 6px",
+                    }}>
+                      {row.icon}
+                    </div>
                     <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 1 }}>{row.label}</div>
-                    <div style={{ fontSize: 11, color: "var(--text)", fontWeight: 500, lineHeight: 1.3 }}>{row.value}</div>
+                    <div style={{ fontSize: 11, color: "var(--text)", fontWeight: 600, lineHeight: 1.3 }}>{row.value}</div>
                   </motion.div>
                 ))}
               </div>
@@ -246,7 +256,7 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
               {similar.length > 0 && (
                 <motion.div custom={5} variants={sectionVariant} initial="hidden" animate="visible">
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                    <div style={{ width: 24, height: 24, borderRadius: radius.sm, background: `rgba(16,185,129,0.125)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ width: 26, height: 26, borderRadius: radius.sm, background: `rgba(16,185,129,0.125)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <RefreshCw size={14} color={"var(--green)"} />
                     </div>
                     <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>Similar Exercises</div>
@@ -258,18 +268,18 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
                         initial="hidden" animate="visible"
                         onClick={() => { onClose(); onSelectExercise?.(ex); }}
                         style={{
-                          background: "var(--bg-card2)",
+                          background: `linear-gradient(135deg, rgba(16,185,129,0.024), var(--bg-card2))`,
                           border: `1px solid var(--border)`,
                           borderRadius: radius.md,
-                          padding: "10px 12px",
+                          padding: "12px 14px",
                           cursor: "pointer",
                         }}
-                        whileHover={{ y: -2, borderColor: `${muscleColor[ex.muscle] || "var(--accent)"}40` }}
+                        whileHover={{ y: -3, borderColor: `${muscleColor[ex.muscle] || "var(--accent)"}40`, boxShadow: shadow.elevated }}
                       >
-                        <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text)", marginBottom: 3 }}>{ex.name}</div>
-                        <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>{ex.name}</div>
+                        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                           <Tag label={ex.muscle} color={muscleColor[ex.muscle] || "var(--accent)"} />
-                          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{ex.sets}×{ex.reps}</span>
+                          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{ex.sets} × {ex.reps}</span>
                         </div>
                       </motion.div>
                     ))}

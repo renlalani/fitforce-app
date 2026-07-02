@@ -158,7 +158,7 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
   }, []);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return [];
+    if (!search || !search.trim()) return [];
     const q = search.toLowerCase();
     return FOOD_DB.filter(f => f.name.toLowerCase().includes(q));
   }, [search]);
@@ -201,8 +201,8 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       style={{
         position: "fixed", inset: 0,
-        background: "rgba(0,0,0,0.85)",
-        backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+        background: "var(--overlay)",
+        backdropFilter: "blur(24px) saturate(1.4)", WebkitBackdropFilter: "blur(24px) saturate(1.4)",
         display: "flex", alignItems: "center", justifyContent: "center",
         zIndex: 1000, padding: 16,
       }}
@@ -272,19 +272,27 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
         </div>
 
         {/* Mode tabs */}
-        <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-          {tabs.map(({ id, label, icon: Icon }) => (
+        <div style={{
+          display: "flex", gap: 4, marginBottom: 14,
+          background: "var(--bg-card2)", borderRadius: radius.lg,
+          padding: 4, border: `1px solid var(--border)`,
+        }}>
+          {tabs.map(({ id, label, icon: Icon }) => {
+            const isActive = mode === id;
+            return (
             <motion.button
               key={id} whileTap={{ scale: 0.95 }}
               onClick={() => { setMode(id); setSelected(null); if (id === "search") searchRef.current?.focus(); }}
               style={{
-                flex: 1, padding: "8px 4px",
-                background: mode === id ? `rgba(59,130,246,0.082)` : "transparent",
-                border: `1px solid ${mode === id ? "var(--accent)" : "var(--border2)"}`,
-                borderRadius: radius.sm, color: mode === id ? "var(--accent)" : "var(--text-muted)",
-                cursor: "pointer", fontSize: 10, fontWeight: mode === id ? 600 : 400,
+                flex: 1, padding: "8px 6px",
+                background: isActive ? "var(--bg-card)" : "transparent",
+                border: "none",
+                borderRadius: radius.md,
+                color: isActive ? "var(--accent)" : "var(--text-muted)",
+                cursor: "pointer", fontSize: 10, fontWeight: isActive ? 600 : 400,
                 display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
                 transition: transition.fast,
+                boxShadow: isActive ? shadow.floating : "none",
               }}
               aria-label={label}
               aria-selected={mode === id}
@@ -292,7 +300,8 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
             >
               <Icon size={14} /> {label}
             </motion.button>
-          ))}
+            );
+          })}
         </div>
 
         <AnimatePresence mode="wait">
@@ -459,25 +468,29 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
 
         {/* Meal time selector */}
         <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 6, display: "block" }} id="meal-time-label">Add to</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 8, display: "block" }} id="meal-time-label">Add to</div>
           <div style={{ display: "flex", gap: 6 }} role="radiogroup" aria-labelledby="meal-time-label">
             {MEAL_TIMES.map(mt => {
               const Icon = MEAL_ICONS[mt];
+              const isActive = mealTime === mt;
               return (
                 <motion.button key={mt} whileTap={{ scale: 0.95 }}
                   onClick={() => setMealTime(mt)}
                   style={{
-                    flex: 1, padding: "8px 4px",
-                    background: mealTime === mt ? `rgba(59,130,246,0.082)` : "transparent",
-                    border: `1px solid ${mealTime === mt ? "var(--accent)" : "var(--border2)"}`,
-                    borderRadius: radius.sm, color: mealTime === mt ? "var(--accent)" : "var(--text-muted)",
-                    cursor: "pointer", fontSize: 11, fontWeight: mealTime === mt ? 600 : 400,
-                    transition: transition.fast,
+                    flex: 1, padding: "8px 6px",
+                    background: isActive ? `rgba(59,130,246,0.094)` : "var(--bg-card2)",
+                    border: `1px solid ${isActive ? "var(--accent)" : "var(--border)"}`,
+                    borderRadius: radius.full,
+                    color: isActive ? "var(--accent)" : "var(--text-muted)",
+                    cursor: "pointer", fontSize: 10, fontWeight: isActive ? 600 : 400,
+                    transition: "all 0.2s ease",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 3,
                   }}
                   role="radio"
                   aria-checked={mealTime === mt}
                 >
-                  {Icon ? <Icon size={14} style={{ verticalAlign: "middle" }} /> : null} {mt}
+                  {Icon ? <Icon size={12} /> : null}
+                  <span>{mt}</span>
                 </motion.button>
               );
             })}

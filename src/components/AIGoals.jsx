@@ -1,7 +1,7 @@
 import { useState, useId } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Target, Plus, Trash2, Check, X, TrendingUp,
+  Target, Plus, Trash2, Check, TrendingUp,
   Dumbbell, Zap, Brain, BarChart3
 } from "lucide-react";
 import {  radius } from "../styles/designSystem";

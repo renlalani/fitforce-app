@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Dumbbell, Apple, Flame, Zap, Trophy, TrendingUp, Ruler, Camera, Calendar, Crown, Sparkles } from "lucide-react";
-import {  radius, shadow, transition, muscleColor } from "../styles/designSystem";
+import { Dumbbell, Apple, Flame, Zap, Trophy, TrendingUp, Ruler, Camera, Calendar, Crown, Sparkles, Activity, Target } from "lucide-react";
+import { radius, shadow, muscleColor } from "../styles/designSystem";
 import Button from "./ui/Button";
 import Card from "./ui/Card";
 import { Badge } from "./ui/Tag";
@@ -144,8 +144,11 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
       {/* Editable Fields */}
       <motion.div variants={itemVariants} style={{ marginBottom: 14 }}>
         <Card>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 12 }}>
-            Edit Profile
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+            <div style={{ width: 26, height: 26, borderRadius: radius.sm, background: `rgba(59,130,246,0.094)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Target size={13} color={"var(--accent)"} />
+            </div>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Edit Profile</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
             {[
@@ -226,22 +229,26 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
       <motion.div variants={itemVariants} style={{ marginBottom: 14 }}>
         <Card>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <Dumbbell size={16} color={"var(--accent)"} />
+            <div style={{ width: 26, height: 26, borderRadius: radius.sm, background: "var(--accent-gradient3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Dumbbell size={13} color="#fff" />
+            </div>
             <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Workout Statistics</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             {[
-              ["Total Workouts", workoutSessions.length.accent],
-              ["Total Volume", `${totalVolume.toLocaleString()} kg`.blue],
-              ["Calories Burned", `${totalCalories.toLocaleString()} kcal`.orange],
-              ["Exercises Logged", workoutLog.length.green],
+              ["Total Workouts", workoutSessions.length, "var(--accent)"],
+              ["Total Volume", `${totalVolume.toLocaleString()} kg`, "var(--blue)"],
+              ["Calories Burned", `${totalCalories.toLocaleString()} kcal`, "var(--orange)"],
+              ["Exercises Logged", workoutLog.length, "var(--green)"],
             ].map(([l, v, c]) => (
               <div key={l} style={{
-                background: "var(--bg-card2)", borderRadius: radius.sm,
-                padding: "10px", border: `1px solid var(--border)`,
+                background: `linear-gradient(135deg, ${c}06, var(--bg-card2))`,
+                borderRadius: radius.md,
+                padding: "12px",
+                border: `1px solid ${c}20`,
               }}>
                 <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 2 }}>{l}</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: c }}>{typeof v === "number" ? <AnimatedCounter value={v} /> : v}</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: c }}>{typeof v === "number" ? <AnimatedCounter value={v} /> : v}</div>
               </div>
             ))}
           </div>
@@ -265,7 +272,9 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
       <motion.div variants={itemVariants} style={{ marginBottom: 14 }}>
         <Card>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <Trophy size={16} color={"var(--yellow)"} />
+            <div style={{ width: 26, height: 26, borderRadius: radius.sm, background: `rgba(234,179,8,0.125)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Trophy size={13} color={"var(--yellow)"} />
+            </div>
             <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>
               Achievements <span style={{ color: "var(--text-muted)", fontWeight: 400, fontSize: 11 }}>({unlockedAchievements.length}/{ALL_ACHIEVEMENTS.length})</span>
             </span>
@@ -322,10 +331,12 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
       <motion.div variants={itemVariants} style={{ marginBottom: 14 }}>
         <Card>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <Ruler size={16} color={"var(--blue)"} />
+            <div style={{ width: 26, height: 26, borderRadius: radius.sm, background: `rgba(59,130,246,0.125)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Ruler size={13} color={"var(--blue)"} />
+            </div>
             <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Body Measurements</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 8, marginBottom: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: 8, marginBottom: 14 }}>
             {Object.entries(measurements).map(([k, v]) => {
               const mid = `pm-${k}`;
               return (
@@ -337,7 +348,10 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
                     width: "100%", padding: "7px 10px", borderRadius: radius.md, boxSizing: "border-box",
                     background: "var(--bg-card2)", border: `1px solid var(--border2)`,
                     color: "var(--text)", fontSize: 12, outline: "none",
+                    transition: "border-color 0.2s ease",
                   }}
+                  onFocus={e => { e.target.style.borderColor = "var(--accent)"; }}
+                  onBlur={e => { e.target.style.borderColor = "var(--border2)"; }}
                 />
               </div>
               );
@@ -371,18 +385,31 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
       <motion.div variants={itemVariants} style={{ marginBottom: 14 }}>
         <Card>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <Camera size={16} color={"var(--purple)"} />
+            <div style={{ width: 26, height: 26, borderRadius: radius.sm, background: `rgba(168,85,247,0.125)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Camera size={13} color={"var(--purple)"} />
+            </div>
             <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Progress Photos</span>
           </div>
-          <div style={{
-            background: "var(--bg-card2)", borderRadius: radius.md,
-            border: `2px dashed var(--border2)`,
-            padding: "24px", textAlign: "center",
-          }}>
-            <Camera size={32} />
-            <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>Track your transformation</div>
-            <div style={{ fontSize: 11, color: "var(--text-dim)" }}>Progress photos coming soon</div>
-          </div>
+          <motion.div
+            whileHover={{ borderColor: "rgba(168,85,247,0.3)" }}
+            style={{
+              background: `linear-gradient(135deg, rgba(168,85,247,0.031), var(--bg-card2))`,
+              borderRadius: radius.lg,
+              border: `2px dashed rgba(168,85,247,0.157)`,
+              padding: "28px", textAlign: "center",
+              transition: "border-color 0.2s ease",
+            }}
+          >
+            <motion.div
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              style={{ marginBottom: 8 }}
+            >
+              <Camera size={28} color={"var(--purple)"} />
+            </motion.div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text-muted)", marginBottom: 4 }}>Track your transformation</div>
+            <div style={{ fontSize: 11, color: "var(--text-dim)", lineHeight: 1.5 }}>Progress photos coming soon —<br />compare your progress over time</div>
+          </motion.div>
         </Card>
       </motion.div>
 
@@ -390,7 +417,9 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
       <motion.div variants={itemVariants} style={{ marginBottom: 14 }}>
         <Card>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <Calendar size={16} />
+            <div style={{ width: 26, height: 26, borderRadius: radius.sm, background: `rgba(59,130,246,0.094)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Calendar size={13} color={"var(--accent)"} />
+            </div>
             <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Activity History</span>
           </div>
           <StreakCalendar workoutDates={workoutDates} nutritionDates={[]} streak={streak} />
@@ -401,28 +430,58 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
       <motion.div variants={itemVariants} style={{ marginBottom: 14 }}>
         <Card>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <TrendingUp size={16} color={"var(--yellow)"} />
+            <div style={{ width: 26, height: 26, borderRadius: radius.sm, background: `rgba(234,179,8,0.125)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <TrendingUp size={13} color={"var(--yellow)"} />
+            </div>
             <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Personal Records</span>
           </div>
           {bestPRs.length > 0 ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {bestPRs.map((pr, i) => (
-                <div key={`pr-${pr.name}-${i}`} style={{
-                  background: "var(--bg-card2)", borderRadius: radius.md,
-                  padding: "10px 12px", border: `1px solid var(--border)`,
-                }}>
+                <motion.div
+                  key={`pr-${pr.name}-${i}`}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  style={{
+                    background: `linear-gradient(135deg, rgba(234,179,8,0.031), var(--bg-card2))`,
+                    borderRadius: radius.md,
+                    padding: "12px 14px",
+                    border: `1px solid rgba(234,179,8,0.125)`,
+                    borderLeft: `3px solid var(--yellow)`,
+                  }}
+                >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{i === 0 ? <Crown size={14} /> : ""}{pr.name}</span>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: "var(--yellow)" }}>{pr.weight} kg</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", display: "flex", alignItems: "center", gap: 6 }}>
+                      {i === 0 && <Crown size={13} color={"var(--yellow)"} />}{pr.name}
+                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <span style={{ fontSize: 15, fontWeight: 700, color: "var(--yellow)" }}>{pr.weight}</span>
+                      <span style={{ fontSize: 10, color: "var(--text-muted)" }}>kg</span>
+                    </div>
                   </div>
-                  <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{pr.date} · {pr.reps} reps · {pr.sets} sets</div>
-                </div>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)", display: "flex", gap: 8 }}>
+                    <span>{pr.date}</span>
+                    <span>·</span>
+                    <span>{pr.reps} reps</span>
+                    <span>·</span>
+                    <span>{pr.sets} sets</span>
+                  </div>
+                </motion.div>
               ))}
             </div>
           ) : (
-            <div style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center", padding: "16px" }}>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              style={{
+                fontSize: 12, color: "var(--text-muted)", textAlign: "center",
+                padding: "20px", background: "var(--bg-card2)",
+                borderRadius: radius.md, border: `1px solid var(--border)`,
+              }}
+            >
               No PRs yet. Start lifting to set your first record!
-            </div>
+            </motion.div>
           )}
         </Card>
       </motion.div>

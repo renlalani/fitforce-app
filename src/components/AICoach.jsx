@@ -5,7 +5,7 @@ import {
   Zap, Copy, Check, RefreshCw, Square, ThumbsUp, ThumbsDown,
   ChevronDown, MessageSquare, Brain, StopCircle
 } from "lucide-react";
-import { radius, shadow, transition } from "../styles/designSystem";
+import { radius, shadow } from "../styles/designSystem";
 import MarkdownRenderer from "./MarkdownRenderer";
 import { useIsMobile } from "../hooks/useMediaQuery";
 
@@ -469,7 +469,11 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
         )}
       </AnimatePresence>
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+      <div style={{
+        display: "flex", gap: 6, marginBottom: 14,
+        background: "var(--bg-card2)", borderRadius: radius.lg,
+        padding: 4, border: `1px solid var(--border)`,
+      }}>
         {[
           { id: "chat", label: "Chat", icon: MessageSquare },
           { id: "plan", label: "Week Plan", icon: Calendar },
@@ -485,18 +489,20 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
             }}
             style={{
               flex: 1,
-              padding: isMobile ? "8px 8px" : "10px 12px",
+              padding: isMobile ? "8px 10px" : "10px 14px",
               borderRadius: radius.md,
-              border: `1px solid ${mode === id ? "var(--accent)" : "var(--border2)"}`,
-              background: mode === id ? `rgba(59,130,246,0.071)` : "transparent",
+              border: "none",
+              background: mode === id ? "var(--bg-card)" : "transparent",
               color: mode === id ? "var(--accent)" : "var(--text-muted)",
               cursor: "pointer",
               fontSize: isMobile ? 10 : 12,
-              fontWeight: mode === id ? 500 : 400,
+              fontWeight: mode === id ? 600 : 400,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               gap: 6,
+              boxShadow: mode === id ? shadow.floating : "none",
+              transition: "all 0.2s ease",
             }}
           >
             <Icon size={isMobile ? 12 : 14} />
@@ -566,37 +572,60 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
 
             {weekPlan?.days && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                {weekPlan.days.map((d, i) => (
+                {weekPlan.days.map((d, i) => {
+                  const dayColor = dayColors[d.day] || "var(--accent)";
+                  return (
                   <motion.div
                     key={d.day}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.04 }}
                     style={{
-                      background: "var(--bg-card2)",
-                      border: `1px solid var(--border2)`,
+                      background: `linear-gradient(135deg, ${dayColor}04, var(--bg-card2))`,
+                      border: `1px solid ${dayColor}15`,
                       borderRadius: radius.md,
                       padding: "14px",
                       marginBottom: 8,
-                      borderLeft: `3px solid ${dayColors[d.day] || "var(--accent)"}`,
+                      borderLeft: `3px solid ${dayColor}`,
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                      <span style={{ fontWeight: 600, color: dayColors[d.day] || "var(--accent)", fontSize: 13 }}>{d.day}</span>
-                      <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{d.focus} · {d.duration}</span>
+                      <span style={{ fontWeight: 600, color: dayColor, fontSize: 13 }}>{d.day}</span>
+                      <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{d.focus}{d.duration ? ` · ${d.duration}` : ""}</span>
                     </div>
                     <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 6 }}>
                       {(d.exercises || []).map((ex, j) => (
-                        <span key={`${d.day}-${ex}-${j}`} style={{ fontSize: 11, padding: "3px 8px", background: "var(--bg-card3)", borderRadius: radius.sm, color: "var(--text-muted)", border: `1px solid var(--border)` }}>
+                        <span key={`${d.day}-${ex}-${j}`} style={{
+                          fontSize: 11, padding: "3px 10px",
+                          background: `${dayColor}08`,
+                          borderRadius: radius.full,
+                          color: "var(--text-muted)",
+                          border: `1px solid ${dayColor}12`,
+                        }}>
                           {ex}
                         </span>
                       ))}
                     </div>
-                    {d.note && <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0, fontStyle: "italic" }}>{d.note}</p>}
+                    {d.note && (
+                      <div style={{
+                        fontSize: 11, color: "var(--text-muted)", marginTop: 6,
+                        padding: "6px 10px", background: `${dayColor}04`,
+                        borderRadius: radius.sm, lineHeight: 1.5, fontStyle: "italic",
+                      }}>
+                        {d.note}
+                      </div>
+                    )}
                   </motion.div>
-                ))}
+                  );
+                })}
                 {weekPlan.tips && (
-                  <div style={{ fontSize: 12, color: "var(--text-muted)", background: "var(--bg-card2)", padding: "12px", borderRadius: radius.md, lineHeight: 1.6, border: `1px solid var(--border)` }}>
+                  <div style={{
+                    fontSize: 12, color: "var(--text-muted)",
+                    background: "var(--bg-card2)", padding: "14px",
+                    borderRadius: radius.md, lineHeight: 1.6,
+                    border: `1px solid var(--border)`,
+                    marginTop: 8,
+                  }}>
                     {weekPlan.tips}
                   </div>
                 )}
@@ -753,12 +782,16 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
 
                       {/* Message Actions */}
                       {m.role === "ai" && !isWelcome && !isStreaming && (
-                        <div style={{ display: "flex", gap: 4, marginTop: 10, justifyContent: "flex-end", opacity: 0.4 }}>
+                        <div style={{ display: "flex", gap: 4, marginTop: 10, justifyContent: "flex-end", opacity: 0.3 }}
+                          onMouseEnter={e => { e.currentTarget.style.opacity = 1; }}
+                          onMouseLeave={e => { e.currentTarget.style.opacity = 0.3; }}
+                        >
                           <motion.button
                             whileHover={{ scale: 1.1, opacity: 1 }}
                             onClick={() => copyMsg(m.text, m.id)}
                             style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 3, display: "flex" }}
                             title="Copy"
+                            aria-label="Copy message"
                           >
                             {copiedId === m.id ? <Check size={13} color={"var(--green)"} /> : <Copy size={13} />}
                           </motion.button>
@@ -767,6 +800,7 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
                             onClick={() => regenerate(i)}
                             style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 3, display: "flex" }}
                             title="Regenerate"
+                            aria-label="Regenerate response"
                           >
                             <RefreshCw size={13} />
                           </motion.button>
@@ -775,6 +809,7 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
                             onClick={() => setLikedMsgs(p => ({ ...p, [m.id]: p[m.id] === "up" ? null : "up" }))}
                             style={{ background: "transparent", border: "none", color: likedMsgs[m.id] === "up" ? "var(--blue)" : "var(--text-muted)", cursor: "pointer", padding: 3, display: "flex" }}
                             title="Like"
+                            aria-label="Like response"
                           >
                             <ThumbsUp size={13} />
                           </motion.button>
@@ -783,6 +818,7 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
                             onClick={() => setLikedMsgs(p => ({ ...p, [m.id]: p[m.id] === "down" ? null : "down" }))}
                             style={{ background: "transparent", border: "none", color: likedMsgs[m.id] === "down" ? "var(--red)" : "var(--text-muted)", cursor: "pointer", padding: 3, display: "flex" }}
                             title="Dislike"
+                            aria-label="Dislike response"
                           >
                             <ThumbsDown size={13} />
                           </motion.button>
@@ -901,8 +937,11 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
                   exit={{ opacity: 0, height: 0 }}
                   style={{ padding: "0 20px 16px" }}
                 >
-                  <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 8, letterSpacing: 0.5, fontWeight: 500 }}>
-                    Try asking about
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+                    <Sparkles size={12} color={"var(--accent)"} />
+                    <span style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: 0.3, fontWeight: 500 }}>
+                      Try asking about
+                    </span>
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill,minmax(200px,1fr))", gap: 8 }}>
                     {SUGGESTIONS.map((s, i) => (
@@ -911,27 +950,35 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.05 }}
-                        whileHover={{ y: -2, borderColor: "rgba(59,130,246,0.251)" }}
+                        whileHover={{ y: -3, borderColor: "rgba(59,130,246,0.3)", boxShadow: shadow.elevated }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => {
                           setInput(s.title);
                           setTimeout(() => send(s.title), 50);
                         }}
                         style={{
-                          padding: "10px 12px",
+                          padding: "12px 14px",
                           background: "var(--bg-card2)",
                           border: `1px solid var(--border)`,
                           borderRadius: radius.md,
                           cursor: "pointer",
                           display: "flex",
                           alignItems: "center",
-                          gap: 10,
+                          gap: 12,
+                          transition: "all 0.2s ease",
                         }}
                       >
-                        <s.icon />
+                        <div style={{
+                          width: 34, height: 34, borderRadius: radius.sm,
+                          background: `rgba(59,130,246,0.063)`,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          flexShrink: 0,
+                        }}>
+                          <s.icon />
+                        </div>
                         <div>
-                          <div style={{ fontSize: 12, fontWeight: 500, color: "var(--text)" }}>{s.title}</div>
-                          <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{s.desc}</div>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{s.title}</div>
+                          <div style={{ fontSize: 10.5, color: "var(--text-muted)", marginTop: 1 }}>{s.desc}</div>
                         </div>
                       </motion.div>
                     ))}

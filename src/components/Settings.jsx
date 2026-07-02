@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Settings as SettingsIcon, Moon, Sun, Weight, Bell, Brain,
-  Shield, Download, Upload, Trash2, Info, ChevronRight,
+  Shield, Download, Upload, Trash2, Info,
   Dumbbell, Apple, Droplets, Beef, Clock, Zap,
 } from "lucide-react";
 import {  radius } from "../styles/designSystem";
@@ -54,9 +54,17 @@ function Toggle({ checked, onChange, id }) {
   );
 }
 
-function SettingRow({ icon, label, desc, children }) {
+function SettingRow({ icon, label, desc, children, hoverColor }) {
   return (
-    <div style={rowStyle()}>
+    <div style={{
+      ...rowStyle(),
+      transition: "background 0.2s ease",
+      borderRadius: radius.sm,
+      padding: "4px",
+    }}
+      onMouseEnter={e => { e.currentTarget.style.background = "var(--bg-card2)"; }}
+      onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+    >
       <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
         <div style={{
           width: 28, height: 28, borderRadius: radius.sm,
@@ -67,7 +75,7 @@ function SettingRow({ icon, label, desc, children }) {
         </div>
         <div>
           <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text)" }}>{label}</div>
-          {desc && <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{desc}</div>}
+          {desc && <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 1 }}>{desc}</div>}
         </div>
       </div>
       {children}
@@ -154,7 +162,12 @@ export default function SettingsPage() {
 
       <div style={sectionStyle}>
         <Card>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>Appearance</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <div style={{ width: 24, height: 24, borderRadius: radius.sm, background: `rgba(59,130,246,0.094)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <SettingsIcon size={13} color={"var(--accent)"} />
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>Appearance</div>
+          </div>
           <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 12 }}>Theme preferences</div>
           <SettingRow icon={settings.theme === "dark" ? <Moon size={13} color={"var(--blue)"} /> : <Sun size={13} color={"var(--yellow)"} />} label="Dark Mode" desc="Toggle dark/light theme">
             <Toggle id="theme-toggle" checked={settings.theme === "dark"} onChange={() => settings.setTheme(settings.theme === "dark" ? "light" : "dark")} />
@@ -183,7 +196,12 @@ export default function SettingsPage() {
 
       <div style={sectionStyle}>
         <Card>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>Notifications</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <div style={{ width: 24, height: 24, borderRadius: radius.sm, background: `rgba(59,130,246,0.094)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Bell size={13} color={"var(--accent)"} />
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>Notifications</div>
+          </div>
           <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 12 }}>Enable or disable reminders</div>
           {[
             ["workout", "Workout Reminder", "Remind you to complete workouts", <Dumbbell key="w" size={13} color={"var(--accent)"} />],
@@ -202,7 +220,12 @@ export default function SettingsPage() {
 
       <div style={sectionStyle}>
         <Card>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>AI Preferences</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <div style={{ width: 24, height: 24, borderRadius: radius.sm, background: `rgba(168,85,247,0.094)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Brain size={13} color={"var(--purple)"} />
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>AI Preferences</div>
+          </div>
           <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 12 }}>Control AI behavior</div>
           <SettingRow icon={<Brain size={13} color={"var(--purple)"} />} label="Auto Suggestions" desc="AI suggests workouts and meals">
             <Toggle id="ai-auto" checked={settings.ai.autoSuggest} onChange={(v) => settings.setAi("autoSuggest", v)} />
@@ -215,7 +238,12 @@ export default function SettingsPage() {
 
       <div style={sectionStyle}>
         <Card>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>Privacy</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <div style={{ width: 24, height: 24, borderRadius: radius.sm, background: `rgba(34,197,94,0.094)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Shield size={13} color={"var(--green)"} />
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>Privacy</div>
+          </div>
           <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 12 }}>Data preferences</div>
           <SettingRow icon={<Shield size={13} color={"var(--green)"} />} label="Anonymous Analytics" desc="Help improve FitForce">
             <Toggle id="privacy-analytics" checked={settings.privacy.analytics} onChange={(v) => settings.setPrivacy("analytics", v)} />
@@ -225,7 +253,12 @@ export default function SettingsPage() {
 
       <div style={sectionStyle}>
         <Card>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>Data Management</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <div style={{ width: 24, height: 24, borderRadius: radius.sm, background: `rgba(59,130,246,0.094)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Download size={13} color={"var(--accent)"} />
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>Data Management</div>
+          </div>
           <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 12 }}>Export, import, or reset your data</div>
           <SettingRow icon={<Download size={13} color={"var(--blue)"} />} label="Export Data" desc="Download your data as JSON">
             <Button variant="secondary" onClick={() => handleExport("json")} style={{ fontSize: 11, padding: "6px 12px" }}>
@@ -258,7 +291,12 @@ export default function SettingsPage() {
 
       <div style={sectionStyle}>
         <Card>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>About</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <div style={{ width: 24, height: 24, borderRadius: radius.sm, background: "var(--accent-gradient3)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 12 }}>
+              F
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>About</div>
+          </div>
           <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 12 }}>FitForce version information</div>
           <div style={rowStyle()}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

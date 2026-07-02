@@ -6,11 +6,12 @@ import { useUiStore } from "./stores/uiStore";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Zap, Dumbbell, Apple, Activity, User,
-  Flame, Search, Plus, Bell, ChevronDown,
+  Flame, Search, Plus, Bell,
   Ruler, Brain, TrendingUp, Settings,
-  Salad, Target, Trophy, CheckCircle,
+  Salad, Target, Trophy, Crown,
 } from "lucide-react";
-import { radius, shadow, transition, muscleColor, cardStyle } from "./styles/designSystem";
+import { radius, shadow, transition, muscleColor } from "./styles/designSystem";
+import { Skeleton } from "./components/ui/Skeleton";
 import { EXERCISES, MUSCLES } from "./data/fitness";
 import ExerciseImage from "./components/ExerciseImage";
 import Button from "./components/ui/Button";
@@ -614,95 +615,140 @@ export default function FitForce() {
             )}
 
             {tab === "progress" && (
-              <motion.div variants={containerVariants} initial="initial" animate="animate">
-                <motion.h2 variants={itemVariants} style={h2s}>Progress</motion.h2>
+              <motion.div variants={containerVariants} initial="initial" animate="animate"
+                style={isMobile ? {
+                  display: "flex", flexDirection: "column",
+                  maxHeight: "calc(100vh - 154px)",
+                  overflow: "hidden",
+                } : {}}>
+                <div style={isMobile ? { flex: 1, overflowY: "auto", minHeight: 0, WebkitOverflowScrolling: "touch" } : {}}>
+                <motion.div variants={itemVariants} style={{
+                  display: "flex", alignItems: "center", gap: 12, marginBottom: 20,
+                }}>
+                  <div style={{
+                    width: 36, height: 36,
+                    background: `linear-gradient(135deg, rgba(245,158,11,0.12), rgba(59,130,246,0.08))`,
+                    borderRadius: radius.md,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <TrendingUp size={18} color={"var(--yellow)"} />
+                  </div>
+                  <div>
+                    <h2 style={{ fontSize: 18, fontWeight: 700, color: "var(--text)", margin: 0, letterSpacing: "-0.02em" }}>Progress</h2>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>Track your fitness journey</div>
+                  </div>
+                </motion.div>
 
-                <motion.div variants={itemVariants} style={grid2}>
-                  <Card>
-                    <h3 style={h3s}>Body Weight</h3>
-                    <MiniChart data={bodyStats.map(b => ({ ...b, value: b.weight }))} color={"var(--accent)"} label="Weight trend (kg)" />
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <div style={{ flex: 1 }}>
-                        <label htmlFor="body-weight" style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>Weight (kg)</label>
-                        <input
-                          id="body-weight" name="bodyWeight" type="number" step="0.1"
-                          value={newBodyStat}
-                          onChange={e => setNewBodyStat(e.target.value)}
-                          style={{
-                            background: "var(--bg-card2)", border: `1px solid var(--border2)`,
-                            borderRadius: radius.md, padding: "8px 12px",
-                            color: "var(--text)", fontSize: 13, outline: "none",
-                            width: "100%", boxSizing: "border-box",
-                          }}
-                        />
-                      </div>
-                      <Button onClick={() => {
-                        if (!newBodyStat) return;
-                        const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-                        addBodyStat({ date: today, weight: +newBodyStat });
-                        setNewBodyStat("");
+                <motion.div variants={itemVariants} style={{ marginBottom: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2,1fr)", gap: 14 }}>
+                    <Card variant="glass" glowColor="var(--accent)" style={{ padding: "18px" }}>
+                      <h3 style={{
+                        color: "var(--text)", fontSize: 14, fontWeight: 600, margin: "0 0 12px",
+                        display: "flex", alignItems: "center", gap: 6,
                       }}>
-                        Log
-                      </Button>
-                    </div>
-                  </Card>
-
-                  <Card>
-                    <h3 style={h3s}>Strength PRs</h3>
-                    {prs.filter(p => p.lift).map((p, i) => (
-                      <div key={`pr-${p.lift}-${i}`} style={{ marginBottom: 12 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                          <label htmlFor={`pr-weight-${i}`} style={{ fontSize: 13 }}>{p.lift}</label>
-                          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                            <input
-                              id={`pr-weight-${i}`} name={`prWeight_${i}`} type="number" value={p.weight}
-                              onChange={e => updatePrWeight(i, e.target.value)}
-                              style={{
-                                background: "var(--bg-card2)", border: `1px solid var(--border2)`,
-                                borderRadius: radius.sm, width: 60, padding: "4px 8px",
-                                color: "var(--text)", fontSize: 12, textAlign: "center",
-                                outline: "none",
-                              }}
-                            />
-                            <span style={{ fontSize: 11, color: "var(--text-muted)" }}>kg</span>
-                          </div>
-                        </div>
-                        <div style={{ height: 5, background: "var(--track)", borderRadius: radius.full, overflow: "hidden" }}>
-                          <div
+                        <Activity size={15} color={"var(--accent)"} /> Body Weight
+                      </h3>
+                      <MiniChart data={bodyStats.map(b => ({ ...b, value: b.weight }))} color={"var(--accent)"} label="Weight trend (kg)" />
+                      <div style={{ display: "flex", gap: 10 }}>
+                        <div style={{ flex: 1 }}>
+                          <label htmlFor="body-weight" style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginBottom: 5 }}>Weight (kg)</label>
+                          <input
+                            id="body-weight" name="bodyWeight" type="number" step="0.1"
+                            value={newBodyStat}
+                            onChange={e => setNewBodyStat(e.target.value)}
                             style={{
-                              width: `${Math.min(100, (p.weight / 160) * 100) || 0}%`,
-                              height: "100%",
-                              background: "var(--accent)",
-                              borderRadius: radius.full,
-                              transition: "width 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)",
-                              transitionDelay: `${i * 0.1}s`,
+                              background: "var(--bg-card2)", border: `1px solid var(--border2)`,
+                              borderRadius: radius.sm, padding: "10px 12px",
+                              color: "var(--text)", fontSize: 13, outline: "none",
+                              width: "100%", boxSizing: "border-box", fontWeight: 500,
                             }}
                           />
                         </div>
+                        <Button style={{ alignSelf: "flex-end" }} onClick={() => {
+                          if (!newBodyStat) return;
+                          const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+                          addBodyStat({ date: today, weight: +newBodyStat });
+                          setNewBodyStat("");
+                        }}>
+                          Log
+                        </Button>
                       </div>
-                    ))}
-                    <motion.button whileHover={{ borderColor: "rgba(59,130,246,0.251)" }} whileTap={{ scale: 0.98 }}
-                      onClick={() => { const n = prompt("Lift name:"); if (n) addPr(n); }}
-                      style={{
-                        background: "var(--bg-card2)", border: `1px solid var(--border)`,
-                        color: "var(--text-muted)", borderRadius: radius.md, padding: "7px",
-                        cursor: "pointer", fontSize: 12, width: "100%", marginTop: 4,
-                        display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                    </Card>
+
+                    <Card variant="glass" glowColor="var(--yellow)" style={{ padding: "18px" }}>
+                      <h3 style={{
+                        color: "var(--text)", fontSize: 14, fontWeight: 600, margin: "0 0 12px",
+                        display: "flex", alignItems: "center", gap: 6,
                       }}>
-                      <Plus size={14} /> Add Lift
-                    </motion.button>
-                  </Card>
+                        <Crown size={15} color={"var(--yellow)"} /> Strength PRs
+                      </h3>
+                      {prs.filter(p => p.lift).length === 0 ? (
+                        <div style={{ textAlign: "center", padding: "16px", color: "var(--text-muted)", fontSize: 12, lineHeight: 1.5 }}>
+                          No lifts tracked yet.
+                        </div>
+                      ) : null}
+                      {prs.filter(p => p.lift).map((p, i) => (
+                        <div key={`pr-${p.lift}-${i}`} style={{ marginBottom: 12 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                            <label htmlFor={`pr-weight-${i}`} style={{ fontSize: 13, fontWeight: 500, color: "var(--text)" }}>{p.lift}</label>
+                            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                              <input
+                                id={`pr-weight-${i}`} name={`prWeight_${i}`} type="number" value={p.weight}
+                                onChange={e => updatePrWeight(i, e.target.value)}
+                                style={{
+                                  background: "var(--bg-card2)", border: `1px solid var(--border2)`,
+                                  borderRadius: radius.sm, width: 60, padding: "5px 8px",
+                                  color: "var(--text)", fontSize: 12, textAlign: "center",
+                                  outline: "none", fontWeight: 500,
+                                }}
+                              />
+                              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>kg</span>
+                            </div>
+                          </div>
+                          <div style={{ height: 6, background: "var(--track)", borderRadius: radius.full, overflow: "hidden" }}>
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${Math.min(100, (p.weight / 160) * 100) || 0}%` }}
+                              transition={{ duration: 0.6, delay: i * 0.1, ease: [0.25, 0.1, 0.25, 1] }}
+                              style={{
+                                height: "100%",
+                                background: `linear-gradient(90deg, var(--accent), var(--purple))`,
+                                borderRadius: radius.full,
+                                boxShadow: `0 0 6px rgba(59,130,246,0.251)`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                      <motion.button whileHover={{ borderColor: "rgba(59,130,246,0.251)", background: "rgba(59,130,246,0.04)" }} whileTap={{ scale: 0.97 }}
+                        onClick={() => { const n = prompt("Lift name:"); if (n) addPr(n); }}
+                        style={{
+                          background: "transparent", border: `1px solid var(--border)`,
+                          color: "var(--text-muted)", borderRadius: radius.sm, padding: "9px",
+                          cursor: "pointer", fontSize: 11, width: "100%", marginTop: 8,
+                          display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                          fontWeight: 500, transition: "all 0.2s",
+                        }}>
+                        <Plus size={13} /> Add Lift
+                      </motion.button>
+                    </Card>
+                  </div>
                 </motion.div>
 
-                <motion.div variants={itemVariants}>
-                  <Card>
-                    <h3 style={h3s}>Body Measurements (cm)</h3>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: 10 }}>
+                <motion.div variants={itemVariants} style={{ marginBottom: 16 }}>
+                  <Card variant="glass" glowColor="var(--blue)" style={{ padding: "18px" }}>
+                    <h3 style={{
+                      color: "var(--text)", fontSize: 14, fontWeight: 600, margin: "0 0 14px",
+                      display: "flex", alignItems: "center", gap: 6,
+                    }}>
+                      <Activity size={15} color={"var(--blue)"} /> Body Measurements (cm)
+                    </h3>
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2,1fr)" : "repeat(auto-fit,minmax(130px,1fr))", gap: 10 }}>
                       {Object.entries(measurements).map(([k, v]) => {
                         const id = `measurement-${k}`;
                         return (
                         <div key={k}>
-                          <label htmlFor={id} style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginBottom: 4, textTransform: "capitalize" }}>
+                          <label htmlFor={id} style={{ fontSize: 10, color: "var(--text-muted)", display: "block", marginBottom: 4, textTransform: "capitalize", fontWeight: 500 }}>
                             {k}
                           </label>
                           <input id={id} name={k}
@@ -710,9 +756,9 @@ export default function FitForce() {
                             onChange={e => setMeasurements(p => ({ ...p, [k]: e.target.value }))}
                             style={{
                               background: "var(--bg-card2)", border: `1px solid var(--border2)`,
-                              borderRadius: radius.md, padding: "8px 12px",
+                              borderRadius: radius.sm, padding: "9px 12px",
                               color: "var(--text)", fontSize: 13, outline: "none",
-                              width: "100%", boxSizing: "border-box",
+                              width: "100%", boxSizing: "border-box", fontWeight: 500,
                             }}
                           />
                         </div>
@@ -722,36 +768,50 @@ export default function FitForce() {
                   </Card>
                 </motion.div>
 
-                <motion.div variants={itemVariants}>
-                  <Card>
-                    <h3 style={h3s}>Workout Log</h3>
-                    <div style={{ overflowX: "auto" }}>
-                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, minWidth: 400 }}>
-                        <thead>
-                          <tr style={{ borderBottom: `1px solid var(--border2)` }}>
-                            {["Date", "Exercise", "Sets", "Reps", "Weight", "Volume"].map(h => (
-                              <th key={h} style={{ padding: "8px 8px", textAlign: "left", color: "var(--text-muted)", fontWeight: 400, fontSize: 11 }}>{h}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {workoutLog.map((w, i) => (
-                            <tr key={w.uid ? `wl-${w.uid}` : `wl-${i}-${w.date}-${w.name}`} style={{ borderBottom: `1px solid var(--border)` }}>
-                              <td style={{ padding: "8px", color: "var(--text-muted)" }}>{w.date}</td>
-                              <td style={{ padding: "8px", fontWeight: 500 }}>{w.name}</td>
-                              <td style={{ padding: "8px", color: "var(--accent)" }}>{w.sets}</td>
-                              <td style={{ padding: "8px", color: "var(--blue)" }}>{w.reps}</td>
-                              <td style={{ padding: "8px", color: "var(--yellow)" }}>{w.weight ? `${w.weight}kg` : "BW"}</td>
-                              <td style={{ padding: "8px", color: "var(--text-muted)" }}>{w.vol || "—"}</td>
+                <motion.div variants={itemVariants} style={{ marginBottom: 16 }}>
+                  <Card variant="glass" glowColor="var(--purple)" style={{ padding: "18px" }}>
+                    <h3 style={{
+                      color: "var(--text)", fontSize: 14, fontWeight: 600, margin: "0 0 14px",
+                      display: "flex", alignItems: "center", gap: 6,
+                    }}>
+                      <Dumbbell size={15} color={"var(--purple)"} /> Workout Log
+                    </h3>
+                    {workoutLog.length > 0 ? (
+                      <div style={{ overflowX: "auto", marginBottom: 14 }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, minWidth: isMobile ? 320 : 400 }}>
+                          <thead>
+                            <tr style={{ borderBottom: `1px solid var(--border2)` }}>
+                              {["Date", "Exercise", "Sets", "Reps", "Weight", "Volume"].map(h => (
+                                <th key={h} style={{ padding: "8px 6px", textAlign: "left", color: "var(--text-muted)", fontWeight: 500, fontSize: 10, letterSpacing: "0.02em" }}>{h}</th>
+                              ))}
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 8, marginTop: 12 }}>
+                          </thead>
+                          <tbody>
+                            {workoutLog.map((w, i) => (
+                              <tr key={w.uid ? `wl-${w.uid}` : `wl-${i}-${w.date}-${w.name}`} style={{ borderBottom: `1px solid var(--border)` }}>
+                                <td style={{ padding: "8px 6px", color: "var(--text-muted)", fontSize: 11 }}>{w.date}</td>
+                                <td style={{ padding: "8px 6px", fontWeight: 500, fontSize: 11 }}>{w.name}</td>
+                                <td style={{ padding: "8px 6px", color: "var(--accent)", fontSize: 11 }}>{w.sets}</td>
+                                <td style={{ padding: "8px 6px", color: "var(--blue)", fontSize: 11 }}>{w.reps}</td>
+                                <td style={{ padding: "8px 6px", color: "var(--yellow)", fontSize: 11 }}>{w.weight ? `${w.weight}kg` : "BW"}</td>
+                                <td style={{ padding: "8px 6px", color: "var(--text-muted)", fontSize: 11 }}>{w.vol || "—"}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div style={{
+                        textAlign: "center", padding: "24px", color: "var(--text-muted)", fontSize: 12, lineHeight: 1.5,
+                        background: "var(--bg-card2)", borderRadius: radius.sm, marginBottom: 14,
+                      }}>
+                        No log entries yet. Start tracking your workouts below.
+                      </div>
+                    )}
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "2fr 1fr 1fr 1fr", gap: 8 }}>
                       {[["Exercise", "name", "text"], ["Sets", "sets", "number"], ["Reps", "reps", "number"], ["Weight", "weight", "number"]].map(([ph, k, t]) => (
                         <div key={k}>
-                          <label htmlFor={`log-${k}`} style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>
+                          <label htmlFor={`log-${k}`} style={{ fontSize: 10, color: "var(--text-muted)", display: "block", marginBottom: 4, fontWeight: 500 }}>
                             {ph}
                           </label>
                           <input id={`log-${k}`} name={`log${k.charAt(0).toUpperCase() + k.slice(1)}`} type={t}
@@ -759,48 +819,60 @@ export default function FitForce() {
                             onChange={e => setNewLogRow(p => ({ ...p, [k]: e.target.value }))}
                             style={{
                               background: "var(--bg-card2)", border: `1px solid var(--border2)`,
-                              borderRadius: radius.md, padding: "8px 12px",
-                              color: "var(--text)", fontSize: 12, outline: "none",
+                              borderRadius: radius.sm, padding: "9px 12px",
+                              color: "var(--text)", fontSize: 12, outline: "none", fontWeight: 500,
                               width: "100%", boxSizing: "border-box",
                             }} />
                         </div>
                       ))}
                     </div>
-                    <Button style={{ width: "100%", marginTop: 10 }} onClick={() => {
+                    <Button style={{ width: "100%", marginTop: 12 }} onClick={() => {
                       if (!newLogRow.name) return;
                       addLogEntry();
                       addXp(15);
                     }}>
-                      <Plus size={14} /> Log Exercise
+                      <Dumbbell size={13} /> Log Exercise
                     </Button>
                   </Card>
                 </motion.div>
 
-                <motion.div variants={itemVariants}>
-                  <Card>
-                    <h3 style={h3s}>Achievements & XP</h3>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <motion.div variants={itemVariants} style={{ marginBottom: 16 }}>
+                  <Card variant="glass" glowColor="var(--yellow)" style={{ padding: "18px" }}>
+                    <h3 style={{
+                      color: "var(--text)", fontSize: 14, fontWeight: 600, margin: "0 0 16px",
+                      display: "flex", alignItems: "center", gap: 6,
+                    }}>
+                      <Trophy size={15} color={"var(--yellow)"} /> Achievements & XP
+                    </h3>
+                    <div style={{
+                      display: "flex", justifyContent: "space-between", alignItems: "center",
+                      marginBottom: 16, background: "var(--bg-card2)", borderRadius: radius.md,
+                      padding: "14px", border: `1px solid var(--border)`,
+                    }}>
                       <div>
-                        <div style={{ fontSize: 24, fontWeight: 700, color: "var(--yellow)" }}>Level {level}</div>
-                        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{xp} XP total</div>
+                        <div style={{ fontSize: 22, fontWeight: 700, color: "var(--yellow)", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
+                          Level {level}
+                        </div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{xp} XP total</div>
                       </div>
                       <div style={{ textAlign: "right" }}>
-                        <div style={{ fontSize: 12, color: "var(--text)", marginBottom: 6 }}>{xpToNext} XP to Level {level + 1}</div>
-                        <div style={{ width: 140, height: 6, background: "var(--track)", borderRadius: radius.full, overflow: "hidden" }}>
-                          <div
+                        <div style={{ fontSize: 11, color: "var(--text)", marginBottom: 7, fontWeight: 450 }}>{xpToNext} XP to Level {level + 1}</div>
+                        <div style={{ width: isMobile ? 120 : 160, height: 7, background: "var(--track)", borderRadius: radius.full, overflow: "hidden" }}>
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${((xp % 500) / 500) * 100 || 0}%` }}
+                            transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
                             style={{
-                  width: `${((xp % 500) / 500) * 100 || 0}%`,
                               height: "100%",
-                              background: "var(--yellow)",
+                              background: `linear-gradient(90deg, var(--yellow), var(--orange))`,
                               borderRadius: radius.full,
                               boxShadow: `0 0 8px rgba(245,158,11,0.251)`,
-                              transition: "width 0.6s ease",
                             }}
                           />
                         </div>
                       </div>
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(100px,1fr))", gap: 10 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(3,1fr)" : "repeat(auto-fit,minmax(100px,1fr))", gap: 8 }}>
                       {[
                         { icon: Flame, name: "7-Day Streak", c: "var(--accent)", unlocked: true },
                         { icon: Dumbbell, name: "First Workout", c: "var(--blue)", unlocked: true },
@@ -809,45 +881,38 @@ export default function FitForce() {
                         { icon: Activity, name: "Cardio King", c: "var(--purple)", unlocked: false },
                         { icon: Target, name: "Level 5", c: "var(--orange)", unlocked: false },
                       ].map(({ icon: Icon, name, c, unlocked }) => (
-                        <motion.div key={name} whileHover={unlocked ? { y: -4, boxShadow: "var(--shadow-hover)", borderColor: `${c}40` } : {}}
+                        <motion.div key={name} whileHover={unlocked ? { y: -3 } : {}}
                           transition={{ type: "spring", stiffness: 400, damping: 25, mass: 0.5 }}
                           style={{
-                            background: unlocked ? `linear-gradient(135deg, var(--bg-card) 0%, ${c}06 100%)` : "var(--bg-card2)",
-                            border: `1px solid ${unlocked ? `${c}25` : "var(--border)"}`,
-                            borderRadius: "var(--radius-card)",
-                            padding: "16px 10px",
+                            background: unlocked ? `${c}08` : "var(--bg-card3)",
+                            border: `1px solid ${unlocked ? `${c}20` : "var(--border)"}`,
+                            borderRadius: radius.md,
+                            padding: "12px 8px",
                             textAlign: "center",
-                            opacity: unlocked ? 1 : 0.35,
-                            position: "relative",
-                            overflow: "hidden",
-                            boxShadow: unlocked ? "var(--shadow-card)" : "none",
+                            opacity: unlocked ? 1 : 0.4,
+                            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
                           }}>
-                          {unlocked && <div style={{
-                            position: "absolute", top: 0, left: "20%", right: "20%", height: 1,
-                            background: `linear-gradient(90deg, transparent, ${c}25, transparent)`,
-                          }} />}
                           <motion.div
-                            initial={unlocked ? { scale: 0, rotate: -20 } : {}}
-                            animate={unlocked ? { scale: 1, rotate: 0 } : {}}
-                            transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.1 }}
+                            animate={unlocked ? { scale: [1, 1.1, 1] } : {}}
+                            transition={{ duration: 2, repeat: Infinity, repeatDelay: 2 }}
                             style={{
-                              width: 32, height: 32,
+                              width: 30, height: 30,
                               background: `${c}12`,
-                              borderRadius: radius.lg,
+                              borderRadius: radius.sm,
                               display: "flex", alignItems: "center", justifyContent: "center",
-                              margin: "0 auto 6px",
+                              margin: "0 auto 5px",
                             }}
                           >
-                            <Icon size={15} color={c} />
+                            <Icon size={14} color={c} />
                           </motion.div>
-                          <div style={{ fontSize: 10, color: unlocked ? c : "var(--text-muted)", lineHeight: 1.3, fontWeight: 600 }}>{name}</div>
+                          <div style={{ fontSize: 10, color: unlocked ? c : "var(--text-muted)", fontWeight: 600, lineHeight: 1.3 }}>{name}</div>
                         </motion.div>
                       ))}
                     </div>
                   </Card>
                 </motion.div>
 
-                <motion.div variants={itemVariants} style={{ marginTop: 16, marginBottom: 16 }}>
+                <motion.div variants={itemVariants} style={{ marginBottom: 16 }}>
                   <ProgressReports
                     workoutSessions={workoutSessions}
                     meals={meals}
@@ -867,9 +932,10 @@ export default function FitForce() {
                   />
                 </motion.div>
 
-                <motion.div variants={itemVariants}>
+                <motion.div variants={itemVariants} style={{ marginBottom: 16 }}>
                   <AIGoals />
                 </motion.div>
+                </div>
               </motion.div>
             )}
 
@@ -892,32 +958,48 @@ export default function FitForce() {
                           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 12 }}>
                             {[
                               ["BMI", bmi2, bmiC, bmiL],
-                              ["BMR", Math.round(bmr).blue, "kcal/day"],
-                              ["TDEE", tdee.accent, "kcal/day"],
+                              ["BMR", Math.round(bmr), "var(--blue)", "kcal/day"],
+                              ["TDEE", tdee, "var(--accent)", "kcal/day"],
                             ].map(([l, v, c, sub]) => (
                               <div key={l} style={{
-                                textAlign: "center", background: "var(--bg-card2)",
-                                borderRadius: radius.md, padding: "12px 4px",
-                                border: `1px solid var(--border)`,
+                                textAlign: "center",
+                                background: `linear-gradient(135deg, ${c}06, var(--bg-card2))`,
+                                borderRadius: radius.md, padding: "14px 6px",
+                                border: `1px solid ${c}20`,
                               }}>
-                                <div style={{ fontSize: 20, fontWeight: 700, color: c }}>{v}</div>
+                                <motion.div
+                                  key={v}
+                                  initial={{ scale: 1.2 }}
+                                  animate={{ scale: 1 }}
+                                  style={{ fontSize: 22, fontWeight: 700, color: c }}
+                                >
+                                  {v}{l === "BMI" ? "" : ""}
+                                </motion.div>
                                 <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{l}</div>
                                 <div style={{ fontSize: 10, color: c, fontWeight: 500 }}>{sub}</div>
                               </div>
                             ))}
                           </div>
-                          <div style={{ background: "var(--bg-card2)", borderRadius: radius.md, padding: "12px", fontSize: 12, border: `1px solid var(--border)` }}>
-                            <div style={{ color: "var(--text-muted)", marginBottom: 6 }}>
-                              Calorie goal: <span style={{ color: "var(--accent)", fontWeight: 500 }}>{calGoal} kcal</span>
-                            </div>
-                            <div style={{ color: "var(--text-muted)", marginBottom: 6 }}>
-                              Protein target: <span style={{ color: "var(--blue)", fontWeight: 500 }}>{protGoal}g/day</span>
-                            </div>
-                            <div style={{ color: "var(--text-muted)" }}>
-                              Today's balance:{" "}
-                              <span style={{ color: totalCal > calGoal ? "var(--orange)" : "var(--green)", fontWeight: 500 }}>
-                                {totalCal - calGoal > 0 ? "+" : ""}{totalCal - calGoal} kcal
-                              </span>
+                          <div style={{
+                            background: `linear-gradient(135deg, rgba(59,130,246,0.031), var(--bg-card2))`,
+                            borderRadius: radius.md, padding: "14px", fontSize: 12,
+                            border: `1px solid var(--border)`,
+                          }}>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                              <div style={{ textAlign: "center" }}>
+                                <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 2 }}>Calorie Goal</div>
+                                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--accent)" }}>{calGoal} kcal</div>
+                              </div>
+                              <div style={{ textAlign: "center" }}>
+                                <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 2 }}>Protein Target</div>
+                                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--blue)" }}>{protGoal}g</div>
+                              </div>
+                              <div style={{ textAlign: "center" }}>
+                                <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 2 }}>Today's Balance</div>
+                                <div style={{ fontSize: 14, fontWeight: 600, color: totalCal > calGoal ? "var(--orange)" : "var(--green)" }}>
+                                  {totalCal - calGoal > 0 ? "+" : ""}{totalCal - calGoal}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </>
@@ -937,52 +1019,76 @@ export default function FitForce() {
                               <input id="orm-weight" name="ormWeight" type="number" value={orm1W} onChange={e => setOrm1W(e.target.value)}
                                 style={{
                                   background: "var(--bg-card2)", border: `1px solid var(--border2)`,
-                                  borderRadius: radius.md, padding: "8px 12px", color: "var(--text)",
+                                  borderRadius: radius.md, padding: "10px 12px", color: "var(--text)",
                                   fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box",
-                                }} />
+                                  transition: "border-color 0.2s ease",
+                                }}
+                                onFocus={e => { e.target.style.borderColor = "var(--accent)"; }}
+                                onBlur={e => { e.target.style.borderColor = "var(--border2)"; }} />
                             </div>
                             <div>
                               <label htmlFor="orm-reps" style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>Reps</label>
                               <input id="orm-reps" name="ormReps" type="number" value={orm1R} onChange={e => setOrm1R(e.target.value)}
                                 style={{
                                   background: "var(--bg-card2)", border: `1px solid var(--border2)`,
-                                  borderRadius: radius.md, padding: "8px 12px", color: "var(--text)",
+                                  borderRadius: radius.md, padding: "10px 12px", color: "var(--text)",
                                   fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box",
-                                }} />
+                                  transition: "border-color 0.2s ease",
+                                }}
+                                onFocus={e => { e.target.style.borderColor = "var(--accent)"; }}
+                                onBlur={e => { e.target.style.borderColor = "var(--border2)"; }} />
                             </div>
                           </div>
-                          <div style={{
-                            textAlign: "center",
-                            background: `linear-gradient(135deg, var(--bg-card2), var(--bg-card3))`,
-                            borderRadius: radius.md, padding: "16px", marginBottom: 12,
-                            border: `1px solid var(--border)`,
-                          }}>
+                          <motion.div
+                            key={oneRM}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                            style={{
+                              textAlign: "center",
+                              background: `linear-gradient(135deg, rgba(59,130,246,0.063), var(--bg-card2))`,
+                              borderRadius: radius.lg, padding: "18px", marginBottom: 12,
+                              border: `1px solid rgba(59,130,246,0.125)`,
+                              position: "relative",
+                              overflow: "hidden",
+                            }}
+                          >
+                            <div style={{
+                              position: "absolute", top: -30, right: -30, width: 80, height: 80,
+                              borderRadius: "50%", background: `radial-gradient(circle, rgba(59,130,246,0.063) 0%, transparent 70%)`,
+                              pointerEvents: "none",
+                            }} />
                             <motion.div
                               key={oneRM}
-                              initial={{ scale: 1.3 }}
+                              initial={{ scale: 1.4 }}
                               animate={{ scale: 1 }}
-                              style={{ fontSize: 32, fontWeight: 700, color: "var(--accent)" }}
+                              style={{ fontSize: 36, fontWeight: 700, color: "var(--accent)", letterSpacing: "-0.02em" }}
                             >
-                              {oneRM} kg
+                              {oneRM} <span style={{ fontSize: 18, fontWeight: 400 }}>kg</span>
                             </motion.div>
-                            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Estimated 1RM</div>
-                          </div>
-                          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8 }}>
+                            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Estimated 1 Rep Max</div>
+                          </motion.div>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 6 }}>
                             {[
-                              ["95%", Math.round(oneRM * 0.95), "Strength"],
-                              ["85%", Math.round(oneRM * 0.85), "Power"],
-                              ["75%", Math.round(oneRM * 0.75), "Hypertrophy"],
-                              ["65%", Math.round(oneRM * 0.65), "Endurance"],
-                            ].map(([p, v, l]) => (
-                              <div key={p} style={{
-                                background: "var(--bg-card3)", borderRadius: radius.md,
-                                padding: "10px 4px", textAlign: "center",
-                                border: `1px solid var(--border)`,
-                              }}>
-                                <div style={{ fontSize: 15, color: "var(--accent)", fontWeight: 600 }}>{v}kg</div>
-                                <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{p}</div>
+                              ["95%", Math.round(oneRM * 0.95), "Strength", "var(--accent)"],
+                              ["85%", Math.round(oneRM * 0.85), "Power", "var(--blue)"],
+                              ["75%", Math.round(oneRM * 0.75), "Hypertrophy", "var(--green)"],
+                              ["65%", Math.round(oneRM * 0.65), "Endurance", "var(--yellow)"],
+                            ].map(([p, v, l, c]) => (
+                              <motion.div
+                                key={p}
+                                whileHover={{ y: -2 }}
+                                style={{
+                                  background: `linear-gradient(180deg, ${c}08, var(--bg-card3))`,
+                                  borderRadius: radius.md,
+                                  padding: "10px 4px", textAlign: "center",
+                                  border: `1px solid ${c}15`,
+                                }}
+                              >
+                                <div style={{ fontSize: 14, color: c, fontWeight: 600 }}>{v}kg</div>
+                                <div style={{ fontSize: 9, color: "var(--text-muted)" }}>{p}</div>
                                 <div style={{ fontSize: 9, color: "var(--text-dim)" }}>{l}</div>
-                              </div>
+                              </motion.div>
                             ))}
                           </div>
                         </>
@@ -1006,36 +1112,55 @@ export default function FitForce() {
                               <input id="bf-neck" name="bfNeck" type="number" value={bfNeck} onChange={e => setBfNeck(e.target.value)}
                                 style={{
                                   background: "var(--bg-card2)", border: `1px solid var(--border2)`,
-                                  borderRadius: radius.md, padding: "8px 12px", color: "var(--text)",
+                                  borderRadius: radius.md, padding: "10px 12px", color: "var(--text)",
                                   fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box",
-                                }} />
+                                  transition: "border-color 0.2s ease",
+                                }}
+                                onFocus={e => { e.target.style.borderColor = "var(--accent)"; }}
+                                onBlur={e => { e.target.style.borderColor = "var(--border2)"; }} />
                             </div>
                             <div>
                               <label htmlFor="bf-waist" style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>Waist (cm)</label>
                               <input id="bf-waist" name="bfWaist" type="number" value={bfWaist} onChange={e => setBfWaist(e.target.value)}
                                 style={{
                                   background: "var(--bg-card2)", border: `1px solid var(--border2)`,
-                                  borderRadius: radius.md, padding: "8px 12px", color: "var(--text)",
+                                  borderRadius: radius.md, padding: "10px 12px", color: "var(--text)",
                                   fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box",
-                                }} />
+                                  transition: "border-color 0.2s ease",
+                                }}
+                                onFocus={e => { e.target.style.borderColor = "var(--accent)"; }}
+                                onBlur={e => { e.target.style.borderColor = "var(--border2)"; }} />
                             </div>
                           </div>
-                          <div style={{
-                            textAlign: "center",
-                            background: `linear-gradient(135deg, var(--bg-card2), var(--bg-card3))`,
-                            borderRadius: radius.md, padding: "16px",
-                            border: `1px solid var(--border)`,
-                          }}>
+                          <motion.div
+                            key={bf}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                            style={{
+                              textAlign: "center",
+                              background: `linear-gradient(135deg, ${bfColor}06, var(--bg-card2))`,
+                              borderRadius: radius.lg, padding: "18px",
+                              border: `1px solid ${bfColor}20`,
+                              position: "relative",
+                              overflow: "hidden",
+                            }}
+                          >
+                            <div style={{
+                              position: "absolute", top: -30, right: -30, width: 80, height: 80,
+                              borderRadius: "50%", background: `radial-gradient(circle, ${bfColor}08 0%, transparent 70%)`,
+                              pointerEvents: "none",
+                            }} />
                             <motion.div
                               key={bf}
-                              initial={{ scale: 1.3 }}
+                              initial={{ scale: 1.4 }}
                               animate={{ scale: 1 }}
-                              style={{ fontSize: 32, fontWeight: 700, color: bfColor }}
+                              style={{ fontSize: 36, fontWeight: 700, color: bfColor, letterSpacing: "-0.02em" }}
                             >
-                              {isNaN(bf) || bf < 0 ? "—" : bf}%
+                              {isNaN(bf) || bf < 0 ? "—" : bf}<span style={{ fontSize: 18, fontWeight: 400 }}>%</span>
                             </motion.div>
-                            <div style={{ fontSize: 14, color: bfColor, fontWeight: 500 }}>{bfLabel}</div>
-                          </div>
+                            <div style={{ fontSize: 13, color: bfColor, fontWeight: 600 }}>{bfLabel}</div>
+                          </motion.div>
                         </>
                       );
                     })()}
@@ -1052,16 +1177,25 @@ export default function FitForce() {
                         ["Core", "24-48h", "var(--orange)"],
                         ["Cardio", "24h", "var(--teal)"],
                       ].map(([m, t, c]) => (
-                        <motion.div key={m} whileHover={{ x: 2 }} transition={{ type: "spring", stiffness: 400, damping: 30 }} style={{
-                          display: "flex", justifyContent: "space-between", alignItems: "center",
-                          padding: "10px 12px",
-                          background: "var(--bg-card2)",
-                          borderRadius: "var(--radius-sm)",
-                          border: `1px solid var(--border2)`,
-                          fontSize: 13,
-                        }}>
+                        <motion.div
+                          key={m} whileHover={{ x: 3 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                          style={{
+                            display: "flex", justifyContent: "space-between", alignItems: "center",
+                            padding: "11px 14px",
+                            background: `linear-gradient(90deg, ${c}06, var(--bg-card2))`,
+                            borderRadius: radius.md,
+                            border: `1px solid ${c}12`,
+                            borderLeft: `3px solid ${c}`,
+                            fontSize: 13,
+                          }}
+                        >
                           <span style={{ color: "var(--text)", fontWeight: 500 }}>{m}</span>
-                          <span style={{ color: c, fontSize: 12, fontWeight: 600 }}>{t}</span>
+                          <span style={{
+                            color: c, fontSize: 12, fontWeight: 600,
+                            background: `${c}10`, padding: "2px 10px",
+                            borderRadius: radius.full,
+                          }}>{t}</span>
                         </motion.div>
                       ))}
                     </div>

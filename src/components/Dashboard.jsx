@@ -9,7 +9,7 @@ import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import {  radius, shadow, transition } from "../styles/designSystem";
+import { radius, shadow } from "../styles/designSystem";
 import { WORKOUT_PLANS } from "../data/fitness";
 import AnimatedCounter from "./AnimatedCounter";
 import ProgressRing from "./ProgressRing";

@@ -215,8 +215,8 @@ export default function WorkoutModal({ plan, onClose }) {
           animate={{ opacity: 1 }}
           style={{
             position: "fixed", inset: 0,
-            background: "rgba(0,0,0,0.88)",
-            backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+            background: "var(--overlay)",
+            backdropFilter: "blur(24px) saturate(1.4)", WebkitBackdropFilter: "blur(24px) saturate(1.4)",
             display: "flex", alignItems: "center", justifyContent: "center",
             zIndex: 1000, padding: 16, overflowY: "auto",
           }}
@@ -406,8 +406,8 @@ export default function WorkoutModal({ plan, onClose }) {
       exit={{ opacity: 0 }}
       style={{
         position: "fixed", inset: 0,
-        background: "rgba(0,0,0,0.90)",
-        backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+        background: "var(--overlay)",
+        backdropFilter: "blur(24px) saturate(1.4)", WebkitBackdropFilter: "blur(24px) saturate(1.4)",
         display: "flex", alignItems: "center", justifyContent: "center",
         zIndex: 1000, padding: 16,
       }}

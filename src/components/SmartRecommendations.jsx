@@ -1,16 +1,15 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
-  Lightbulb, Dumbbell, Apple, Moon, Droplets,
-  RefreshCw, Coffee, Bed, Timer
+  Lightbulb, Dumbbell, Apple, Moon, Droplets, Timer
 } from "lucide-react";
 import {  radius } from "../styles/designSystem";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 export default function SmartRecommendations({
-  workoutSessions, meals, water, totalCal, totalProt,
-  calGoal, protGoal, streak, level, xp, profile,
+  workoutSessions, water, totalProt,
+  protGoal, streak,
 }) {
   const today = DAYS[new Date().getDay()];
   const weekSessions = workoutSessions.filter(ws => {
@@ -104,7 +103,7 @@ export default function SmartRecommendations({
     });
 
     return items.slice(0, 5);
-  }, [workoutSessions, meals, water, totalCal, totalProt, calGoal, protGoal, streak, profile]);
+  }, [workoutSessions, water, totalProt, protGoal, streak]);
 
   return (
     <div>

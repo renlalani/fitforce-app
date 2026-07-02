@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import {  radius, shadow } from "../../styles/designSystem";
+import { radius } from "../../styles/designSystem";
 
 export function Skeleton({ width = "100%", height = 16, variant = "text", style }) {
   const variants = {
@@ -34,53 +34,6 @@ export function Skeleton({ width = "100%", height = 16, variant = "text", style 
         ...style,
       }}
     />
-  );
-}
-
-export function CardSkeleton({ count = 1 }) {
-  return (
-    <>
-      {Array.from({ length: count }).map((_, i) => (
-        <div
-          key={i}
-          style={{
-            background: `linear-gradient(180deg, var(--bg-card) 0%, var(--bg-card2) 100%)`,
-            border: `1px solid var(--border)`,
-            borderRadius: radius.xl,
-            padding: 20,
-            marginBottom: 12,
-            boxShadow: shadow.floating,
-          }}
-        >
-          <Skeleton width="60%" height={18} style={{ marginBottom: 12 }} />
-          <Skeleton width="100%" height={12} style={{ marginBottom: 8 }} />
-          <Skeleton width="80%" height={12} style={{ marginBottom: 8 }} />
-          <Skeleton width="40%" height={12} style={{ marginBottom: 16 }} />
-          <Skeleton width="100%" height={40} variant="rect" />
-        </div>
-      ))}
-    </>
-  );
-}
-
-export function StatsSkeleton() {
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 16 }}>
-      {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} style={{
-          background: `linear-gradient(180deg, var(--bg-card) 0%, var(--bg-card2) 100%)`,
-          borderRadius: radius.xl,
-          padding: "14px",
-          border: `1px solid var(--border)`,
-          textAlign: "center",
-          boxShadow: shadow.floating,
-        }}>
-          <Skeleton variant="avatar" width={16} height={16} style={{ margin: "0 auto 8px" }} />
-          <Skeleton width="60%" height={16} style={{ margin: "0 auto 4px" }} />
-          <Skeleton width="40%" height={10} style={{ margin: "0 auto" }} />
-        </div>
-      ))}
-    </div>
   );
 }
 

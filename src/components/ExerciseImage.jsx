@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Dumbbell } from "lucide-react";
-import {  radius, shadow } from "../styles/designSystem";
+import { radius } from "../styles/designSystem";
 import { getExerciseImage } from "../data/exerciseImages";
 
 const ASPECT_RATIO = "56.25%";
