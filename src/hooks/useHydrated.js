@@ -3,6 +3,7 @@ import { useNutritionStore } from "../stores/nutritionStore";
 import { useUserStore } from "../stores/userStore";
 import { useWorkoutStore } from "../stores/workoutStore";
 import { useUiStore } from "../stores/uiStore";
+import { useSettingsStore } from "../stores/settingsStore";
 
 function subscribeToHydration(store, cb) {
   if (store.persist.hasHydrated()) cb();
@@ -31,5 +32,9 @@ export function useHydrated() {
     useCallback((cb) => subscribeToHydration(useUiStore, cb), []),
     useCallback(() => checkHydrated(useUiStore), [])
   );
-  return nut && user && workout && ui;
+  const settings = useSyncExternalStore(
+    useCallback((cb) => subscribeToHydration(useSettingsStore, cb), []),
+    useCallback(() => checkHydrated(useSettingsStore), [])
+  );
+  return nut && user && workout && ui && settings;
 }

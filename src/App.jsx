@@ -3,6 +3,7 @@ import { useWorkoutStore } from "./stores/workoutStore";
 import { useUserStore } from "./stores/userStore";
 import { useNutritionStore } from "./stores/nutritionStore";
 import { useUiStore } from "./stores/uiStore";
+import { useSettingsStore } from "./stores/settingsStore";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Zap, Dumbbell, Apple, Activity, User,
@@ -13,6 +14,7 @@ import {
 import { radius, shadow, transition, muscleColor } from "./styles/designSystem";
 import { Skeleton } from "./components/ui/Skeleton";
 import { EXERCISES, MUSCLES } from "./data/fitness";
+import logo from "../images/logo.png";
 import ExerciseImage from "./components/ExerciseImage";
 import Button from "./components/ui/Button";
 import Card from "./components/ui/Card";
@@ -33,6 +35,8 @@ import OfflineDetector from "./components/OfflineDetector";
 import WorkoutModal from "./components/WorkoutModal";
 import FoodPickerModal from "./components/FoodPickerModal";
 import Toast from "./components/Toast";
+import SplashScreen from "./components/SplashScreen";
+import Onboarding from "./components/Onboarding";
 
 const Dashboard = lazy(() => import("./components/Dashboard"));
 const WorkoutHub = lazy(() => import("./components/WorkoutHub"));
@@ -43,7 +47,8 @@ import useAddFood from "./hooks/useAddFood";
 import useNotifications from "./hooks/useNotifications";
 import { useHydrated } from "./hooks/useHydrated";
 import { useMediaQuery } from "./hooks/useMediaQuery";
-import { useState, useCallback, useMemo, lazy, Suspense } from "react";
+import { useReminderEngine } from "./hooks/useReminderEngine";
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
 function AppSkeleton() {
   return (
     <div style={{ maxWidth: 480, margin: "0 auto", padding: 20 }}>
@@ -86,6 +91,8 @@ const tabs = [
 
 export default function FitForce() {
   const hydrated = useHydrated();
+  const [showSplash, setShowSplash] = useState(true);
+  const hasCompletedOnboarding = useSettingsStore(s => s.hasCompletedOnboarding);
   const workoutLog = useWorkoutStore(s => s.workoutLog);
   const workoutSessions = useWorkoutStore(s => s.workoutSessions);
   const activeWorkout = useWorkoutStore(s => s.activeWorkout);
@@ -152,8 +159,11 @@ export default function FitForce() {
   const xpToNext = 500 - (xp % 500);
   const { addFoodToMeal, undoAddFood, toast, clearToast } = useAddFood();
   const { notification: smartNotification, dismiss: dismissNotification, checkNow } = useNotifications();
+  useReminderEngine();
   const [preselectedFood, setPreselectedFood] = useState(null);
   const isMobile = useMediaQuery("(max-width: 760px)");
+
+  useEffect(() => { window.scrollTo(0, 0); }, [tab]);
   const handleOpenModal = useCallback((food) => {
     setPreselectedFood(food || null);
     setShowMealModal(true);
@@ -165,7 +175,15 @@ export default function FitForce() {
   const h3s = { color: "var(--text)", fontSize: 15, fontWeight: 500, margin: "0 0 10px" };
   const grid2 = { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 14, marginBottom: 14 };
 
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  }
+
   if (!hydrated) return <AppSkeleton />;
+
+  if (!hasCompletedOnboarding) {
+    return <Onboarding />;
+  }
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--text)", fontFamily: "var(--family)", WebkitFontSmoothing: "antialiased", position: "relative" }}>
@@ -234,19 +252,13 @@ export default function FitForce() {
           transition={{ type: "spring", stiffness: 400, damping: 10 }}
           style={{
             width: isMobile ? 30 : 34, height: isMobile ? 30 : 34,
-            background: "var(--accent-gradient)",
-            borderRadius: radius.lg,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontWeight: 800,
-            fontSize: isMobile ? 13 : 15,
-            color: "#fff",
-            boxShadow: shadow.glow("var(--accent)"),
             flexShrink: 0,
           }}
         >
-          F
+          <img src={logo} alt="FitForce" style={{ width: "100%", height: "100%", display: "block" }} />
         </motion.div>
         {!isMobile && (
         <div style={{ marginRight: 8 }}>
@@ -345,7 +357,7 @@ export default function FitForce() {
             whileHover={{ scale: 1.08, boxShadow: shadow.softGlow("var(--accent)") }}
             onClick={() => setTab("profile")}
             style={{
-              width: isMobile ? 30 : 34, height: isMobile ? 30 : 34,
+            width: isMobile ? 48 : 56, height: isMobile ? 48 : 56,
               background: "var(--accent-gradient)",
               borderRadius: radius.full,
               display: "flex", alignItems: "center", justifyContent: "center",

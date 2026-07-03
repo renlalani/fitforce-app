@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Settings as SettingsIcon, Moon, Sun, Weight, Bell, Brain,
+  Settings as SettingsIcon, Moon, Sun, Weight, Brain,
   Shield, Download, Upload, Trash2, Info,
-  Dumbbell, Apple, Droplets, Beef, Clock, Zap,
 } from "lucide-react";
 import {  radius } from "../styles/designSystem";
 import { useSettingsStore } from "../stores/settingsStore";
 import Button from "./ui/Button";
+import logo from "../../images/logo.png";
 import { getAllFitForceData, safeSet } from "../utils/storage";
 import Card from "./ui/Card";
 import Toast from "./Toast";
+import ReminderSettings from "./ReminderSettings";
 
 const itemVariants = {
   initial: { opacity: 0, y: 12 },
@@ -195,27 +196,7 @@ export default function SettingsPage() {
       </div>
 
       <div style={sectionStyle}>
-        <Card>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <div style={{ width: 24, height: 24, borderRadius: radius.sm, background: `rgba(59,130,246,0.094)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Bell size={13} color={"var(--accent)"} />
-            </div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>Notifications</div>
-          </div>
-          <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 12 }}>Enable or disable reminders</div>
-          {[
-            ["workout", "Workout Reminder", "Remind you to complete workouts", <Dumbbell key="w" size={13} color={"var(--accent)"} />],
-            ["meal", "Meal Reminder", "Remind you to log meals", <Apple key="m" size={13} color={"var(--green)"} />],
-            ["water", "Water Reminder", "Stay hydrated throughout the day", <Droplets key="wa" size={13} color={"var(--blue)"} />],
-            ["protein", "Protein Reminder", "Hit your daily protein target", <Beef key="p" size={13} color={"var(--orange)"} />],
-            ["rest", "Rest Reminder", "Take rest days for recovery", <Clock key="r" size={13} color={"var(--purple)"} />],
-            ["streak", "Streak Reminder", "Keep your streak going", <Zap key="s" size={13} color={"var(--yellow)"} />],
-          ].map(([k, label, desc, icon]) => (
-            <SettingRow key={k} icon={icon} label={label} desc={desc}>
-              <Toggle id={`notif-${k}`} checked={settings.notifications[k]} onChange={(v) => settings.setNotification(k, v)} />
-            </SettingRow>
-          ))}
-        </Card>
+        <ReminderSettings />
       </div>
 
       <div style={sectionStyle}>
@@ -292,22 +273,13 @@ export default function SettingsPage() {
       <div style={sectionStyle}>
         <Card>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <div style={{ width: 24, height: 24, borderRadius: radius.sm, background: "var(--accent-gradient3)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 12 }}>
-              F
-            </div>
+            <img src={logo} alt="FitForce" style={{ width: 24, height: 24, display: "block" }} />
             <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>About</div>
           </div>
           <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 12 }}>FitForce version information</div>
           <div style={rowStyle()}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{
-                width: 28, height: 28, borderRadius: radius.sm,
-                background: "var(--accent-gradient)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontWeight: 700, fontSize: 14, color: "#fff",
-              }}>
-                F
-              </div>
+              <img src={logo} alt="FitForce" style={{ width: 28, height: 28, display: "block" }} />
               <div>
                 <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text)" }}>FitForce</div>
                 <div style={{ fontSize: 10, color: "var(--text-muted)" }}>AI Gym Companion</div>

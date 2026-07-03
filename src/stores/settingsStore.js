@@ -6,6 +6,7 @@ const STORAGE_VERSION = 1;
 const initialState = {
   theme: "dark",
   units: "kg",
+  hasCompletedOnboarding: false,
   notifications: {
     workout: true,
     meal: true,
@@ -31,6 +32,7 @@ export const useSettingsStore = create(
 
       setTheme: (theme) => set({ theme }),
       setUnits: (units) => set({ units }),
+      completeOnboarding: () => set({ hasCompletedOnboarding: true }),
       setNotification: (key, value) =>
         set((state) => ({
           notifications: { ...state.notifications, [key]: value },

@@ -4,13 +4,13 @@
   "description": "AI-powered fitness tracker with workout logging, nutrition tracking, and personal coaching",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0b",
-  "theme_color": "#ff3b3b",
+  "background_color": "#F8FAFC",
+  "theme_color": "#2563EB",
   "orientation": "portrait",
   "categories": ["fitness", "health", "lifestyle"],
   "lang": "en-US",
   "icons": [
-    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "/icons/icon.png", "sizes": "any", "type": "image/png", "purpose": "any maskable" }
   ],
   "screenshots": [],
   "related_applications": [],
