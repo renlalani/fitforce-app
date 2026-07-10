@@ -137,7 +137,7 @@ export default function Dashboard({
 
   const recent = useMemo(() => {
     const items = [];
-    workoutSessions.forEach(ws => items.push({ uid: `workout-${ws.id}`, type: "workout", text: `${ws.workoutName} · ${ws.totalVolume.toLocaleString()}kg volume`, time: ws.date, icon: Dumbbell, color: "var(--accent)" }));
+    workoutSessions.forEach(ws => items.push({ uid: `workout-${ws.id}`, type: "workout", text: `${ws.workoutName} · ${(ws.totalVolume || 0).toLocaleString()}kg volume`, time: ws.date, icon: Dumbbell, color: "var(--accent)" }));
     items.push({ uid: "xp", type: "xp", text: "+15 XP logged", time: "Today", icon: Zap, color: "var(--yellow)" });
     items.push({ uid: "meal", type: "meal", text: `${Math.round(totalCal)} kcal eaten`, time: "Today", icon: Apple, color: "var(--green)" });
     items.push({ uid: "water", type: "water", text: `${water}/8 glasses`, time: "Today", icon: Droplets, color: "var(--teal)" });
@@ -209,7 +209,7 @@ export default function Dashboard({
               fontSize: isMobile ? 26 : 34, fontWeight: 800, color: "var(--text)", margin: "0 0 4px",
               letterSpacing: "-0.03em", lineHeight: 1.15,
             }}>
-              {profile.name}
+              {profile?.name || "Athlete"}
             </h1>
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
               <div style={{
@@ -393,7 +393,7 @@ export default function Dashboard({
               }} />
               <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 6, letterSpacing: "0.03em", fontWeight: 500 }}>{m.label}</div>
               <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: "var(--text)", letterSpacing: "-0.03em" }}>
-                <AnimatedCounter value={m.value} /> <span style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 500 }}>/ {m.max}</span>
+                <AnimatedCounter value={m.value} /> <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>/ {m.max}</span>
               </div>
               <div style={{ height: 5, background: "var(--track)", borderRadius: radius.full, marginTop: 10, overflow: "hidden" }}>
                 <div
@@ -453,10 +453,10 @@ export default function Dashboard({
                   <stop offset="100%" stopColor={"var(--accent)"} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "var(--text-dim)", fontSize: isMobile ? 9 : 10 }} />
+              <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "var(--text-muted)", fontSize: isMobile ? 9 : 10 }} />
               <YAxis hide />
               <Tooltip content={<TooltipContent />} />
-              <Area type="monotone" dataKey="value" stroke={"var(--accent)"} strokeWidth={2} fill="url(#calGrad2)" dot={false} activeDot={{ r: 4, stroke: "var(--accent)", strokeWidth: 2, fill: "#fff" }} />
+              <Area type="monotone" dataKey="value" stroke={"var(--accent)"} strokeWidth={2} fill="url(#calGrad2)" dot={false} activeDot={{ r: 4, stroke: "var(--accent)", strokeWidth: 2, fill: "var(--bg-card)" }} />
             </AreaChart>
           </ResponsiveContainer>
         </motion.div>
@@ -496,7 +496,7 @@ export default function Dashboard({
                   <stop offset="100%" stopColor={"var(--highlight)"} stopOpacity={0.6} />
                 </linearGradient>
               </defs>
-              <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "var(--text-dim)", fontSize: isMobile ? 9 : 10 }} />
+              <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "var(--text-muted)", fontSize: isMobile ? 9 : 10 }} />
               <YAxis hide />
               <Tooltip content={<TooltipContent />} />
               <Bar dataKey="value" fill="url(#proteinGrad)" radius={[6, 6, 0, 0]} />
@@ -539,7 +539,7 @@ export default function Dashboard({
                   <stop offset="100%" stopColor={"var(--teal)"} stopOpacity={0.5} />
                 </linearGradient>
               </defs>
-              <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "var(--text-dim)", fontSize: isMobile ? 9 : 10 }} />
+              <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "var(--text-muted)", fontSize: isMobile ? 9 : 10 }} />
               <YAxis hide />
               <Tooltip content={<TooltipContent />} />
               <Bar dataKey="value" fill="url(#volumeGrad)" radius={[6, 6, 0, 0]} />
@@ -663,7 +663,7 @@ export default function Dashboard({
                       }}
                     />
                   </div>
-                  <div style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 3 }}>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3 }}>
                     {rem > 0 ? `${rem} remaining` : "Goal met!"}
                   </div>
                 </div>
@@ -741,7 +741,7 @@ export default function Dashboard({
               background: `linear-gradient(90deg, transparent, rgba(59,130,246,0.082), transparent)`,
             }} />
             {recent.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "20px", color: "var(--text-dim)", fontSize: 12 }}>
+              <div style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)", fontSize: 12 }}>
                 No activity yet. Start your first workout!
               </div>
             ) : (
@@ -768,7 +768,7 @@ export default function Dashboard({
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 12, color: "var(--text)" }}>{item.text}</div>
-                    <div style={{ fontSize: 10, color: "var(--text-dim)" }}>{item.time}</div>
+                    <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{item.time}</div>
                   </div>
                   <ChevronRight size={12} color={"var(--text-dim)"} />
                 </motion.div>

@@ -1,103 +1,152 @@
 import { motion } from "framer-motion";
-import { radius } from "../styles/designSystem";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from "recharts";
 
-export default function MiniChart({ data, color = "var(--accent)", label, gradientId, height = 80 }) {
+function CustomTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div
+      style={{
+        background: "var(--bg-card)",
+        border: "1px solid var(--border)",
+        borderRadius: 6,
+        padding: "6px 10px",
+        fontSize: 11,
+        fontWeight: 600,
+        color: "var(--text)",
+        whiteSpace: "nowrap",
+        boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
+      }}
+    >
+      {label}: {payload[0].value.toFixed(1)} kg
+    </div>
+  );
+}
+
+function Dot({ cx, cy, color }) {
+  if (cx == null || cy == null) return null;
+  return (
+    <circle cx={cx} cy={cy} r={3} fill={color} stroke="white" strokeWidth={1} />
+  );
+}
+
+function ActiveDot({ cx, cy, color }) {
+  if (cx == null || cy == null) return null;
+  return (
+    <>
+      <circle cx={cx} cy={cy} r={5} fill={color} opacity={0.12} />
+      <circle
+        cx={cx}
+        cy={cy}
+        r={4}
+        fill={color}
+        stroke="white"
+        strokeWidth={1.5}
+      />
+    </>
+  );
+}
+
+export default function MiniChart({ data, color = "var(--accent)", label, height = 120 }) {
   if (!data || data.length < 2) return null;
-  const vals = data.map(d => +(d.value || d.weight || 0));
-  const min = Math.min(...vals);
-  const max = Math.max(...vals);
-  const range = max - min || 1;
 
-  const pts = vals.map((v, i) => {
-    const x = i === 0 ? 0 : i === vals.length - 1 ? 100 : (i / (vals.length - 1)) * 100;
-    const y = 100 - ((v - min) / range) * 80 - 10;
-    return `${x},${y}`;
-  }).join(" ");
-
-  const areaPts = `0,100 ${pts} 100,100`;
-  const gid = gradientId || `chart-grad-${label?.replace(/\s/g, "") || "default"}`;
+  const chartData = data.map((d) => ({
+    date: d.date || "",
+    value: +(d.value || d.weight || 0),
+  }));
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
-      style={{ marginBottom: 12 }}
+      style={{ marginBottom: 16 }}
     >
       {label && (
-        <div style={{
-          fontSize: 11, color: "var(--text-muted)", marginBottom: 8,
-          display: "flex", justifyContent: "space-between", alignItems: "center",
-        }}>
+        <div
+          style={{
+            fontSize: 11,
+            color: "var(--text-muted)",
+            marginBottom: 10,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <span>{label}</span>
-          <span style={{ fontSize: 14, fontWeight: 600, color }}>{vals[vals.length - 1]}</span>
+          <span style={{ fontSize: 20, fontWeight: 700, color }}>
+            {chartData[chartData.length - 1].value}
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 400,
+                color: "var(--text-muted)",
+                marginLeft: 2,
+              }}
+            >
+              kg
+            </span>
+          </span>
         </div>
       )}
-      <div style={{
-        background: "var(--bg-card2)",
-        borderRadius: radius.md,
-        padding: "4px 0",
-        position: "relative",
-      }}>
-        <svg
-          viewBox="0 0 100 100"
-          style={{ width: "100%", height, display: "block" }}
-          preserveAspectRatio="none"
+
+      <ResponsiveContainer width="100%" height={height}>
+        <LineChart
+          data={chartData}
+          margin={{ top: 8, right: 8, bottom: 4, left: 8 }}
         >
-          <defs>
-            <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={color} stopOpacity="0.2" />
-              <stop offset="100%" stopColor={color} stopOpacity="0.02" />
-            </linearGradient>
-          </defs>
-          <motion.polygon
-            points={areaPts}
-            fill={`url(#${gid})`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+          <CartesianGrid
+            strokeDasharray=""
+            stroke="var(--border)"
+            strokeWidth={0.5}
+            vertical={false}
           />
-          <motion.polyline
-            points={pts}
-            fill="none"
+          <XAxis
+            dataKey="date"
+            ticks={[chartData[0].date, chartData[chartData.length - 1].date]}
+            tick={{
+              fontSize: 9,
+              fill: "var(--text-muted)",
+              fontWeight: 500,
+            }}
+            axisLine={false}
+            tickLine={false}
+            tickMargin={4}
+          />
+          <YAxis
+            domain={["dataMin - 1", "dataMax + 1"]}
+            tick={{
+              fontSize: 9,
+              fill: "var(--text-muted)",
+              fontWeight: 500,
+            }}
+            axisLine={false}
+            tickLine={false}
+            tickMargin={4}
+            width={30}
+            tickFormatter={(v) => v.toFixed(1)}
+          />
+          <Tooltip content={<CustomTooltip />} cursor={false} />
+          <Line
+            type="monotone"
+            dataKey="value"
             stroke={color}
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            strokeWidth={1.5}
+            dot={<Dot color={color} />}
+            activeDot={<ActiveDot color={color} />}
+            isAnimationActive={true}
+            animationDuration={1000}
+            animationEasing="easeInOut"
           />
-          {vals.map((v, i) => {
-            const cx = i === 0 ? 0 : i === vals.length - 1 ? 100 : (i / (vals.length - 1)) * 100;
-            const cy = 100 - ((v - min) / range) * 80 - 10;
-            const isEdge = i === 0 || i === vals.length - 1;
-            return (
-              <motion.circle
-                key={i}
-                cx={cx}
-                cy={cy}
-                r={isEdge ? 3 : 2.5}
-                fill={color}
-                stroke="var(--bg-card2)"
-                strokeWidth={1}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.5 + i * 0.08 }}
-              />
-            );
-          })}
-        </svg>
-        {/* X-axis labels */}
-        <div style={{
-          display: "flex", justifyContent: "space-between",
-          padding: "2px 2px 0",
-        }}>
-          <span style={{ fontSize: 8, color: "var(--text-dim)" }}>{data[0]?.date || ""}</span>
-          <span style={{ fontSize: 8, color: "var(--text-dim)" }}>{data[data.length - 1]?.date || ""}</span>
-        </div>
-      </div>
+        </LineChart>
+      </ResponsiveContainer>
     </motion.div>
   );
 }

@@ -35,7 +35,7 @@ export default function EmptyState({ icon: Icon, title, description, action, com
         {title}
       </div>
       {description && (
-        <div style={{ color: "var(--text-dim)", fontSize: 12, marginBottom: action ? 16 : 0, lineHeight: 1.5 }}>
+        <div style={{ color: "var(--text-muted)", fontSize: 12, marginBottom: action ? 16 : 0, lineHeight: 1.5 }}>
           {description}
         </div>
       )}

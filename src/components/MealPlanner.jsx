@@ -342,15 +342,16 @@ Include realistic food portions and a practical shopping list.`;
                 </div>
               )}
 
+              {error && (
+                <div role="alert" style={{
+                  background: `rgba(239,68,68,0.063)`, border: `1px solid rgba(239,68,68,0.145)`,
+                  borderRadius: radius.md, padding: "10px 14px", marginBottom: 16,
+                  fontSize: 12, color: "var(--red)",
+                }}>{error}</div>
+              )}
+
               {result && !generating && (
                 <motion.div key="result" variants={stepVariant} initial="enter" animate="center" exit="exit">
-                  {error && (
-                    <div style={{
-                      background: `rgba(239,68,68,0.063)`, border: `1px solid rgba(239,68,68,0.145)`,
-                      borderRadius: radius.md, padding: "10px 14px", marginBottom: 16,
-                      fontSize: 12, color: "var(--red)",
-                    }}>{error}</div>
-                  )}
 
                   <div style={{ marginBottom: 16 }}>
                     <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>

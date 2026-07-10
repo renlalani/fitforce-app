@@ -88,7 +88,7 @@ export default function Toast({ message, sub, visible, onClose, onUndo, duration
             style={{
               background: "transparent",
               border: "none",
-              color: "var(--text-dim)",
+              color: "var(--text-muted)",
               cursor: "pointer",
               padding: 4,
               display: "flex",

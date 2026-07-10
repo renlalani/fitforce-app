@@ -45,6 +45,9 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
+          role="dialog"
+          aria-modal="true"
+          aria-label={exercise?.name || "Exercise details"}
           style={{
             position: "fixed", inset: 0,
             background: "var(--overlay)",
@@ -83,6 +86,7 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={onClose}
+                aria-label="Close"
                 style={{
                   position: "absolute", top: 12, right: 12,
                   background: "rgba(0,0,0,0.5)", border: "none",

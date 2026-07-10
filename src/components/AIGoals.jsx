@@ -189,7 +189,7 @@ export default function AIGoals() {
               fontSize: 10, color: "var(--text-muted)",
             }}>
               <span>{goal.progress}% complete</span>
-              <span>{new Date(goal.createdAt).toLocaleDateString()}</span>
+              <span>{goal.createdAt ? new Date(goal.createdAt).toLocaleDateString() : "Recent"}</span>
             </div>
           </motion.div>
           );

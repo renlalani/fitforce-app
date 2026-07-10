@@ -213,6 +213,9 @@ export default function WorkoutModal({ plan, onClose }) {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Workout complete"
           style={{
             position: "fixed", inset: 0,
             background: "var(--overlay)",
@@ -269,7 +272,7 @@ export default function WorkoutModal({ plan, onClose }) {
             >
               {plan.name}
               <br />
-              <span style={{ color: "var(--text-dim)", fontSize: 12 }}>
+              <span style={{ color: "var(--text-muted)", fontSize: 12 }}>
                 {["Great job!", "You crushed it!", "Amazing effort!", "Keep it up!", "Outstanding!"][plan.name.length % 5]}
               </span>
             </motion.p>
@@ -404,6 +407,9 @@ export default function WorkoutModal({ plan, onClose }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Workout session"
       style={{
         position: "fixed", inset: 0,
         background: "var(--overlay)",
@@ -466,7 +472,7 @@ export default function WorkoutModal({ plan, onClose }) {
               }}
           />
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--text-dim)", marginBottom: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--text-muted)", marginBottom: 16 }}>
           <span>{doneSets + 1}/{totalSets} sets</span>
           <span>{completedSets.length} done</span>
           <span>~{estCal} cal</span>

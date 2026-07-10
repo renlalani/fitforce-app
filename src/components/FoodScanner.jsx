@@ -69,6 +69,7 @@ export default function FoodScanner({ open, onClose }) {
     } catch (err) {
       if (err?.rateLimited) {
         setError("Rate limited. Please wait before scanning again.");
+        setStep("manual");
       } else {
         setError(err?.message || "Analysis failed. Try describing the food manually.");
         setStep("manual");
@@ -229,7 +230,7 @@ export default function FoodScanner({ open, onClose }) {
               {step === "manual" && (
                 <motion.div key="manual" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                   {error && (
-                    <div style={{
+                    <div role="alert" style={{
                       background: `rgba(239,68,68,0.063)`, border: `1px solid rgba(239,68,68,0.145)`,
                       borderRadius: radius.md, padding: "10px 14px", marginBottom: 16,
                       fontSize: 12, color: "var(--red)",

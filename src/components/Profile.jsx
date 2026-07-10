@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Dumbbell, Apple, Flame, Zap, Trophy, TrendingUp, Ruler, Camera, Calendar, Crown, Sparkles, Activity, Target } from "lucide-react";
+import ProgressPhotos from "./ProgressPhotos";
 import { radius, shadow, muscleColor } from "../styles/designSystem";
 import Button from "./ui/Button";
 import Card from "./ui/Card";
@@ -381,35 +382,20 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
         </Card>
       </motion.div>
 
-      {/* Progress Photos Placeholder */}
+      {/* Progress Photos */}
       <motion.div variants={itemVariants} style={{ marginBottom: 14 }}>
-        <Card>
+        <Card style={{ padding: "18px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
             <div style={{ width: 26, height: 26, borderRadius: radius.sm, background: `rgba(168,85,247,0.125)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Camera size={13} color={"var(--purple)"} />
             </div>
             <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Progress Photos</span>
           </div>
-          <motion.div
-            whileHover={{ borderColor: "rgba(168,85,247,0.3)" }}
-            style={{
-              background: `linear-gradient(135deg, rgba(168,85,247,0.031), var(--bg-card2))`,
-              borderRadius: radius.lg,
-              border: `2px dashed rgba(168,85,247,0.157)`,
-              padding: "28px", textAlign: "center",
-              transition: "border-color 0.2s ease",
-            }}
-          >
-            <motion.div
-              animate={{ scale: [1, 1.05, 1] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              style={{ marginBottom: 8 }}
-            >
-              <Camera size={28} color={"var(--purple)"} />
-            </motion.div>
-            <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text-muted)", marginBottom: 4 }}>Track your transformation</div>
-            <div style={{ fontSize: 11, color: "var(--text-dim)", lineHeight: 1.5 }}>Progress photos coming soon —<br />compare your progress over time</div>
-          </motion.div>
+          <ProgressPhotos
+            streak={streak}
+            level={level}
+            bodyStats={bodyStats}
+          />
         </Card>
       </motion.div>
 

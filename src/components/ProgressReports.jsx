@@ -3,12 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   FileText, Calendar, TrendingUp, Dumbbell,
   Brain, Download, BarChart3, Award,
-  Target, Zap, Activity,
+  Target, Zap, Activity, Camera,
 } from "lucide-react";
 import { radius, shadow } from "../styles/designSystem";
 import Button from "./ui/Button";
 import Card from "./ui/Card";
 import MiniChart from "./MiniChart";
+import ProgressPhotos from "./ProgressPhotos";
 import { exportAsJSON } from "../utils/exportData";
 
 const itemVariants = {
@@ -391,6 +392,23 @@ export default function ProgressReports({
           style={{ flex: 1, fontSize: 11 }}>
           <BarChart3 size={12} /> Export JSON
         </Button>
+      </motion.div>
+
+      {/* Progress Photos */}
+      <motion.div variants={itemVariants} style={{ marginTop: 16 }}>
+        <Card style={{ padding: "18px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+            <div style={{ width: 26, height: 26, borderRadius: radius.sm, background: `rgba(168,85,247,0.125)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Camera size={13} color={"var(--purple)"} />
+            </div>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Progress Photos</span>
+          </div>
+          <ProgressPhotos
+            streak={streak}
+            level={level}
+            bodyStats={bodyStats}
+          />
+        </Card>
       </motion.div>
     </motion.div>
   );

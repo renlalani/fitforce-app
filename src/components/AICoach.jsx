@@ -1078,7 +1078,7 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
                   )}
                 </div>
               </div>
-              <div style={{ fontSize: 10, color: "var(--text-dim)", textAlign: "center", marginTop: 6 }}>
+              <div style={{ fontSize: 10, color: "var(--text-muted)", textAlign: "center", marginTop: 6 }}>
                 Enter to send · Shift+Enter for new line · Esc to cancel
               </div>
             </div>

@@ -240,7 +240,7 @@ function HistoryModal({ open, onClose, reminders }) {
                     <div
                       style={{
                         fontSize: 10,
-                        color: "var(--text-dim)",
+color: "var(--text-muted)",
                         flexShrink: 0,
                       }}
                     >
@@ -324,7 +324,7 @@ function ReminderCard({ reminderKey }) {
                 </span>
               </>
             ) : (
-              <span style={{ color: "var(--text-dim)" }}>Disabled</span>
+              <span style={{ color: "var(--text-muted)" }}>Disabled</span>
             )}
           </div>
         </div>
@@ -556,7 +556,7 @@ function ReminderCard({ reminderKey }) {
               <div
                 style={{
                   fontSize: 10,
-                  color: "var(--text-dim)",
+                  color: "var(--text-muted)",
                   textAlign: "right",
                 }}
               >

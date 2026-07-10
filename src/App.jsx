@@ -1099,7 +1099,7 @@ export default function FitForce() {
                               >
                                 <div style={{ fontSize: 14, color: c, fontWeight: 600 }}>{v}kg</div>
                                 <div style={{ fontSize: 9, color: "var(--text-muted)" }}>{p}</div>
-                                <div style={{ fontSize: 9, color: "var(--text-dim)" }}>{l}</div>
+                                <div style={{ fontSize: 9, color: "var(--text-muted)" }}>{l}</div>
                               </motion.div>
                             ))}
                           </div>
@@ -1268,7 +1268,7 @@ export default function FitForce() {
                 aria-selected={active}
                 aria-label={t.label}
                 style={{
-                  color: active ? "var(--accent)" : "var(--text-dim)",
+                    color: active ? "var(--accent)" : "var(--text-muted)",
                 }}
               >
                 {active && (

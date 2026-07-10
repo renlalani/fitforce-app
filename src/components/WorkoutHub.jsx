@@ -141,7 +141,7 @@ export default function WorkoutHub({
   ];
 
   const workoutXp = weeklyXp || 0;
-  const nextLevelXp = level * 500;
+  const nextLevelXp = Math.max(1, level * 500);
   const xpProgress = Math.min(100, (workoutXp / nextLevelXp) * 100);
 
   return (
@@ -686,7 +686,7 @@ export default function WorkoutHub({
                       <Search size={22} color={"var(--text-dim)"} />
                     </div>
                     <div style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 6, fontWeight: 500 }}>No exercises found</div>
-                    <div style={{ color: "var(--text-dim)", fontSize: 12, marginBottom: 20, lineHeight: 1.5 }}>Try a different muscle group or search term</div>
+                    <div style={{ color: "var(--text-muted)", fontSize: 12, marginBottom: 20, lineHeight: 1.5 }}>Try a different muscle group or search term</div>
                     <Button onClick={() => { setFilterMuscle("All"); setSearchQuery(""); }}>Clear Filters</Button>
                   </motion.div>
                 ) : (
@@ -791,7 +791,7 @@ export default function WorkoutHub({
                       <Dumbbell size={22} color={"var(--text-dim)"} />
                     </div>
                     <div style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 6, fontWeight: 500 }}>No workout history yet</div>
-                    <div style={{ color: "var(--text-dim)", fontSize: 12, marginBottom: 20, lineHeight: 1.5 }}>Complete your first workout to see it here</div>
+                    <div style={{ color: "var(--text-muted)", fontSize: 12, marginBottom: 20, lineHeight: 1.5 }}>Complete your first workout to see it here</div>
                     <Button onClick={() => setActiveWorkout(suggestedPlan)}><Play size={14} /> Start Workout</Button>
                   </div>
                 ) : (
@@ -996,7 +996,7 @@ export default function WorkoutHub({
                           <div style={{ fontSize: 10, color: a.unlocked ? a.color : "var(--text-muted)", fontWeight: 600, lineHeight: 1.3 }}>
                             {a.name}
                           </div>
-                          <div style={{ fontSize: 9, color: "var(--text-dim)", marginTop: 2 }}>{a.desc}</div>
+                          <div style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 2 }}>{a.desc}</div>
                         </motion.div>
                       ))}
                     </div>

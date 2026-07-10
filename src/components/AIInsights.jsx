@@ -2,9 +2,9 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Brain, TrendingUp, Target, Dumbbell, Apple, Droplets,
-  Zap, ChevronDown, ChevronUp
+  Zap, ChevronDown, ChevronUp, Info
 } from "lucide-react";
-import {  radius } from "../styles/designSystem";
+import { radius } from "../styles/designSystem";
 
 export default function AIInsights({
   profile, workoutSessions = [], meals = [], water,
@@ -167,8 +167,6 @@ export default function AIInsights({
     });
   }, [workoutSessions, meals, water, totalCal, totalProt, calGoal, protGoal, streak, prs, bodyStats]);
 
-  if (insights.length === 0) return null;
-
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
@@ -185,8 +183,22 @@ export default function AIInsights({
         </div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {insights.map((insight, idx) => (
+      {insights.length === 0 ? (
+        <div style={{
+          background: "var(--bg-card2)", border: `1px solid var(--border)`,
+          borderRadius: radius.md, padding: "20px", textAlign: "center",
+        }}>
+          <Info size={20} color="var(--text-muted)" style={{ marginBottom: 8 }} />
+          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>
+            No insights yet
+          </div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
+            Log your first workout or meal to get personalized AI insights.
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {insights.map((insight, idx) => (
           <motion.div
             key={insight.id}
             initial={{ opacity: 0, y: 10 }}
@@ -245,13 +257,14 @@ export default function AIInsights({
                   )}
                 </AnimatePresence>
               </div>
-              <div style={{ color: "var(--text-dim)", flexShrink: 0, marginTop: 2 }}>
+              <div style={{ color: "var(--text-muted)", flexShrink: 0, marginTop: 2 }}>
                 {expanded === insight.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               </div>
             </div>
           </motion.div>
         ))}
       </div>
+      )}
     </div>
   );
 }

@@ -2,8 +2,8 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Apple, Flame, Droplets, Plus, X, ChevronDown, Zap,
-  Activity, Utensils, Heart, Brain, Sparkles, Salad,
-  Timer, TrendingUp, Award, CheckCircle, Target,
+  Activity, Utensils, Heart, Brain,
+  Award, Target,
   Sunrise, Sun, Moon, Cookie, Dumbbell, Leaf,
   AlertTriangle, Check,
 } from "lucide-react";
@@ -440,7 +440,7 @@ export default function MealHub({ calGoal, protGoal, onOpenModal }) {
                             transition: "width 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)",
                           }} />
                         </div>
-                        <div style={{ fontSize: 8, color: "var(--text-dim)" }}>{label}</div>
+                        <div style={{ fontSize: 9, color: "var(--text-muted)" }}>{label}</div>
                       </div>
                     );
                   })}

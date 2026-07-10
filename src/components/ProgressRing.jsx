@@ -53,7 +53,7 @@ export default function ProgressRing({ value, max, size = 100, strokeWidth = 8, 
         </div>
       </div>
       <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>{label}</div>
-      <div style={{ fontSize: 10, color: "var(--text-dim)" }}>{sub || `${Math.round(value)}/${max}`}</div>
+      <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{sub || `${Math.round(value)}/${max}`}</div>
     </div>
   );
 }
