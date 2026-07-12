@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
+import useScrollLock from "../hooks/useScrollLock";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Camera, Grid3X3, List, Shuffle, ImageIcon,
@@ -65,6 +66,9 @@ export default function ProgressPhotos({ streak, level, bodyStats }) {
   const [menuRect, setMenuRect] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
+
+  const anyModalOpen = !!deleteConfirm || !!showSheet || !!showCategoryPicker || !!uploading || !!uploadSuccess;
+  useScrollLock(anyModalOpen);
 
   const fileRef = useRef(null);
   const cameraRef = useRef(null);
@@ -260,7 +264,9 @@ export default function ProgressPhotos({ streak, level, bodyStats }) {
   }, [menuPhotoId, closeMenu]);
 
   // ---- Bottom Sheet ----
-  const BottomSheet = () => (
+  const BottomSheet = () => {
+    useScrollLock(true);
+    return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -391,11 +397,15 @@ export default function ProgressPhotos({ streak, level, bodyStats }) {
           </motion.button>
         </div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body
   );
+  };
 
   // ---- Category Picker ----
-  const CategoryPicker = () => (
+  const CategoryPicker = () => {
+    useScrollLock(true);
+    return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -490,11 +500,15 @@ export default function ProgressPhotos({ streak, level, bodyStats }) {
           </motion.button>
         </div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body
   );
+  };
 
   // ---- Upload animation overlay ----
-  const UploadOverlay = () => (
+  const UploadOverlay = () => {
+    useScrollLock(true);
+    return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -543,8 +557,10 @@ export default function ProgressPhotos({ streak, level, bodyStats }) {
           {uploadSuccess ? "Your progress is being tracked" : "Compressing and storing"}
         </div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body
   );
+  };
 
   // ---- Photo Card ----
   const PhotoCard = ({ photo, index }) => {
@@ -1066,13 +1082,13 @@ export default function ProgressPhotos({ streak, level, bodyStats }) {
 
       {/* Delete confirmation dialog */}
       <AnimatePresence>
-        {deleteConfirm && (
+        {deleteConfirm && createPortal(
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             style={{
-              position: "fixed", inset: 0, zIndex: 2000,
+              position: "fixed", inset: 0, zIndex: 10000,
               background: "rgba(0,0,0,0.45)",
               backdropFilter: "blur(8px)",
               display: "flex", alignItems: "center", justifyContent: "center",
@@ -1137,7 +1153,8 @@ export default function ProgressPhotos({ streak, level, bodyStats }) {
                 </motion.button>
               </div>
             </motion.div>
-          </motion.div>
+          </motion.div>,
+          document.body
         )}
       </AnimatePresence>
 

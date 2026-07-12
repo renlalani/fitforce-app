@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Play, SkipForward, Trophy, Clock, Dumbbell, Zap,
@@ -13,6 +14,7 @@ import { Tag } from "./ui/Tag";
 import ConfettiEffect from "./ConfettiEffect";
 import { useWorkoutStore } from "../stores/workoutStore";
 import { useUserStore } from "../stores/userStore";
+import useScrollLock from "../hooks/useScrollLock";
 
 const LEVEL_COLOR = () => ({ Beginner: "var(--green)", Intermediate: "var(--yellow)", Advanced: "var(--accent)" });
 const MUSCLE_EMOJI = {
@@ -69,6 +71,7 @@ function CircularTimer({ total, remaining, phase }) {
 }
 
 export default function WorkoutModal({ plan, onClose }) {
+  useScrollLock(true);
   const xp = useUserStore(s => s.xp);
   const exList = plan.exercises.map(id => EXERCISES.find(e => e.id === id)).filter(Boolean);
   const [idx, setIdx] = useState(0);
@@ -207,7 +210,7 @@ export default function WorkoutModal({ plan, onClose }) {
     ];
     const newAchievements = achievementsData.filter(a => a.unlocked);
 
-    return (
+    return createPortal(
       <>
         <ConfettiEffect active={showCelebration} />
         <motion.div
@@ -221,7 +224,7 @@ export default function WorkoutModal({ plan, onClose }) {
             background: "var(--overlay)",
             backdropFilter: "blur(24px) saturate(1.4)", WebkitBackdropFilter: "blur(24px) saturate(1.4)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            zIndex: 1000, padding: 16, overflowY: "auto",
+            zIndex: 10000, padding: 16, overflowY: "auto",
           }}
         >
           <motion.div
@@ -396,13 +399,14 @@ export default function WorkoutModal({ plan, onClose }) {
             </motion.button>
           </motion.div>
         </motion.div>
-      </>
-    );
+      </>,
+    document.body
+  );
   }
 
   const showNextEx = phase === "rest" && nextEx;
 
-  return (
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -415,7 +419,7 @@ export default function WorkoutModal({ plan, onClose }) {
         background: "var(--overlay)",
         backdropFilter: "blur(24px) saturate(1.4)", WebkitBackdropFilter: "blur(24px) saturate(1.4)",
         display: "flex", alignItems: "center", justifyContent: "center",
-        zIndex: 1000, padding: 16,
+        zIndex: 10000, padding: 16,
       }}
     >
       <motion.div
@@ -935,7 +939,8 @@ export default function WorkoutModal({ plan, onClose }) {
           )}
         </div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body
   );
 }
 

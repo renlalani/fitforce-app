@@ -5,6 +5,8 @@ import {  radius, shadow, transition } from "../styles/designSystem";
 import Button from "./ui/Button";
 import { streamAI } from "../utils/api";
 import { useWorkoutStore } from "../stores/workoutStore";
+import { createPortal } from "react-dom";
+import useScrollLock from "../hooks/useScrollLock";
 
 const GOALS = ["Muscle Gain", "Fat Loss", "Strength", "Endurance", "General Fitness"];
 const LEVELS = ["Beginner", "Intermediate", "Advanced"];
@@ -92,6 +94,7 @@ function DayCard({ day }) {
 }
 
 export default function WorkoutGenerator({ open, onClose }) {
+  useScrollLock(open);
   const [step, setStep] = useState(0);
   const [goal, setGoal] = useState("Muscle Gain");
   const [level, setLevel] = useState("Intermediate");
@@ -212,7 +215,7 @@ Include specific exercises with sets, reps, and rest times. Make it realistic an
 
   const isLoading = generating;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -226,7 +229,7 @@ Include specific exercises with sets, reps, and rest times. Make it realistic an
             backdropFilter: "blur(24px) saturate(1.4)",
             WebkitBackdropFilter: "blur(24px) saturate(1.4)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            zIndex: 1000, padding: 12, overflowY: "auto",
+            zIndex: 10000, padding: 12, overflowY: "auto",
           }}
           onClick={(e) => { if (e.target === e.currentTarget) { onClose(); setStep(0); setResult(null); } }}
         >
@@ -461,7 +464,8 @@ Include specific exercises with sets, reps, and rest times. Make it realistic an
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 

@@ -1,7 +1,9 @@
 import { useState, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { MoveHorizontal, Calendar, TrendingDown } from "lucide-react";
 import { radius, shadow } from "../styles/designSystem";
+import useScrollLock from "../hooks/useScrollLock";
 
 function daysBetween(d1, d2) {
   const a = new Date(d1);
@@ -15,6 +17,7 @@ function weightDiff(w1, w2) {
 }
 
 export default function BeforeAfterSlider({ before, after, onClose }) {
+  useScrollLock(true);
   const containerRef = useRef(null);
   const [sliderPos, setSliderPos] = useState(50);
   const isDragging = useRef(false);
@@ -48,13 +51,13 @@ export default function BeforeAfterSlider({ before, after, onClose }) {
   const diff = weightDiff(before.weight, after.weight);
   const isProgress = after.weight != null && before.weight != null && after.weight < before.weight;
 
-  return (
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       style={{
-        position: "fixed", inset: 0, zIndex: 2000,
+        position: "fixed", inset: 0, zIndex: 10000,
         background: "var(--overlay)",
         backdropFilter: "blur(24px) saturate(1.4)",
         WebkitBackdropFilter: "blur(24px) saturate(1.4)",
@@ -256,6 +259,7 @@ export default function BeforeAfterSlider({ before, after, onClose }) {
           </div>
         </div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body
   );
 }

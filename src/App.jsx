@@ -37,6 +37,9 @@ import FoodPickerModal from "./components/FoodPickerModal";
 import Toast from "./components/Toast";
 import SplashScreen from "./components/SplashScreen";
 import Onboarding from "./components/Onboarding";
+import AuthScreen from "./components/AuthScreen";
+import { useAuthStore } from "./stores/authStore";
+import { auth, onAuthStateChanged, isFirebaseReady } from "./utils/firebase";
 
 const Dashboard = lazy(() => import("./components/Dashboard"));
 const WorkoutHub = lazy(() => import("./components/WorkoutHub"));
@@ -48,6 +51,7 @@ import useNotifications from "./hooks/useNotifications";
 import { useHydrated } from "./hooks/useHydrated";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 import { useReminderEngine } from "./hooks/useReminderEngine";
+import useScrollLock from "./hooks/useScrollLock";
 import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
 function AppSkeleton() {
   return (
@@ -125,6 +129,8 @@ export default function FitForce() {
   const setShowFoodScanner = useUiStore(s => s.setShowFoodScanner);
   const showExDetail = useUiStore(s => s.showExDetail);
   const setShowExDetail = useUiStore(s => s.setShowExDetail);
+  const anyModalOpen = !!activeWorkout || !!showExDetail || showMealModal || showWorkoutGenerator || showMealPlanner || showFoodScanner;
+  useScrollLock(anyModalOpen);
   const newBodyStat = useUiStore(s => s.newBodyStat);
   const setNewBodyStat = useUiStore(s => s.setNewBodyStat);
   const orm1W = useUiStore(s => s.orm1W);
@@ -157,11 +163,39 @@ export default function FitForce() {
   const protGoal = Math.round(latestWeight * 2);
   const level = Math.floor(xp / 500) + 1;
   const xpToNext = 500 - (xp % 500);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { addFoodToMeal, undoAddFood, toast, clearToast } = useAddFood();
   const { notification: smartNotification, dismiss: dismissNotification, checkNow } = useNotifications();
   useReminderEngine();
   const [preselectedFood, setPreselectedFood] = useState(null);
   const isMobile = useMediaQuery("(max-width: 760px)");
+
+  useEffect(() => {
+    if (!isFirebaseReady()) return;
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      const state = useAuthStore.getState();
+      if (firebaseUser) {
+        if (!state.isAuthenticated) {
+          const providerId = firebaseUser.providerData?.[0]?.providerId || "google";
+          useAuthStore.getState().login(
+            {
+              uid: firebaseUser.uid,
+              name: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "User",
+              email: firebaseUser.email,
+              photo: firebaseUser.photoURL,
+              provider: providerId,
+            },
+            providerId
+          );
+        }
+      } else {
+        if (state.isAuthenticated && state.authMethod !== "guest" && state.authMethod !== null) {
+          useAuthStore.getState().logout();
+        }
+      }
+    });
+    return unsubscribe;
+  }, []);
 
   useEffect(() => { window.scrollTo(0, 0); }, [tab]);
   const handleOpenModal = useCallback((food) => {
@@ -183,6 +217,10 @@ export default function FitForce() {
 
   if (!hasCompletedOnboarding) {
     return <Onboarding />;
+  }
+
+  if (!isAuthenticated) {
+    return <AuthScreen />;
   }
 
   return (
@@ -1248,7 +1286,7 @@ export default function FitForce() {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      {isMobile && (
+      {isMobile && !anyModalOpen && (
         <nav className="bottom-nav" role="tablist" aria-label="Main navigation">
           {[
             { id: "dashboard", label: "Home", icon: Activity },
@@ -1305,6 +1343,7 @@ export default function FitForce() {
       />
 
       {/* AI Chat Orb */}
+      {!anyModalOpen && (
       <motion.button
         onClick={() => setTab("ai")}
         initial={{ scale: 0, opacity: 0 }}
@@ -1374,6 +1413,7 @@ export default function FitForce() {
           AI Coach
         </motion.div>
       </motion.button>
+      )}
       </div>
     </div>
   );

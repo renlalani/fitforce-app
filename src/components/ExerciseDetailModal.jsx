@@ -6,6 +6,8 @@ import Card from "./ui/Card";
 import { Tag, Badge } from "./ui/Tag";
 import { EXERCISES } from "../data/fitness";
 import { EXERCISE_DETAILS, EQUIPMENT_ICONS, getSimilarExercises } from "../data/exerciseDetails";
+import { createPortal } from "react-dom";
+import useScrollLock from "../hooks/useScrollLock";
 
 const sectionVariant = {
   hidden: { opacity: 0, y: 12 },
@@ -23,6 +25,7 @@ const MUSCLE_EMOJI = {
 };
 
 export default function ExerciseDetailModal({ exercise, open, onClose, onSelectExercise }) {
+  useScrollLock(open);
   if (!exercise) return null;
   const details = EXERCISE_DETAILS[exercise.id];
   const similar = getSimilarExercises(exercise, EXERCISES);
@@ -37,7 +40,7 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
     { label: "Calories", value: `~${exercise.cal} cal`, icon: <Flame size={16} /> },
   ];
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -54,7 +57,7 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
             backdropFilter: "blur(24px) saturate(1.4)",
             WebkitBackdropFilter: "blur(24px) saturate(1.4)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            zIndex: 1000, padding: 12, overflowY: "auto",
+            zIndex: 10000, padding: 12, overflowY: "auto",
           }}
           onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
         >
@@ -310,7 +313,8 @@ export default function ExerciseDetailModal({ exercise, open, onClose, onSelectE
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 

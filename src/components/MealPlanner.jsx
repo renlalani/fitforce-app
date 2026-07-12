@@ -5,6 +5,9 @@ import {  radius, shadow } from "../styles/designSystem";
 import Button from "./ui/Button";
 import { streamAI } from "../utils/api";
 import { useNutritionStore } from "../stores/nutritionStore";
+import { createPortal } from "react-dom";
+import useScrollLock from "../hooks/useScrollLock";
+
 
 const stepVariant = {
   enter: { opacity: 0, x: 40 },
@@ -78,6 +81,7 @@ function MealCard({ title, foods, cal }) {
 }
 
 export default function MealPlanner({ open, onClose }) {
+  useScrollLock(open);
   const [calories, setCalories] = useState("2200");
   const [protein, setProtein] = useState("140");
   const [diet, setDiet] = useState("Non-Vegetarian");
@@ -201,7 +205,7 @@ Include realistic food portions and a practical shopping list.`;
   const diIcons = [<Flame size={16} />, <DollarSign size={16} />, <Utensils size={16} />];
   const diValues = [[diet, setDiet], [budget, setBudget], [meals, setMeals]];
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -215,7 +219,7 @@ Include realistic food portions and a practical shopping list.`;
             backdropFilter: "blur(24px) saturate(1.4)",
             WebkitBackdropFilter: "blur(24px) saturate(1.4)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            zIndex: 1000, padding: 12, overflowY: "auto",
+            zIndex: 10000, padding: 12, overflowY: "auto",
           }}
           onClick={(e) => { if (e.target === e.currentTarget) { onClose(); setResult(null); } }}
         >
@@ -445,7 +449,8 @@ Include realistic food portions and a practical shopping list.`;
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 

@@ -1,12 +1,15 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import {
   X, ZoomIn, ZoomOut, Trash2, Share2, RefreshCw,
   Calendar, Target, Zap, Scale,
 } from "lucide-react";
 import { radius, shadow } from "../styles/designSystem";
+import useScrollLock from "../hooks/useScrollLock";
 
 export default function PhotoViewer({ photo, onClose, onDelete, onReplace }) {
+  useScrollLock(true);
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -81,13 +84,13 @@ export default function PhotoViewer({ photo, onClose, onDelete, onReplace }) {
     e.target.value = "";
   }, [photo.id, onReplace]);
 
-  return (
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       style={{
-        position: "fixed", inset: 0, zIndex: 2000,
+        position: "fixed", inset: 0, zIndex: 10000,
         background: "rgba(0,0,0,0.92)",
         display: "flex", flexDirection: "column",
       }}
@@ -270,6 +273,7 @@ export default function PhotoViewer({ photo, onClose, onDelete, onReplace }) {
         style={{ display: "none" }}
         onChange={handleFileChange}
       />
-    </motion.div>
+    </motion.div>,
+    document.body
   );
 }

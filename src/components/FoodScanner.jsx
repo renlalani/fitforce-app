@@ -5,6 +5,8 @@ import {  radius, shadow } from "../styles/designSystem";
 import Button from "./ui/Button";
 import { callAI } from "../utils/api";
 import { useNutritionStore } from "../stores/nutritionStore";
+import { createPortal } from "react-dom";
+import useScrollLock from "../hooks/useScrollLock";
 
 const VISION_MODEL = "qwen/qwen2.5-vl-72b-instruct:free";
 
@@ -19,6 +21,7 @@ export default function FoodScanner({ open, onClose }) {
   const fileRef = useRef(null);
   const uid = useId();
   const addMeal = useNutritionStore(s => s.addMeal);
+  useScrollLock(open);
 
   const handleFile = useCallback((e) => {
     const file = e.target.files?.[0];
@@ -127,7 +130,7 @@ export default function FoodScanner({ open, onClose }) {
     setAnalyzing(false);
   }, []);
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -141,7 +144,7 @@ export default function FoodScanner({ open, onClose }) {
             backdropFilter: "blur(24px) saturate(1.4)",
             WebkitBackdropFilter: "blur(24px) saturate(1.4)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            zIndex: 1000, padding: 12, overflowY: "auto",
+            zIndex: 10000, padding: 12, overflowY: "auto",
           }}
           onClick={(e) => { if (e.target === e.currentTarget) { onClose(); resetAll(); } }}
         >
@@ -412,7 +415,8 @@ export default function FoodScanner({ open, onClose }) {
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 

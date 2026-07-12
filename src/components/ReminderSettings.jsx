@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Dumbbell, Droplets, Apple, Moon, Scale,
@@ -6,8 +7,9 @@ import {
   Trash2, X,
 } from "lucide-react";
 import { useReminderStore, DAYS } from "../stores/reminderStore";
-import { radius } from "../styles/designSystem";
+import {  radius } from "../styles/designSystem";
 import Card from "./ui/Card";
+import useScrollLock from "../hooks/useScrollLock";
 
 const REMINDER_CONFIG = {
   workout: {
@@ -70,6 +72,7 @@ function formatLastNotified(iso) {
 }
 
 function HistoryModal({ open, onClose, reminders }) {
+  useScrollLock(open);
   const clearHistory = useReminderStore((s) => s.clearHistory);
   const allHistory = Object.entries(reminders)
     .flatMap(([key, r]) =>
@@ -79,7 +82,7 @@ function HistoryModal({ open, onClose, reminders }) {
 
   return (
     <AnimatePresence>
-      {open && (
+      {open && createPortal(
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -88,7 +91,7 @@ function HistoryModal({ open, onClose, reminders }) {
           style={{
             position: "fixed",
             inset: 0,
-            zIndex: 9999,
+            zIndex: 10000,
             background: "var(--overlay, rgba(0,0,0,0.06))",
             backdropFilter: "blur(24px) saturate(1.4)",
             WebkitBackdropFilter: "blur(24px) saturate(1.4)",
@@ -251,8 +254,9 @@ color: "var(--text-muted)",
               )}
             </div>
           </motion.div>
-        </motion.div>
-      )}
+        </motion.div>,
+      document.body
+    )}
     </AnimatePresence>
   );
 }

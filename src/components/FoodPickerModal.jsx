@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Search, Plus, Minus, Utensils, Star, Clock, Salad, Zap,
@@ -9,6 +10,7 @@ import {  radius, shadow, transition } from "../styles/designSystem";
 import { FOOD_DB } from "../data/fitness";
 import Button from "./ui/Button";
 import EmptyState from "./ui/EmptyState";
+import useScrollLock from "../hooks/useScrollLock";
 
 const MEAL_TIMES = ["Breakfast", "Lunch", "Post-Workout", "Dinner", "Snack"];
 const MEAL_ICONS = { Breakfast: Sunrise, Lunch: Sun, "Post-Workout": Zap, Dinner: Moon, Snack: Cookie };
@@ -123,6 +125,7 @@ function FoodDetailCard({ food, qty, onQtyChange, isFav, onToggleFav }) {
 }
 
 export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
+  useScrollLock(true);
   const [search, setSearch] = useState("");
   const [qty, setQty] = useState(1);
   const [mealTime, setMealTime] = useState("Breakfast");
@@ -196,7 +199,7 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
     { id: "custom", label: "Manual", icon: Plus },
   ];
 
-  return (
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       style={{
@@ -204,7 +207,7 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
         background: "var(--overlay)",
         backdropFilter: "blur(24px) saturate(1.4)", WebkitBackdropFilter: "blur(24px) saturate(1.4)",
         display: "flex", alignItems: "center", justifyContent: "center",
-        zIndex: 1000, padding: 16,
+        zIndex: 10000, padding: 16,
       }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
@@ -508,7 +511,8 @@ export default function FoodPickerModal({ onAdd, onClose, initialFood }) {
           {mode === "custom" ? "Add Custom Food" : selected ? `Add to ${mealTime}` : "Select a food"}
         </Button>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body
   );
 }
 
