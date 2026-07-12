@@ -1,9 +1,15 @@
-const API_KEY = "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";
-const MODEL = "poolside/laguna-xs.2:free";
+const API_KEY = "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";
 const VISION_MODEL = "qwen/qwen2.5-vl-72b-instruct:free";
 const BASE = "https://openrouter.ai/api/v1/chat/completions";
 
-export async function streamAI({ messages, system, maxTokens = 2048, temperature = 0.7, model, signal, onChunk }) {
+export const FREE_MODELS = [
+  "openrouter/free",
+  "google/gemini-2.0-flash-exp:free",
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "qwen/qwen-2.5-7b-instruct:free",
+];
+
+async function tryModel({ model, messages, system, maxTokens, temperature, signal, onChunk }) {
   const res = await fetch(BASE, {
     method: "POST",
     headers: {
@@ -13,7 +19,7 @@ export async function streamAI({ messages, system, maxTokens = 2048, temperature
       "X-Title": "FitForce",
     },
     body: JSON.stringify({
-      model: model || MODEL,
+      model,
       max_tokens: maxTokens,
       temperature,
       stream: true,
@@ -32,7 +38,9 @@ export async function streamAI({ messages, system, maxTokens = 2048, temperature
       const resetsAt = body?.resetsAt || body?.windows?.["5h"]?.resets_at;
       throw { rateLimited: true, resetsAt: resetsAt ? new Date(resetsAt * 1000) : new Date(Date.now() + 3600000) };
     }
-    throw new Error(body?.message || `HTTP ${res.status}`);
+    const error = new Error(body?.message || `HTTP ${res.status}`);
+    error.status = res.status;
+    throw error;
   }
 
   const reader = res.body.getReader();
@@ -64,6 +72,27 @@ export async function streamAI({ messages, system, maxTokens = 2048, temperature
   }
 
   return fullContent;
+}
+
+export async function streamAI({ messages, system, maxTokens = 2048, temperature = 0.7, model, signal, onChunk }) {
+  const modelsToTry = model ? [model] : [...FREE_MODELS];
+  let lastError;
+
+  for (const m of modelsToTry) {
+    try {
+      return await tryModel({ model: m, messages, system, maxTokens, temperature, signal, onChunk });
+    } catch (e) {
+      if (e.rateLimited) throw e;
+      if (e.status === 404) {
+        console.warn(`AI model "${m}" unavailable, trying fallback...`);
+        lastError = e;
+        continue;
+      }
+      throw e;
+    }
+  }
+
+  throw lastError || new Error("All AI models are currently unavailable. Please try again later.");
 }
 
 export async function callAI({ messages, system, maxTokens = 1024, temperature = 0.7, model }) {

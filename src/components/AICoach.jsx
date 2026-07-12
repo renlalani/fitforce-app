@@ -8,6 +8,7 @@ import {
 import { radius, shadow } from "../styles/designSystem";
 import MarkdownRenderer from "./MarkdownRenderer";
 import { useIsMobile } from "../hooks/useMediaQuery";
+import { streamAI } from "../utils/api";
 
 const SUGGESTIONS = [
   { icon: DumbbellIcon, title: "Create a workout plan", desc: "Personalized for your level and goals" },
@@ -146,78 +147,23 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
     const controller = new AbortController();
     abortRef.current = controller;
 
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer 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",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://fitforce-app.vercel.app",
-        "X-Title": "FitForce",
-      },
-      body: JSON.stringify({
-        model: "poolside/laguna-xs.2:free",
-        max_tokens: maxTok || 2048,
-        temperature: 0.7,
-        stream: true,
-        messages: [
-          { role: "system", content: sys || systemPrompt },
-          ...messages,
-        ],
-      }),
-      signal: controller.signal,
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      console.error("API Error:", err);
-      const body = err?.error || err;
-      if (body?.type === "exceeded_limit" || res.status === 429) {
-        const resetsAt = body?.resetsAt || body?.windows?.["5h"]?.resets_at;
-        setRateLimited(
-          resetsAt
-            ? new Date(resetsAt * 1000)
-            : new Date(Date.now() + 3600000)
-        );
+    try {
+      await streamAI({
+        messages,
+        system: sys || systemPrompt,
+        maxTokens: maxTok || 2048,
+        signal: controller.signal,
+        onChunk,
+      });
+      setRateLimited(null);
+      abortRef.current = null;
+    } catch (e) {
+      if (e.rateLimited) {
+        setRateLimited(e.resetsAt || new Date(Date.now() + 3600000));
         throw new Error("RATE_LIMITED");
       }
-      throw new Error(body?.message || `HTTP ${res.status}`);
+      throw e;
     }
-
-    setRateLimited(null);
-
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    let fullContent = "";
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
-
-      for (const line of lines) {
-        if (!line.trim()) continue;
-        if (line.includes("[DONE]")) break;
-        if (!line.startsWith("data: ")) continue;
-
-        try {
-          const json = JSON.parse(line.slice(6));
-          const content = json?.choices?.[0]?.delta?.content || "";
-          if (content) {
-            fullContent += content;
-            onChunk(fullContent);
-          }
-        } catch (e) {
-          // skip parse errors
-        }
-      }
-    }
-
-    abortRef.current = null;
-    return fullContent;
   }, [systemPrompt]);
 
   const send = useCallback(async (customInput) => {
@@ -240,8 +186,8 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
         content: m.text,
       }));
 
+    let accumulated = "";
     try {
-      let accumulated = "";
       await callAIStream(
         [
           ...history,
