@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { radius, shadow } from "../../styles/designSystem";
 
 export default function Card({
   children,
@@ -98,7 +97,7 @@ export default function Card({
       <div style={{
         position: "absolute", top: 0, right: 0,
         width: 30, height: 30,
-        background: `linear-gradient(135deg, transparent 50%, ${glowColor || "var(--accent)"}04 50%)`,
+        background: `linear-gradient(135deg, transparent 50%, color-mix(in srgb, ${glowColor || "var(--accent)"}, transparent 98%) 50%)`,
         pointerEvents: "none",
         borderRadius: `0 var(--radius-card) 0 0`,
       }} />

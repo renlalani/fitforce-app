@@ -25,7 +25,7 @@ function CustomTooltip({ active, payload, label }) {
         boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
       }}
     >
-      {label}: {payload[0].value.toFixed(1)} kg
+      {label}: {payload[0]?.value?.toFixed(1) ?? "0"} kg
     </div>
   );
 }
@@ -55,7 +55,7 @@ function ActiveDot({ cx, cy, color }) {
 }
 
 export default function MiniChart({ data, color = "var(--accent)", label, height = 120 }) {
-  if (!data || data.length < 2) return null;
+  if (!data || data.length < 2) return <div style={{ height, marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "var(--text-dim)" }}>Not enough data</div>;
 
   const chartData = data.map((d) => ({
     date: d.date || "",

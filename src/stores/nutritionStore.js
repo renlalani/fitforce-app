@@ -1,7 +1,9 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+function todayStr() {
+  return new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+}
 
 let uidCounter = 0;
 function nextUid() {
@@ -20,9 +22,9 @@ const initialState = {
     { name: "Whey Protein", dose: "1 scoop", time: "Post-Workout", done: true },
     { name: "Vitamin D", dose: "2000 IU", time: "Morning", done: false },
   ],
-  lastLogDate: today,
-  nutritionStreak: 1,
-  totalDaysLogged: 1,
+  lastLogDate: null,
+  nutritionStreak: 0,
+  totalDaysLogged: 0,
 };
 
 export const useNutritionStore = create(

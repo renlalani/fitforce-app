@@ -73,7 +73,7 @@ function CircularTimer({ total, remaining, phase }) {
 export default function WorkoutModal({ plan, onClose }) {
   useScrollLock(true);
   const xp = useUserStore(s => s.xp);
-  const exList = plan.exercises.map(id => EXERCISES.find(e => e.id === id)).filter(Boolean);
+  const exList = (plan.exercises || []).map(id => EXERCISES.find(e => e.id === id)).filter(Boolean);
   const [idx, setIdx] = useState(0);
   const [phase, setPhase] = useState("work");
   const [setNum, setSetNum] = useState(1);
@@ -752,6 +752,7 @@ export default function WorkoutModal({ plan, onClose }) {
               </motion.div>
 
               {/* Set Tracker */}
+              <form onSubmit={(e) => { e.preventDefault(); nextSet(); }} style={{ display: "contents" }}>
               <div style={{
                 background: "var(--bg-card2)", borderRadius: radius.md,
                 border: `1px solid var(--border)`,
@@ -826,6 +827,8 @@ export default function WorkoutModal({ plan, onClose }) {
                       id="workout-weight"
                       name="workoutWeight"
                       type="number"
+                      min="0"
+                      step="0.5"
                       placeholder="Weight"
                       value={weights[`${cur?.id}_${setNum}`] || ""}
                       onChange={e => setWeight(`${cur?.id}_${setNum}`, e.target.value)}
@@ -859,6 +862,7 @@ export default function WorkoutModal({ plan, onClose }) {
 
               {/* Complete Set Button */}
               <motion.button
+                type="submit"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={nextSet}
@@ -887,6 +891,7 @@ export default function WorkoutModal({ plan, onClose }) {
                 </motion.div>
                 {setNum < (cur?.sets || 3) ? `Complete Set ${setNum}` : idx < exList.length - 1 ? "Next Exercise" : "Finish Workout"}
               </motion.button>
+              </form>
             </motion.div>
           )}
         </AnimatePresence>

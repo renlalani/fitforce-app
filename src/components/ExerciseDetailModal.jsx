@@ -25,8 +25,8 @@ const MUSCLE_EMOJI = {
 };
 
 export default function ExerciseDetailModal({ exercise, open, onClose, onSelectExercise }) {
-  useScrollLock(open);
   if (!exercise) return null;
+  useScrollLock(open);
   const details = EXERCISE_DETAILS[exercise.id];
   const similar = getSimilarExercises(exercise, EXERCISES);
 

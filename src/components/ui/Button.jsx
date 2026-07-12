@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { forwardRef, useCallback, useRef, useState } from "react";
-import {  radius, shadow, transition } from "../../styles/designSystem";
+import {  radius, shadow } from "../../styles/designSystem";
 
 const Button = forwardRef(({
   children,
@@ -73,7 +73,8 @@ const Button = forwardRef(({
   return (
     <motion.button
       ref={ref}
-      whileHover={disabled || loading ? {} : { scale: 1.03, boxShadow: shadow.softGlow(v.glow) }}
+      type="button"
+      whileHover={disabled || loading || v.glow === "transparent" ? {} : { scale: 1.03, boxShadow: shadow.softGlow(v.glow) }}
       whileTap={disabled || loading ? {} : { scale: 0.96 }}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}

@@ -568,6 +568,9 @@ export default function Dashboard({
                   boxShadow: `0 4px 12px ${a.color}15, 0 8px 24px ${a.color}08, 0 0 0 1px ${a.color}20`,
                 }}
                 whileTap={{ scale: 0.95 }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); a.action?.(); } }}
                 onClick={a.action}
                 style={{
                   background: `linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card2) 100%)`,

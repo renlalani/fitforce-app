@@ -9,7 +9,8 @@ export default function useAddFood() {
   const addFoodToMeal = useCallback((meal) => {
     useNutritionStore.getState().addMeal(meal);
     useUserStore.getState().addXp(5);
-    lastAddedRef.current = meal;
+    const meals = useNutritionStore.getState().meals;
+    lastAddedRef.current = meals[meals.length - 1];
     setToast({
       visible: true,
       message: "✓ Successfully Added",

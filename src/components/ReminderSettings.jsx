@@ -76,7 +76,7 @@ function HistoryModal({ open, onClose, reminders }) {
   const clearHistory = useReminderStore((s) => s.clearHistory);
   const allHistory = Object.entries(reminders)
     .flatMap(([key, r]) =>
-      r.history.map((e) => ({ ...e, key, label: REMINDER_CONFIG[key].label }))
+      r.history.map((e) => ({ ...e, key, reminderLabel: REMINDER_CONFIG[key].label }))
     )
     .sort((a, b) => new Date(b.time) - new Date(a.time));
 
@@ -141,7 +141,7 @@ function HistoryModal({ open, onClose, reminders }) {
                 {allHistory.length > 0 && (
                   <motion.button
                     whileTap={{ scale: 0.92 }}
-                    onClick={() => clearHistory()}
+                    onClick={() => { Object.keys(reminders).forEach(k => clearHistory(k)); }}
                     style={{
                       background: "transparent",
                       border: "none",
@@ -228,16 +228,16 @@ function HistoryModal({ open, onClose, reminders }) {
                           color: "var(--text)",
                         }}
                       >
-                        {entry.label}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 10,
-                          color: "var(--text-muted)",
-                          marginTop: 1,
-                        }}
-                      >
-                        {entry.date} at {entry.label}
+                    {entry.reminderLabel}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 10,
+                      color: "var(--text-muted)",
+                      marginTop: 1,
+                    }}
+                  >
+                    {entry.date} at {entry.label}
                       </div>
                     </div>
                     <div

@@ -1,6 +1,6 @@
 import { radius } from "../../styles/designSystem";
 
-export function Tag({ label, color }) {
+export function Tag({ label, color = "var(--accent)" }) {
   return (
     <span
       style={{
@@ -22,7 +22,7 @@ export function Tag({ label, color }) {
   );
 }
 
-export function Badge({ label, color }) {
+export function Badge({ label, color = "var(--accent)" }) {
   return (
     <span
       style={{

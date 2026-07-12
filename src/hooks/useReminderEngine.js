@@ -65,20 +65,27 @@ export function useReminderEngine() {
 
   useEffect(() => {
     const store = useReminderStore;
-    requestPermission(store);
+    let mounted = true;
 
-    intervalRef.current = setInterval(() => {
-      const { reminders } = store.getState();
-      Object.entries(reminders).forEach(([key, reminder]) => {
-        if (!reminder.enabled) return;
-        if (!todayMatches(reminder)) return;
-        if (!timeMatches(reminder)) return;
-        if (alreadyNotifiedToday(reminder)) return;
-        fireNotification(key);
-        store.getState().logNotification(key);
-      });
-    }, 30_000);
+    (async () => {
+      await requestPermission(store);
+      if (!mounted) return;
+      intervalRef.current = setInterval(() => {
+        const { reminders } = store.getState();
+        Object.entries(reminders).forEach(([key, reminder]) => {
+          if (!reminder.enabled) return;
+          if (!todayMatches(reminder)) return;
+          if (!timeMatches(reminder)) return;
+          if (alreadyNotifiedToday(reminder)) return;
+          fireNotification(key);
+          store.getState().logNotification(key);
+        });
+      }, 30_000);
+    })();
 
-    return () => clearInterval(intervalRef.current);
+    return () => {
+      mounted = false;
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, []);
 }

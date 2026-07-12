@@ -5,13 +5,10 @@ import {
 } from "lucide-react";
 import {  radius } from "../styles/designSystem";
 
-const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
 export default function SmartRecommendations({
   workoutSessions, water, totalProt,
   protGoal, streak,
 }) {
-  const today = DAYS[new Date().getDay()];
   const weekSessions = workoutSessions.filter(ws => {
     const d = new Date(ws.completedAt);
     const now = new Date();
@@ -96,7 +93,7 @@ export default function SmartRecommendations({
     items.push({
       id: "sleep",
       icon: Moon,
-      color: "var(--indigo)" || "var(--purple)",
+      color: "var(--indigo)",
       title: "Sleep for gains",
       desc: "Quality sleep is when your body repairs and builds muscle.",
       tip: "Try 7-9 hours. Avoid screens 30 min before bed.",

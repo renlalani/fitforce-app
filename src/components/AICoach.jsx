@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, Bot, User, Sparkles, Calendar, BarChart3, AlertCircle,
@@ -123,11 +123,11 @@ export default function AICoach({ profile, totalCal, totalProt, water, level, xp
     }
   }, []);
 
-  const systemPrompt = `You are FitForce AI Coach, an expert personal trainer and nutritionist. 
+  const systemPrompt = useMemo(() => `You are FitForce AI Coach, an expert personal trainer and nutritionist. 
 User: ${profile.name}, Level: ${profile.level}, Goal: ${profile.goal}, Weight: ${latestWeight}kg, Height: ${profile.height}cm, Age: ${profile.age}, Gender: ${profile.gender}.
 Today: ${totalCal} kcal eaten, ${totalProt}g protein, ${water} glasses water. Fitness Level ${level} (${xp} XP).
 You can: create personalized workout plans, analyze nutrition, recommend exercises, give recovery advice, suggest meals, provide motivation, offer injury-safe modifications, and track progress.
-Be concise, energetic, and expert. Use markdown for formatting. Max 150 words per response.`;
+Be concise, energetic, and expert. Use markdown for formatting. Max 150 words per response.`, [profile, totalCal, totalProt, water, level, xp, latestWeight]);
 
   const stopGenerating = useCallback(() => {
     if (abortRef.current) {
@@ -265,7 +265,9 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
         m.id === aiMsg.id ? { ...m, text: accumulated || "No response.", streaming: false } : m
       ));
     } catch (e) {
-      if (e.message !== "RATE_LIMITED" && e.name !== "AbortError") {
+      if (e.message === "RATE_LIMITED") {
+        setMsgs(prev => prev.filter(m => m.id !== aiMsg.id));
+      } else if (e.name !== "AbortError") {
         setMsgs(prev => prev.map(m =>
           m.id === aiMsg.id
             ? { ...m, text: `**Error:** ${e.message || "Connection failed. Try again."}`, streaming: false, error: true }
@@ -306,7 +308,7 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
   const analyzeDay = async () => {
     setAnalyzing(true);
     const calGoal = profile.goal === "Fat Loss" ? 2000 : 2800;
-    const protGoal = Math.round(latestWeight * 2);
+    const protGoal = latestWeight ? Math.round(latestWeight * 2) : 150;
     const prompt = `Analyze today for ${profile.name}: ate ${totalCal} kcal (goal ${calGoal}), ${totalProt}g protein (goal ${protGoal}g), ${water}/8 glasses water. Give 3 specific actionable recommendations. Be direct, max 100 words.`;
 
     const aiMsg = { role: "ai", text: "", id: (Date.now() + 1).toString(), streaming: true };
@@ -335,8 +337,12 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
       ));
       setMode("chat");
     } catch (e) {
-      if (e.message !== "RATE_LIMITED" && e.name !== "AbortError") {
-        setMsgs(prev => [...prev, { role: "ai", text: "Analysis failed. Try again.", id: Date.now().toString() }]);
+      if (e.message === "RATE_LIMITED") {
+        setMsgs(prev => prev.filter(m => m.id !== aiMsg.id));
+      } else if (e.name !== "AbortError") {
+        setMsgs(prev => prev.map(m =>
+          m.id === aiMsg.id ? { ...m, text: "Analysis failed. Try again.", streaming: false, error: true } : m
+        ));
       }
     }
     setAnalyzing(false);
@@ -346,10 +352,12 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
     setShowStopBtn(false);
   };
 
+  const copyRef = useRef(null);
   const copyMsg = useCallback((text, id) => {
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText(text).catch(() => {});
     setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 1500);
+    if (copyRef.current) clearTimeout(copyRef.current);
+    copyRef.current = setTimeout(() => setCopiedId(null), 1500);
   }, []);
 
   const dayColors = {   Mon: "var(--accent)", Tue: "var(--blue)", Wed: "var(--green)", Thu: "var(--yellow)", Fri: "var(--purple)", Sat: "var(--orange)", Sun: "var(--teal)" };
@@ -374,7 +382,6 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
     return () => window.removeEventListener("keydown", handleGlobalKey);
   }, [streaming, stopGenerating]);
 
-  const welcomeMsgs = msgs.filter(m => !m.streaming || m.text);
   const showSuggestions = msgs.length === 1 && msgs[0].id === "welcome" && !loading;
 
   return (
@@ -398,12 +405,12 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
           >
             <AlertCircle size={18} color={"var(--yellow)"} style={{ flexShrink: 0, marginTop: 1 }} />
             <div>
-              <div style={{ fontSize: 13, fontWeight: 500, color: "var(--yellow)", marginBottom: 4 }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: "#B45309", marginBottom: 4 }}>
                 AI Coach is temporarily unavailable
               </div>
               <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
                 The free API limit has been reached. It resets at{" "}
-                <span style={{ color: "var(--yellow)" }}>
+                <span style={{ color: "#B45309" }}>
                   {rateLimited.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </span> ({rateLimited.toLocaleDateString([], { month: "short", day: "numeric" })}).
               </div>
@@ -616,7 +623,7 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
               </div>
               <div>
                 <div style={{ fontWeight: 600, fontSize: isMobile ? 13 : 14, color: "var(--text)" }}>FitForce AI</div>
-                <div style={{ fontSize: 11, color: "var(--green)", display: "flex", alignItems: "center", gap: 4 }}>
+                <div style={{ fontSize: 11, color: "#047857", display: "flex", alignItems: "center", gap: 4 }}>
                   <motion.span
                     animate={{ opacity: [1, 0.4, 1] }}
                     transition={{ repeat: Infinity, duration: 2 }}
@@ -728,9 +735,9 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
 
                       {/* Message Actions */}
                       {m.role === "ai" && !isWelcome && !isStreaming && (
-                        <div style={{ display: "flex", gap: 4, marginTop: 10, justifyContent: "flex-end", opacity: 0.3 }}
-                          onMouseEnter={e => { e.currentTarget.style.opacity = 1; }}
-                          onMouseLeave={e => { e.currentTarget.style.opacity = 0.3; }}
+                        <div style={{ display: "flex", gap: 4, marginTop: 10, justifyContent: "flex-end", opacity: isMobile ? 1 : 0.3 }}
+                          onMouseEnter={e => { if (!isMobile) e.currentTarget.style.opacity = 1; }}
+                          onMouseLeave={e => { if (!isMobile) e.currentTarget.style.opacity = 0.3; }}
                         >
                           <motion.button
                             whileHover={{ scale: 1.1, opacity: 1 }}
@@ -898,10 +905,10 @@ Be concise, energetic, and expert. Use markdown for formatting. Max 150 words pe
                         transition={{ delay: i * 0.05 }}
                         whileHover={{ y: -3, borderColor: "rgba(59,130,246,0.3)", boxShadow: shadow.elevated }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => {
-                          setInput(s.title);
-                          setTimeout(() => send(s.title), 50);
-                        }}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); send(s.title); } }}
+                        onClick={() => send(s.title)}
                         style={{
                           padding: "12px 14px",
                           background: "var(--bg-card2)",

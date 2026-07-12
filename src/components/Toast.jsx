@@ -5,7 +5,7 @@ import {  radius, shadow } from "../styles/designSystem";
 
 export default function Toast({ message, sub, visible, onClose, onUndo, duration = 3000 }) {
   useEffect(() => {
-    if (!visible) return;
+    if (!visible || typeof onClose !== "function") return;
     const t = setTimeout(onClose, duration);
     return () => clearTimeout(t);
   }, [visible, onClose, duration]);
@@ -14,6 +14,7 @@ export default function Toast({ message, sub, visible, onClose, onUndo, duration
     <AnimatePresence>
       {visible && (
         <motion.div
+          role="alert"
           initial={{ opacity: 0, y: 60, x: "-50%" }}
           animate={{ opacity: 1, y: 0, x: "-50%" }}
           exit={{ opacity: 0, y: 30, x: "-50%", scale: 0.95 }}
@@ -59,6 +60,7 @@ export default function Toast({ message, sub, visible, onClose, onUndo, duration
 
           {onUndo && (
             <motion.button
+              aria-label="Undo"
               whileHover={{ scale: 1.05, borderColor: "rgba(239,68,68,0.251)" }}
               whileTap={{ scale: 0.95 }}
               onClick={onUndo}
@@ -82,6 +84,7 @@ export default function Toast({ message, sub, visible, onClose, onUndo, duration
           )}
 
           <motion.button
+            aria-label="Close notification"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={onClose}

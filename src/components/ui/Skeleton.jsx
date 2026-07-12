@@ -16,7 +16,7 @@ export function Skeleton({ width = "100%", height = 16, variant = "text", style 
   return (
     <motion.div
       animate={{
-        opacity: [0.3, 0.6, 0.3],
+        backgroundPosition: ["200% 0", "-200% 0"],
       }}
       transition={{
         duration: 1.5,
@@ -26,7 +26,6 @@ export function Skeleton({ width = "100%", height = 16, variant = "text", style 
       style={{
         background: `linear-gradient(90deg, var(--bg-card2) 0%, var(--bg-card3) 40%, var(--bg-card) 50%, var(--bg-card3) 60%, var(--bg-card2) 100%)`,
         backgroundSize: "200% 100%",
-        backgroundPosition: "200% 0",
         width,
         height: v.height,
         borderRadius: v.borderRadius,

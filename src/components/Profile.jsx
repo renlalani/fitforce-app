@@ -7,7 +7,6 @@ import Button from "./ui/Button";
 import Card from "./ui/Card";
 import { Badge } from "./ui/Tag";
 import AnimatedCounter from "./AnimatedCounter";
-import ProgressRing from "./ProgressRing";
 import StreakCalendar from "./StreakCalendar";
 import { useWorkoutStore } from "../stores/workoutStore";
 import { useNutritionStore } from "../stores/nutritionStore";
@@ -40,7 +39,7 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
   );
 
   const totalCalories = useMemo(() =>
-    workoutSessions.reduce((s, ws) => s + (ws.totalCalories || 0), 0),
+    workoutSessions.reduce((s, ws) => s + (ws.caloriesBurned || 0), 0),
     [workoutSessions]
   );
 
