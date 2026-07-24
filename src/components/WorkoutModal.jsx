@@ -865,7 +865,6 @@ export default function WorkoutModal({ plan, onClose }) {
                 type="submit"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
-                onClick={nextSet}
                 style={{
                   width: "100%",
                   padding: "14px",
