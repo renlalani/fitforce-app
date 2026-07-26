@@ -15,6 +15,7 @@ const initialState = {
   },
   xp: 1240,
   streak: 7,
+  profilePhoto: null,
   bodyStats: [
     { date: "Apr 1, 2026", weight: 76 },
     { date: "Apr 5, 2026", weight: 75.5 },
@@ -62,9 +63,13 @@ export const useUserStore = create(
         })),
 
       addBodyStat: (entry) =>
-        set((state) => ({
-          bodyStats: [...state.bodyStats, entry],
-        })),
+        set((state) => {
+          if (!entry) return state;
+          const weight = Number(entry.weight);
+          if (isNaN(weight) || weight <= 0) return state;
+          const date = entry.date || new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+          return { bodyStats: [...state.bodyStats, { date, weight }] };
+        }),
 
       setMeasurements: (updater) =>
         set((state) => ({
@@ -88,6 +93,9 @@ export const useUserStore = create(
         set((state) => ({
           prs: [...state.prs, { lift, weight: Number(weight) || 60 }],
         })),
+
+      setProfilePhoto: (dataUrl) => set({ profilePhoto: dataUrl }),
+      removeProfilePhoto: () => set({ profilePhoto: null }),
     }),
     {
       name: "fitforce-user",

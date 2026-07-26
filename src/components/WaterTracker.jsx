@@ -66,7 +66,8 @@ function WaveSVG({ height, fill }) {
       style={{
         position: "absolute", bottom: 0, left: 0, right: 0,
         height: `${height}%`, width: "200%",
-        animation: "water-wave 3s ease-in-out infinite",
+        animation: "ww 3s ease-in-out infinite",
+        willChange: "transform",
         transition: "height 0.5s ease",
       }}
     >
@@ -79,7 +80,7 @@ function WaveSVG({ height, fill }) {
       <path
         d="M0,15 C15,5 35,20 50,10 C65,0 85,15 100,10 L100,20 L0,20 Z"
         fill="url(#waveGrad)"
-        style={{ animation: "water-wave-path 3s ease-in-out infinite" }}
+        style={{ animation: "wwp 3s ease-in-out infinite" }}
       />
     </svg>
   );
@@ -397,19 +398,8 @@ export default function WaterTracker({ water, setWater }) {
         </motion.div>
       </AnimatePresence>
 
-      {/* CSS keyframes injected via style tag */}
-      <style>{`
-        @keyframes water-wave {
-          0%, 100% { transform: translateX(0) translateY(0); }
-          25% { transform: translateX(-15%) translateY(-2px); }
-          50% { transform: translateX(-25%) translateY(0); }
-          75% { transform: translateX(-15%) translateY(2px); }
-        }
-        @keyframes water-wave-path {
-          0%, 100% { d: path("M0,15 C15,5 35,20 50,10 C65,0 85,15 100,10 L100,20 L0,20 Z"); }
-          50% { d: path("M0,12 C15,18 35,5 50,14 C65,20 85,5 100,10 L100,20 L0,20 Z"); }
-        }
-      `}</style>
+      {/* CSS keyframes for water animation injected once */}
+      <style>{`@keyframes ww{0%,to{transform:translateX(0) translateY(0)}25%{transform:translateX(-15%) translateY(-2px)}50%{transform:translateX(-25%) translateY(0)}75%{transform:translateX(-15%) translateY(2px)}}@keyframes wwp{0%,to{d:path("M0,15 C15,5 35,20 50,10 C65,0 85,15 100,10 L100,20 L0,20 Z")}50%{d:path("M0,12 C15,18 35,5 50,14 C65,20 85,5 100,10 L100,20 L0,20 Z")}}`}</style>
     </motion.div>
   );
 }

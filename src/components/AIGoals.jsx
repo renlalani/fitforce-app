@@ -7,6 +7,7 @@ import {
 import {  radius } from "../styles/designSystem";
 import { useGoalsStore } from "../stores/goalsStore";
 import Button from "./ui/Button";
+import ProgressBar from "./ui/ProgressBar";
 
 const CATEGORIES = () => [
   { id: "body", label: "Body", icon: TrendingUp, color: "var(--accent)" },
@@ -170,20 +171,7 @@ export default function AIGoals() {
                 </motion.button>
               </div>
             </div>
-            <div style={{
-              height: 5, background: "var(--track)", borderRadius: radius.full,
-              overflow: "hidden",
-            }}>
-              <div
-                style={{
-                  width: `${goal.progress || 0}%`,
-                  height: "100%",
-                  background: cat?.color || "var(--accent)",
-                  borderRadius: radius.full,
-                  transition: "width 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)",
-                }}
-              />
-            </div>
+            <ProgressBar value={goal.progress || 0} max={100} color={cat?.color || "var(--accent)"} height={5} />
             <div style={{
               display: "flex", justifyContent: "space-between", marginTop: 4,
               fontSize: 10, color: "var(--text-muted)",

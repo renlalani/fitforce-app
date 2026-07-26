@@ -1,4 +1,3 @@
-
 import { useWorkoutStore } from "./stores/workoutStore";
 import { useUserStore } from "./stores/userStore";
 import { useNutritionStore } from "./stores/nutritionStore";
@@ -11,25 +10,20 @@ import {
   Ruler, Brain, TrendingUp, Settings,
   Salad, Target, Trophy, Crown,
 } from "lucide-react";
-import { radius, shadow, transition, muscleColor } from "./styles/designSystem";
+import { radius, shadow, transition } from "./styles/designSystem";
 import { Skeleton } from "./components/ui/Skeleton";
-import { EXERCISES, MUSCLES } from "./data/fitness";
+import ProgressBar from "./components/ui/ProgressBar";
+import { EXERCISES } from "./data/fitness";
 import logo from "../images/logo.png";
-import ExerciseImage from "./components/ExerciseImage";
 import Button from "./components/ui/Button";
 import Card from "./components/ui/Card";
-import { Tag, Badge } from "./components/ui/Tag";
 import MiniChart from "./components/MiniChart";
 import ExerciseDetailModal from "./components/ExerciseDetailModal";
 import WorkoutGenerator from "./components/WorkoutGenerator";
 import MealPlanner from "./components/MealPlanner";
 import FoodScanner from "./components/FoodScanner";
-import AIInsights from "./components/AIInsights";
-import SmartRecommendations from "./components/SmartRecommendations";
-import ProgressReports from "./components/ProgressReports";
-import AIGoals from "./components/AIGoals";
+import UserAvatar from "./components/UserAvatar";
 import NotificationToast from "./components/NotificationToast";
-import Profile from "./components/Profile";
 import InstallPrompt from "./components/InstallPrompt";
 import OfflineDetector from "./components/OfflineDetector";
 import WorkoutModal from "./components/WorkoutModal";
@@ -40,12 +34,17 @@ import Onboarding from "./components/Onboarding";
 import AuthScreen from "./components/AuthScreen";
 import { useAuthStore } from "./stores/authStore";
 import { auth, onAuthStateChanged, isFirebaseReady } from "./utils/firebase";
-
 const Dashboard = lazy(() => import("./components/Dashboard"));
 const WorkoutHub = lazy(() => import("./components/WorkoutHub"));
 const MealHub = lazy(() => import("./components/MealHub"));
 const AICoach = lazy(() => import("./components/AICoach"));
 const SettingsPage = lazy(() => import("./components/Settings"));
+const AIInsights = lazy(() => import("./components/AIInsights"));
+const SmartRecommendations = lazy(() => import("./components/SmartRecommendations"));
+const AnalyticsDashboard = lazy(() => import("./components/AnalyticsDashboard"));
+const AIGoals = lazy(() => import("./components/AIGoals"));
+const ExerciseSearch = lazy(() => import("./components/ExerciseSearch"));
+const Profile = lazy(() => import("./components/Profile"));
 import useAddFood from "./hooks/useAddFood";
 import useNotifications from "./hooks/useNotifications";
 import { useHydrated } from "./hooks/useHydrated";
@@ -67,7 +66,7 @@ function AppSkeleton() {
 
 const pageVariants = {
   initial: { opacity: 0, y: 20, scale: 0.96 },
-  animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } },
+  animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } },
   exit: { opacity: 0, y: -12, scale: 0.97, transition: { duration: 0.2, ease: [0.4, 0, 0.2, 1] } },
 };
 
@@ -115,10 +114,6 @@ export default function FitForce() {
 
   const tab = useUiStore(s => s.tab);
   const setTab = useUiStore(s => s.setTab);
-  const filterMuscle = useUiStore(s => s.filterMuscle);
-  const setFilterMuscle = useUiStore(s => s.setFilterMuscle);
-  const filterLevel = useUiStore(s => s.filterLevel);
-  const setFilterLevel = useUiStore(s => s.setFilterLevel);
   const showMealModal = useUiStore(s => s.showMealModal);
   const setShowMealModal = useUiStore(s => s.setShowMealModal);
   const showWorkoutGenerator = useUiStore(s => s.showWorkoutGenerator);
@@ -146,6 +141,7 @@ export default function FitForce() {
   const setProfile = useUserStore(s => s.setProfile);
   const bodyStats = useUserStore(s => s.bodyStats);
   const addBodyStat = useUserStore(s => s.addBodyStat);
+  const miniChartData = useMemo(() => bodyStats.map(b => ({ ...b, value: b.weight })), [bodyStats]);
   const streak = useUserStore(s => s.streak);
   const measurements = useUserStore(s => s.measurements);
   const setMeasurements = useUserStore(s => s.setMeasurements);
@@ -154,7 +150,17 @@ export default function FitForce() {
   const totalProt = Math.round((meals || []).reduce((s, m) => s + (+m.protein || 0), 0));
   const totalCarbs = Math.round((meals || []).reduce((s, m) => s + (+m.carbs || 0), 0));
   const totalFat = Math.round((meals || []).reduce((s, m) => s + (+m.fat || 0), 0));
-  const latestWeight = bodyStats.length > 0 ? bodyStats[bodyStats.length - 1].weight : (+profile.weight || 0);
+  const latestWeight = useMemo(() => {
+    if (bodyStats.length === 0) return +profile.weight || 0;
+    const sorted = [...bodyStats].sort((a, b) => {
+      const da = new Date(a.date);
+      const db = new Date(b.date);
+      if (isNaN(da.getTime())) return 1;
+      if (isNaN(db.getTime())) return -1;
+      return db.getTime() - da.getTime();
+    });
+    return sorted[0]?.weight ?? (+profile.weight || 0);
+  }, [bodyStats, profile.weight]);
   const weightNum = latestWeight;
   const heightNum = +profile.height || 175;
   const bmi = heightNum > 0 ? +((weightNum) / ((heightNum / 100) ** 2)).toFixed(1) : 0;
@@ -166,7 +172,7 @@ export default function FitForce() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { addFoodToMeal, undoAddFood, toast, clearToast } = useAddFood();
   const { notification: smartNotification, dismiss: dismissNotification, checkNow } = useNotifications();
-  useReminderEngine();
+  const { inApp: reminderNotification, dismiss: dismissReminder } = useReminderEngine();
   const [preselectedFood, setPreselectedFood] = useState(null);
   const isMobile = useMediaQuery("(max-width: 760px)");
 
@@ -203,11 +209,9 @@ export default function FitForce() {
     setShowMealModal(true);
   }, []);
 
-  const filteredEx = EXERCISES.filter(e => (filterMuscle === "All" || e.muscle === filterMuscle) && (filterLevel === "All" || e.level === filterLevel));
-
-  const h2s = { color: "var(--text)", fontSize: 20, fontWeight: 600, margin: "0 0 16px", letterSpacing: "-0.01em" };
-  const h3s = { color: "var(--text)", fontSize: 15, fontWeight: 500, margin: "0 0 10px" };
-  const grid2 = { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 14, marginBottom: 14 };
+  const h2s = useMemo(() => ({ color: "var(--text)", fontSize: 20, fontWeight: 600, margin: "0 0 16px", letterSpacing: "-0.01em" }), []);
+  const h3s = useMemo(() => ({ color: "var(--text)", fontSize: 15, fontWeight: 500, margin: "0 0 10px" }), []);
+  const grid2 = useMemo(() => ({ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 14, marginBottom: 14 }), []);
 
   if (showSplash) {
     return <SplashScreen onComplete={() => setShowSplash(false)} />;
@@ -273,7 +277,7 @@ export default function FitForce() {
         style={{
           background: `linear-gradient(180deg, var(--bg)dd, var(--bg-card3)aa)`,
           borderBottom: `1px solid var(--border)`,
-          padding: `${isMobile ? "10px" : "14px"} ${isMobile ? "16px" : "24px"}`,
+          padding: `max(${isMobile ? "4px" : "6px"}, env(safe-area-inset-top, ${isMobile ? "4px" : "6px"})) ${isMobile ? "16px" : "24px"} ${isMobile ? "10px" : "14px"}`,
           display: "flex",
           alignItems: "center",
           gap: isMobile ? 10 : 16,
@@ -296,7 +300,7 @@ export default function FitForce() {
             flexShrink: 0,
           }}
         >
-          <img src={logo} alt="FitForce" style={{ width: "100%", height: "100%", display: "block" }} />
+          <img src={logo} alt="FitForce" loading="lazy" style={{ width: "100%", height: "100%", display: "block" }} />
         </motion.div>
         {!isMobile && (
         <div style={{ marginRight: 8 }}>
@@ -334,18 +338,7 @@ export default function FitForce() {
               <Zap size={11} /> Lv.{level}
             </div>
             {!isMobile && (
-            <div style={{ width: 70, height: 4, background: "var(--track)", borderRadius: radius.full, overflow: "hidden", marginTop: 4 }}>
-              <div
-                style={{
-                  width: `${((xp % 500) / 500) * 100 || 0}%`,
-                  height: "100%",
-                  background: "var(--accent-gradient)",
-                  borderRadius: radius.full,
-                  boxShadow: `0 0 8px rgba(59,130,246,0.251)`,
-                  transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
-                }}
-              />
-            </div>
+            <ProgressBar value={xp % 500} max={500} color="var(--accent-gradient)" height={4} boxShadow="0 0 8px rgba(59,130,246,0.251)" sx={{ width: 70, marginTop: 4 }} />
             )}
           </div>
 
@@ -385,28 +378,17 @@ export default function FitForce() {
             <div style={{
               position: "absolute", top: 6, right: 6,
               width: 6, height: 6, borderRadius: "50%",
-              background: "var(--accent)", boxShadow: `0 0 6px rgba(59,130,246,0.376)`,
+              background: "var(--accent)", boxShadow: shadow.softGlow("var(--accent)"),
             }} />
           </motion.button>
           )}
 
           {/* Avatar */}
-          <motion.button
-            whileHover={{ scale: 1.08, boxShadow: shadow.softGlow("var(--accent)") }}
+          <UserAvatar
+            profile={profile}
+            size={isMobile ? 48 : 56}
             onClick={() => setTab("profile")}
-            style={{
-            width: isMobile ? 48 : 56, height: isMobile ? 48 : 56,
-              background: "var(--accent-gradient)",
-              borderRadius: radius.full,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontWeight: 700, fontSize: isMobile ? 11 : 13, color: "#fff",
-              cursor: "pointer",
-              border: `2px solid rgba(59,130,246,0.188)`,
-              padding: 0,
-            }}
-          >
-            {profile.name?.charAt(0) || "F"}
-          </motion.button>
+          />
         </div>
       </motion.div>
 
@@ -476,7 +458,13 @@ export default function FitForce() {
       )}
 
       {/* Main Content */}
-      <div style={{ padding: isMobile ? "16px 16px 88px" : "32px 24px 40px", maxWidth: isMobile ? "100%" : 1400, margin: "0 auto", width: isMobile ? "100%" : "92vw", overflowX: "hidden" }}>
+      <div style={{
+        padding: isMobile ? "0" : "32px 24px 40px",
+        maxWidth: isMobile ? "100%" : 1400, margin: "0 auto",
+        width: isMobile ? "100%" : "92vw",
+        ...(isMobile ? { overflowX: "hidden" } : {}),
+      }}>
+        <div style={isMobile ? { minHeight: "100%", padding: "16px 16px 88px", paddingBottom: "var(--safe-bottom)" } : {}}>
         <AnimatePresence mode="wait">
           <motion.div
             key={tab}
@@ -485,7 +473,7 @@ export default function FitForce() {
             animate="animate"
             exit="exit"
           >
-            <Suspense fallback={<div style={{ padding: 20, color: "var(--text-muted)", fontSize: 13 }}>Loading...</div>}>
+            <Suspense fallback={<div style={{ padding: 20 }}><Skeleton variant="card" count={3} style={{ marginBottom: 12, height: 80 }} /></div>}>
             {tab === "dashboard" && (
               <>
               <Dashboard
@@ -553,106 +541,16 @@ export default function FitForce() {
 
             {tab === "exercises" && (
               <motion.div variants={containerVariants} initial="initial" animate="animate">
-                <motion.div variants={itemVariants} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                  <h2 style={{ ...h2s, margin: 0 }}>Exercise Library</h2>
-                  <span style={{ fontSize: 13, color: "var(--text-muted)" }}>{filteredEx.length} exercises</span>
+                <motion.div variants={itemVariants} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+                  <div style={{ width: 36, height: 36, background: "rgba(59,130,246,0.094)", borderRadius: radius.md, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Search size={16} color={"var(--accent)"} />
+                  </div>
+                  <div>
+                    <h2 style={{ fontSize: 18, fontWeight: 700, color: "var(--text)", margin: 0, letterSpacing: "-0.02em" }}>Exercise Library</h2>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>Search and filter from {EXERCISES.length} exercises</div>
+                  </div>
                 </motion.div>
-
-                <motion.div variants={itemVariants} style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
-                  {MUSCLES.map(m => (
-                    <motion.button
-                      key={m}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setFilterMuscle(m)}
-                      style={{
-                        padding: "6px 14px",
-                        borderRadius: radius.full,
-                        border: `1px solid ${filterMuscle === m ? (muscleColor[m] || "var(--accent)") : "var(--border2)"}`,
-                        background: filterMuscle === m ? `${muscleColor[m] || "var(--accent)"}18` : "transparent",
-                        color: filterMuscle === m ? (muscleColor[m] || "var(--accent)") : "var(--text-muted)",
-                        cursor: "pointer",
-                        fontSize: 12,
-                        fontWeight: filterMuscle === m ? 500 : 400,
-                        transition: transition.fast,
-                      }}
-                    >
-                      {m}
-                    </motion.button>
-                  ))}
-                </motion.div>
-
-                <motion.div variants={itemVariants} style={{ display: "flex", gap: 6, marginBottom: 16 }}>
-                  {["All", "Beginner", "Intermediate", "Advanced"].map(l => (
-                    <motion.button
-                      key={l}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setFilterLevel(l)}
-                      style={{
-                        padding: "5px 12px",
-                        borderRadius: radius.sm,
-                        border: `1px solid ${filterLevel === l ? "var(--accent)" : "var(--border2)"}`,
-                        background: filterLevel === l ? `rgba(59,130,246,0.082)` : "transparent",
-                        color: filterLevel === l ? "var(--accent)" : "var(--text-muted)",
-                        cursor: "pointer",
-                        fontSize: 12,
-                        fontWeight: filterLevel === l ? 500 : 400,
-                        transition: transition.fast,
-                      }}
-                    >
-                      {l}
-                    </motion.button>
-                  ))}
-                </motion.div>
-
-                <motion.div variants={itemVariants} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 12 }}>
-                  {filteredEx.map(ex => (
-                    <motion.div
-                      key={ex.id}
-                      whileHover={{
-                        y: -5,
-                        boxShadow: "var(--shadow-hover)",
-                        borderColor: "rgba(37,99,235,0.18)",
-                      }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setShowExDetail(ex)}
-                      transition={{ type: "spring", stiffness: 400, damping: 25, mass: 0.5 }}
-                      style={{
-                        background: "var(--bg-card)",
-                        border: "1px solid var(--border2)",
-                        borderRadius: "var(--radius-card)",
-                        padding: "20px",
-                        boxShadow: "var(--shadow-card)",
-                        marginBottom: 0,
-                        cursor: "pointer",
-                        position: "relative",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <ExerciseImage
-                        exercise={ex}
-                        width="100%"
-                        height={90}
-                        style={{ marginBottom: 12 }}
-                      />
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                        <h3 style={{ ...h3s, margin: 0, fontSize: 14 }}>{ex.name}</h3>
-                        <Badge label={ex.level} color={ex.level === "Beginner" ? "var(--green)" : ex.level === "Intermediate" ? "var(--yellow)" : "var(--accent)"} />
-                      </div>
-                      <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 6 }}>
-                        <Tag label={ex.muscle} color={muscleColor[ex.muscle] || "var(--accent)"} />
-                        <Tag label={`${ex.sets}×${ex.reps}`} color={"var(--blue)"} />
-                      </div>
-                      <p style={{
-                        color: "var(--text-muted)", fontSize: 11, margin: 0,
-                        lineHeight: 1.5, display: "-webkit-box",
-                        WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                      }}>
-                        {ex.desc}
-                      </p>
-                    </motion.div>
-                  ))}
-                </motion.div>
+                <ExerciseSearch onSelect={setShowExDetail} />
               </motion.div>
             )}
 
@@ -665,13 +563,8 @@ export default function FitForce() {
             )}
 
             {tab === "progress" && (
-              <motion.div variants={containerVariants} initial="initial" animate="animate"
-                style={isMobile ? {
-                  display: "flex", flexDirection: "column",
-                  maxHeight: "calc(100vh - 154px)",
-                  overflow: "hidden",
-                } : {}}>
-                <div style={isMobile ? { flex: 1, overflowY: "auto", minHeight: 0, WebkitOverflowScrolling: "touch" } : {}}>
+              <motion.div variants={containerVariants} initial="initial" animate="animate">
+                <div>
                 <motion.div variants={itemVariants} style={{
                   display: "flex", alignItems: "center", gap: 12, marginBottom: 20,
                 }}>
@@ -698,12 +591,12 @@ export default function FitForce() {
                       }}>
                         <Activity size={15} color={"var(--accent)"} /> Body Weight
                       </h3>
-                      <MiniChart data={bodyStats.map(b => ({ ...b, value: b.weight }))} color={"var(--accent)"} label="Weight trend (kg)" />
+                      <MiniChart data={miniChartData} color={"var(--accent)"} label="Weight trend (kg)" />
                       <div style={{ display: "flex", gap: 10 }}>
                         <div style={{ flex: 1 }}>
                           <label htmlFor="body-weight" style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginBottom: 5 }}>Weight (kg)</label>
                           <input
-                            id="body-weight" name="bodyWeight" type="number" step="0.1"
+                            id="body-weight" name="bodyWeight" type="number" step="0.1" min="20" max="500"
                             value={newBodyStat}
                             onChange={e => setNewBodyStat(e.target.value)}
                             style={{
@@ -755,19 +648,7 @@ export default function FitForce() {
                               <span style={{ fontSize: 11, color: "var(--text-muted)" }}>kg</span>
                             </div>
                           </div>
-                          <div style={{ height: 6, background: "var(--track)", borderRadius: radius.full, overflow: "hidden" }}>
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${Math.min(100, (p.weight / 160) * 100) || 0}%` }}
-                              transition={{ duration: 0.6, delay: i * 0.1, ease: [0.25, 0.1, 0.25, 1] }}
-                              style={{
-                                height: "100%",
-                                background: `linear-gradient(90deg, var(--accent), var(--purple))`,
-                                borderRadius: radius.full,
-                                boxShadow: `0 0 6px rgba(59,130,246,0.251)`,
-                              }}
-                            />
-                          </div>
+                          <ProgressBar value={p.weight} max={160} gradient="linear-gradient(90deg, var(--accent), var(--purple))" height={6} animated delay={i * 0.1} boxShadow="0 0 6px rgba(59,130,246,0.251)" />
                         </div>
                       ))}
                       <motion.button whileHover={{ borderColor: "rgba(59,130,246,0.251)", background: "rgba(59,130,246,0.04)" }} whileTap={{ scale: 0.97 }}
@@ -867,6 +748,8 @@ export default function FitForce() {
                           <input id={`log-${k}`} name={`log${k.charAt(0).toUpperCase() + k.slice(1)}`} type={t}
                             value={newLogRow[k]}
                             onChange={e => setNewLogRow(p => ({ ...p, [k]: e.target.value }))}
+                            min={t === "number" ? "0" : undefined}
+                            inputMode={t === "number" ? "numeric" : "text"}
                             style={{
                               background: "var(--bg-card2)", border: `1px solid var(--border2)`,
                               borderRadius: radius.sm, padding: "9px 12px",
@@ -907,19 +790,7 @@ export default function FitForce() {
                       </div>
                       <div style={{ textAlign: "right" }}>
                         <div style={{ fontSize: 11, color: "var(--text)", marginBottom: 7, fontWeight: 450 }}>{xpToNext} XP to Level {level + 1}</div>
-                        <div style={{ width: isMobile ? 120 : 160, height: 7, background: "var(--track)", borderRadius: radius.full, overflow: "hidden" }}>
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${((xp % 500) / 500) * 100 || 0}%` }}
-                            transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
-                            style={{
-                              height: "100%",
-                              background: `linear-gradient(90deg, var(--yellow), var(--orange))`,
-                              borderRadius: radius.full,
-                              boxShadow: `0 0 8px rgba(245,158,11,0.251)`,
-                            }}
-                          />
-                        </div>
+                        <ProgressBar value={xp % 500} max={500} gradient="linear-gradient(90deg, var(--yellow), var(--orange))" height={7} animated boxShadow="0 0 8px rgba(245,158,11,0.251)" sx={{ width: isMobile ? 120 : 160 }} />
                       </div>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(3,1fr)" : "repeat(auto-fit,minmax(100px,1fr))", gap: 8 }}>
@@ -963,16 +834,14 @@ export default function FitForce() {
                 </motion.div>
 
                 <motion.div variants={itemVariants} style={{ marginBottom: 16 }}>
-                  <ProgressReports
+                  <AnalyticsDashboard
                     workoutSessions={workoutSessions}
+                    workoutLog={workoutLog}
                     meals={meals}
                     water={water}
                     bodyStats={bodyStats}
-                    prs={prs}
                     totalCal={totalCal}
                     totalProt={totalProt}
-                    totalCarbs={totalCarbs}
-                    totalFat={totalFat}
                     calGoal={calGoal}
                     protGoal={protGoal}
                     xp={xp}
@@ -1283,6 +1152,7 @@ export default function FitForce() {
             </Suspense>
           </motion.div>
         </AnimatePresence>
+        </div>
       </div>
 
       {/* Mobile Bottom Navigation */}
@@ -1313,7 +1183,7 @@ export default function FitForce() {
                   <div style={{
                     position: "absolute", top: 0, left: "20%", right: "20%",
                     height: 2, background: "var(--accent)", borderRadius: "0 0 2px 2px",
-                    boxShadow: `0 0 8px rgba(59,130,246,0.4)`,
+                    boxShadow: shadow.softGlow("var(--accent)"),
                   }} />
                 )}
                 <Icon size={active ? 22 : 20} strokeWidth={active ? 2.5 : 2} />
@@ -1329,6 +1199,11 @@ export default function FitForce() {
       <NotificationToast
         notification={smartNotification}
         onDismiss={dismissNotification}
+        onNavigate={setTab}
+      />
+      <NotificationToast
+        notification={reminderNotification}
+        onDismiss={dismissReminder}
         onNavigate={setTab}
       />
       <OfflineDetector />
@@ -1349,13 +1224,13 @@ export default function FitForce() {
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 1, type: "spring", stiffness: 300, damping: 20 }}
-        whileHover={{ scale: 1.1, boxShadow: `0 0 40px rgba(59,130,246,0.314), 0 0 80px rgba(59,130,246,0.125)` }}
+        whileHover={{ scale: 1.1, boxShadow: shadow.softGlow("var(--accent)") }}
         whileTap={{ scale: 0.95 }}
         style={{
           position: "fixed",
           bottom: isMobile ? 80 : 24,
           right: isMobile ? 16 : 24,
-          zIndex: 999,
+          zIndex: 1001,
           width: isMobile ? 50 : 56,
           height: isMobile ? 50 : 56,
           borderRadius: "50%",
@@ -1365,7 +1240,7 @@ export default function FitForce() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          boxShadow: `0 4px 20px rgba(59,130,246,0.251), 0 0 0 1px rgba(59,130,246,0.125)`,
+          boxShadow: shadow.elevated,
           outline: "none",
         }}
         aria-label="Open AI Coach"

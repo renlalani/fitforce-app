@@ -7,7 +7,7 @@ import {
   Trash2, X,
 } from "lucide-react";
 import { useReminderStore, DAYS } from "../stores/reminderStore";
-import {  radius } from "../styles/designSystem";
+import {  radius, shadow } from "../styles/designSystem";
 import Card from "./ui/Card";
 import useScrollLock from "../hooks/useScrollLock";
 
@@ -29,6 +29,12 @@ const REMINDER_CONFIG = {
     desc: "Remind you to log meals on time",
     icon: Apple,
     color: "var(--green)",
+  },
+  protein: {
+    label: "Protein Reminder",
+    desc: "Hit your daily protein target",
+    icon: Dumbbell,
+    color: "var(--orange)",
   },
   sleep: {
     label: "Sleep Reminder",
@@ -118,8 +124,7 @@ function HistoryModal({ open, onClose, reminders }) {
               maxHeight: "80vh",
               display: "flex",
               flexDirection: "column",
-              boxShadow:
-                "0 4px 8px rgba(0,0,0,0.06), 0 12px 32px rgba(0,0,0,0.04), 0 24px 64px rgba(0,0,0,0.02)",
+              boxShadow: shadow.dropdown,
             }}
             role="dialog"
             aria-modal="true"
@@ -386,7 +391,7 @@ function ReminderCard({ reminderKey }) {
                 background: "var(--bg-card)",
                 position: "absolute",
                 top: 2,
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                boxShadow: shadow.floating,
               }}
             />
           </motion.button>

@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   ResponsiveContainer,
@@ -8,6 +9,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
+import { shadow } from "../styles/designSystem";
 
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
@@ -22,7 +24,7 @@ function CustomTooltip({ active, payload, label }) {
         fontWeight: 600,
         color: "var(--text)",
         whiteSpace: "nowrap",
-        boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
+        boxShadow: shadow.dropdown,
       }}
     >
       {label}: {payload[0]?.value?.toFixed(1) ?? "0"} kg
@@ -54,13 +56,44 @@ function ActiveDot({ cx, cy, color }) {
   );
 }
 
-export default function MiniChart({ data, color = "var(--accent)", label, height = 120 }) {
-  if (!data || data.length < 2) return <div style={{ height, marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "var(--text-dim)" }}>Not enough data</div>;
+function parseWeightDate(dateStr) {
+  if (!dateStr) return new Date(NaN);
+  const d = new Date(dateStr);
+  if (!isNaN(d.getTime())) return d;
+  const year = new Date().getFullYear();
+  return new Date(dateStr.includes(",") ? dateStr : `${dateStr}, ${year}`);
+}
 
-  const chartData = data.map((d) => ({
-    date: d.date || "",
-    value: +(d.value || d.weight || 0),
-  }));
+function prepareChartData(raw) {
+  if (!Array.isArray(raw) || raw.length === 0) return [];
+
+  const seen = new Map();
+
+  raw.forEach(d => {
+    if (!d) return;
+    const value = +(d.value ?? d.weight ?? 0);
+    if (isNaN(value) || value <= 0) return;
+
+    const parsed = parseWeightDate(d.date);
+    if (isNaN(parsed.getTime())) return;
+
+    const isoKey = parsed.toISOString().slice(0, 10);
+    if (!seen.has(isoKey) || parsed.getTime() >= seen.get(isoKey)._sortKey) {
+      seen.set(isoKey, { date: d.date || "", value, _sortKey: parsed.getTime() });
+    }
+  });
+
+  return [...seen.values()]
+    .sort((a, b) => a._sortKey - b._sortKey)
+    .map(({ date, value }) => ({ date, value }));
+}
+
+export default function MiniChart({ data, color = "var(--accent)", label, height = 120 }) {
+  const chartData = useMemo(() => prepareChartData(data), [data]);
+
+  if (chartData.length < 2) return <div style={{ height, marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "var(--text-dim)" }}>Not enough data</div>;
+
+  const dataKey = chartData.map(d => `${d.date}|${d.value}`).join(",");
 
   return (
     <motion.div
@@ -97,7 +130,7 @@ export default function MiniChart({ data, color = "var(--accent)", label, height
         </div>
       )}
 
-      <ResponsiveContainer width="100%" height={height}>
+      <ResponsiveContainer width="100%" height={height} key={dataKey}>
         <LineChart
           data={chartData}
           margin={{ top: 8, right: 8, bottom: 4, left: 8 }}

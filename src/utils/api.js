@@ -1,6 +1,6 @@
-const API_KEY = "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";
-const VISION_MODEL = "qwen/qwen2.5-vl-72b-instruct:free";
-const BASE = "https://openrouter.ai/api/v1/chat/completions";
+const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
+const VISION_MODEL = import.meta.env.VITE_DEFAULT_VISION_MODEL || "qwen/qwen2.5-vl-72b-instruct:free";
+const BASE = import.meta.env.VITE_API_BASE_URL || "https://openrouter.ai/api/v1/chat/completions";
 
 export const FREE_MODELS = [
   "openrouter/free",
@@ -15,7 +15,7 @@ async function tryModel({ model, messages, system, maxTokens, temperature, signa
     headers: {
       Authorization: `Bearer ${API_KEY}`,
       "Content-Type": "application/json",
-      "HTTP-Referer": "https://fitforce-app.vercel.app",
+      "HTTP-Referer": import.meta.env.VITE_SITE_URL || window.location.origin,
       "X-Title": "FitForce",
     },
     body: JSON.stringify({

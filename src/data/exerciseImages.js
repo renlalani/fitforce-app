@@ -35,9 +35,10 @@ const MAP = {
   "Treadmill Run": "cardio/Treadmill Running.png",
   "HIIT Intervals": "cardio/HIIT Sprint.png",
   "Jump Rope": "cardio/Jump Rope.png",
+  "Rowing Machine": "cardio/rowing machine.png",
 };
 
-const PICS = "https://placehold.co/400x300/1a1a2e/e0e0e0?text=";
+const PICS = import.meta.env.VITE_PLACEHOLDER_IMAGE_URL || "https://placehold.co/400x300/1a1a2e/e0e0e0?text=";
 
 const MUSCLE_FALLBACKS = {
   Chest: `${PICS}Chest`,

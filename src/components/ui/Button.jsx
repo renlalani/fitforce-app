@@ -65,7 +65,7 @@ const Button = forwardRef(({
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const id = ++idRef.current;
-    setRipples(prev => [...prev, { id, x, y }]);
+    setRipples(prev => prev.length < 5 ? [...prev, { id, x, y }] : prev);
     setTimeout(() => setRipples(prev => prev.filter(r => r.id !== id)), 600);
     onClick?.(e);
   }, [disabled, loading, onClick]);

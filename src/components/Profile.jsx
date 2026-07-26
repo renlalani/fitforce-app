@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Dumbbell, Apple, Flame, Zap, Trophy, TrendingUp, Ruler, Camera, Calendar, Crown, Sparkles, Activity, Target } from "lucide-react";
+import { Dumbbell, Apple, Flame, Zap, Trophy, TrendingUp, Ruler, Camera, Calendar, Crown, Sparkles, Activity, Target, Settings, ChevronRight } from "lucide-react";
 import ProgressPhotos from "./ProgressPhotos";
 import { radius, shadow, muscleColor } from "../styles/designSystem";
 import Button from "./ui/Button";
@@ -8,9 +8,12 @@ import Card from "./ui/Card";
 import { Badge } from "./ui/Tag";
 import AnimatedCounter from "./AnimatedCounter";
 import StreakCalendar from "./StreakCalendar";
+import UserAvatar from "./UserAvatar";
+import AboutDialog from "./AboutDialog";
 import { useWorkoutStore } from "../stores/workoutStore";
 import { useNutritionStore } from "../stores/nutritionStore";
 import { useUserStore } from "../stores/userStore";
+import { useUiStore } from "../stores/uiStore";
 import { ALL_ACHIEVEMENTS } from "../data/achievements";
 
 const itemVariants = {
@@ -27,7 +30,9 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
   const workoutLog = useWorkoutStore(s => s.workoutLog);
   const meals = useNutritionStore(s => s.meals);
   const water = useNutritionStore(s => s.water);
+  const setTab = useUiStore(s => s.setTab);
   const [newBodyStat, setNewBodyStat] = useState("");
+  const [showAbout, setShowAbout] = useState(false);
 
   const level = Math.floor(xp / 500) + 1;
   const xpToNext = 500 - (xp % 500);
@@ -89,20 +94,7 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
         marginBottom: 14,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 16 }}>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            style={{
-              width: 60, height: 60,
-              background: "var(--accent-gradient3)",
-              borderRadius: radius.full,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontWeight: 700, fontSize: 26, color: "#fff",
-              boxShadow: shadow.glow("var(--accent)"),
-              flexShrink: 0,
-            }}
-          >
-            {profile.name?.[0]?.toUpperCase() || "F"}
-          </motion.div>
+          <UserAvatar profile={profile} size={60} editable />
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text)", marginBottom: 2 }}>
               {profile.name || "Athlete"}
@@ -471,6 +463,77 @@ export default function Profile({ profile, setProfile, streak, bodyStats, addBod
         </Card>
       </motion.div>
 
+      {/* Settings */}
+      <motion.div variants={itemVariants} style={{ marginBottom: 14 }}>
+        <Card>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <div style={{ width: 26, height: 26, borderRadius: radius.sm, background: `rgba(59,130,246,0.094)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Settings size={13} color={"var(--accent)"} />
+            </div>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Settings</span>
+          </div>
+          <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 12 }}>App preferences & information</div>
+
+          <motion.div
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setTab("settings")}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setTab("settings"); } }}
+            aria-label="Open Settings"
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "10px 4px", borderRadius: radius.sm,
+              cursor: "pointer", transition: "background 0.2s ease",
+              borderBottom: `1px solid var(--border)`,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = "var(--bg-card2)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 28, height: 28, borderRadius: radius.sm, background: `rgba(59,130,246,0.071)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Settings size={13} color={"var(--accent)"} />
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text)" }}>Settings</div>
+                <div style={{ fontSize: 10, color: "var(--text-muted)" }}>Theme, units, data & more</div>
+              </div>
+            </div>
+            <ChevronRight size={14} color={"var(--text-muted)"} />
+          </motion.div>
+
+          <motion.div
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setShowAbout(true)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setShowAbout(true); } }}
+            aria-label="About FitForce"
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "10px 4px", borderRadius: radius.sm,
+              cursor: "pointer", transition: "background 0.2s ease",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = "var(--bg-card2)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 28, height: 28, borderRadius: radius.sm, background: `rgba(59,130,246,0.071)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ fontSize: 14 }}>ℹ️</span>
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text)" }}>About FitForce</div>
+                <div style={{ fontSize: 10, color: "var(--text-muted)" }}>Version 1.0.0</div>
+              </div>
+            </div>
+            <ChevronRight size={14} color={"var(--text-muted)"} />
+          </motion.div>
+        </Card>
+      </motion.div>
+
+      {showAbout && <AboutDialog onClose={() => setShowAbout(false)} />}
 
     </motion.div>
   );

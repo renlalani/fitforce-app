@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   Zap, Flame, Dumbbell, Apple, Droplets, Brain, Target, TrendingUp,
@@ -13,16 +13,13 @@ import { radius, shadow } from "../styles/designSystem";
 import { WORKOUT_PLANS } from "../data/fitness";
 import AnimatedCounter from "./AnimatedCounter";
 import ProgressRing from "./ProgressRing";
+import ProgressBar from "./ui/ProgressBar";
 import StreakCalendar from "./StreakCalendar";
 import SmartWidgets from "../widgets/SmartWidgets";
 import { useWorkoutStore } from "../stores/workoutStore";
 import { useUserStore } from "../stores/userStore";
 import { useNutritionStore } from "../stores/nutritionStore";
 import { useIsMobile } from "../hooks/useMediaQuery";
-
-const hour = new Date().getHours();
-const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
-const GreetingIcon = hour < 12 ? Sun : hour < 18 ? Sun : Moon;
 
 const containerVariants = {
   animate: { transition: { staggerChildren: 0.04 } },
@@ -41,7 +38,12 @@ const motivationalQuotes = [
   "Success starts with self-discipline.",
 ];
 
-const quote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+function useGreeting() {
+  return useRef({
+    greeting: new Date().getHours() < 12 ? "Good morning" : "Good evening",
+    Icon: Sun,
+  }).current;
+}
 
 const MEAL_TIMES = ["Breakfast", "Lunch", "Dinner", "Post-Workout", "Snack"];
 
@@ -69,6 +71,9 @@ export default function Dashboard({
   setActiveWorkout, setShowMealModal, setShowWorkoutGenerator, setShowMealPlanner, setShowFoodScanner, onNavigate,
   level, streak,
 }) {
+  const { greeting, Icon: GreetingIcon } = useGreeting();
+  const quoteRef = useRef(motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]);
+  const quote = quoteRef.current;
   const workoutSessions = useWorkoutStore(s => s.workoutSessions);
   const xp = useUserStore(s => s.xp);
   const meals = useNutritionStore(s => s.meals);
@@ -133,7 +138,6 @@ export default function Dashboard({
     { icon: TrendingUp, label: "Progress", color: "var(--blue)", desc: "View stats", action: () => onNavigate?.("progress") },
     { icon: Droplets, label: "Add Water", color: "var(--teal)", desc: "Stay hydrated", action: () => setWater(w => Math.min(8, w + 1)) },
     { icon: Camera, label: "Scan Food", color: "var(--cyan)", desc: "AI food scanner", action: () => setShowFoodScanner?.(true) },
-    { icon: Zap, label: `Level ${level+1}`, color: "var(--highlight)", desc: `${500 - (xp % 500)} XP to go`, action: () => {} },
   ];
 
   const recent = useMemo(() => {
@@ -266,7 +270,7 @@ export default function Dashboard({
               style={{
                 width: 160, height: 160, borderRadius: "50%",
                 background: `radial-gradient(circle at 35% 35%, var(--accent-light) 0%, var(--accent) 40%, var(--highlight) 70%, transparent 100%)`,
-                boxShadow: `0 0 60px rgba(59,130,246,0.188), 0 0 120px rgba(59,130,246,0.082), 0 0 200px rgba(34,211,238,0.031)`,
+                boxShadow: shadow.glow("var(--accent)"),
                 position: "relative", flexShrink: 0,
               }}
             >
@@ -376,7 +380,6 @@ export default function Dashboard({
           { label: "Carbs", value: totalCarbs, max: 300, color: "var(--yellow)", gradient: "var(--yellow-gradient)" },
           { label: "Fat", value: totalFat, max: 80, color: "var(--green)", gradient: "var(--green-gradient)" },
         ].map((m) => {
-          const pct = Math.min(100, (m.value / Math.max(1, m.max)) * 100) || 0;
           return (
             <motion.div key={m.label} whileHover={{ y: -2 }} transition={{ type: "spring", stiffness: 300, damping: 20 }} style={{
               background: `linear-gradient(180deg, var(--bg-card) 0%, var(--bg-card2) 100%)`,
@@ -389,24 +392,14 @@ export default function Dashboard({
               {/* Top edge glow */}
               <div style={{
                 position: "absolute", top: 0, left: 0, right: 0, height: 2,
-                background: `linear-gradient(90deg, transparent, ${m.color}30, transparent)`,
+                background: `linear-gradient(90deg, transparent, color-mix(in srgb, ${m.color}, transparent 81%), transparent)`,
                 pointerEvents: "none",
               }} />
               <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 6, letterSpacing: "0.03em", fontWeight: 500 }}>{m.label}</div>
               <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: "var(--text)", letterSpacing: "-0.03em" }}>
                 <AnimatedCounter value={m.value} /> <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>/ {m.max}</span>
               </div>
-              <div style={{ height: 5, background: "var(--track)", borderRadius: radius.full, marginTop: 10, overflow: "hidden" }}>
-                <div
-                  style={{
-                    width: `${pct}%`,
-                    height: "100%",
-                    background: `linear-gradient(90deg, ${m.color}, ${m.color}dd)`,
-                    borderRadius: radius.full,
-                    boxShadow: `0 0 6px ${m.color}30`,
-                  }}
-                />
-              </div>
+              <ProgressBar value={m.value} max={m.max} color={m.color} height={5} sx={{ marginTop: 10 }} />
             </motion.div>
           );
         })}
@@ -446,8 +439,9 @@ export default function Dashboard({
                 <Flame size={14} color={"var(--accent)"} />
               </div>
           </div>
+          {mealCalories.length > 0 ? (
           <ResponsiveContainer width="100%" height={isMobile ? 120 : 150}>
-            <AreaChart data={mealCalories.length > 0 ? mealCalories : [{ day: "No data", value: 0 }]}>
+            <AreaChart data={mealCalories}>
               <defs>
                 <linearGradient id="calGrad2" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={"var(--accent)"} stopOpacity={0.25} />
@@ -460,6 +454,11 @@ export default function Dashboard({
               <Area type="monotone" dataKey="value" stroke={"var(--accent)"} strokeWidth={2} fill="url(#calGrad2)" dot={false} activeDot={{ r: 4, stroke: "var(--accent)", strokeWidth: 2, fill: "var(--bg-card)" }} />
             </AreaChart>
           </ResponsiveContainer>
+          ) : (
+          <div style={{ textAlign: "center", padding: "24px 0", color: "var(--text-muted)", fontSize: 12, lineHeight: 1.5 }}>
+            Log your meals to see calorie distribution
+          </div>
+          )}
         </motion.div>
 
         {/* Protein by Meal Bar Chart */}
@@ -489,8 +488,9 @@ export default function Dashboard({
               <TrendingUp size={14} color={"var(--accent)"} />
             </div>
           </div>
+          {mealProtein.length > 0 ? (
           <ResponsiveContainer width="100%" height={isMobile ? 120 : 150}>
-            <BarChart data={mealProtein.length > 0 ? mealProtein : [{ day: "No data", value: 0 }]}>
+            <BarChart data={mealProtein}>
               <defs>
                 <linearGradient id="proteinGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={"var(--accent)"} stopOpacity={0.9} />
@@ -503,6 +503,11 @@ export default function Dashboard({
               <Bar dataKey="value" fill="url(#proteinGrad)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
+          ) : (
+          <div style={{ textAlign: "center", padding: "24px 0", color: "var(--text-muted)", fontSize: 12, lineHeight: 1.5 }}>
+            Log your meals to see protein distribution
+          </div>
+          )}
         </motion.div>
 
         {/* Workout Volume Bar Chart */}
@@ -532,6 +537,7 @@ export default function Dashboard({
               <Dumbbell size={14} color={"var(--green)"} />
             </div>
           </div>
+          {weeklyVolume.some(d => d.value > 0) ? (
           <ResponsiveContainer width="100%" height={isMobile ? 120 : 150}>
             <BarChart data={weeklyVolume}>
               <defs>
@@ -546,6 +552,11 @@ export default function Dashboard({
               <Bar dataKey="value" fill="url(#volumeGrad)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
+          ) : (
+          <div style={{ textAlign: "center", padding: "24px 0", color: "var(--text-muted)", fontSize: 12, lineHeight: 1.5 }}>
+            Complete a workout to see your weekly volume
+          </div>
+          )}
         </motion.div>
 
       </motion.div>
@@ -566,7 +577,7 @@ export default function Dashboard({
                 key={a.label}
                 whileHover={{
                   y: -5,
-                  boxShadow: `0 4px 12px ${a.color}15, 0 8px 24px ${a.color}08, 0 0 0 1px ${a.color}20`,
+                  boxShadow: shadow.ambient(a.color),
                 }}
                 whileTap={{ scale: 0.95 }}
                 role="button"

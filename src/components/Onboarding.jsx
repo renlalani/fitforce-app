@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Dumbbell, Apple, Brain, ChevronRight } from "lucide-react";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useUiStore } from "../stores/uiStore";
+import { shadow } from "../styles/designSystem";
 import logo from "../../images/logo.png";
 
 const screens = [
@@ -278,8 +279,7 @@ export default function Onboarding() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    boxShadow:
-                      "0 16px 48px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04)",
+                    boxShadow: shadow.dropdown,
                     position: "relative",
                   }}
                 >
@@ -417,7 +417,7 @@ export default function Onboarding() {
           transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
           whileHover={{
             scale: 1.02,
-            boxShadow: "0 8px 30px rgba(37,99,235,0.18)",
+            boxShadow: shadow.elevated,
           }}
           whileTap={{ scale: 0.97 }}
           onClick={isLast ? goNext : goNext}
@@ -433,7 +433,7 @@ export default function Onboarding() {
             fontWeight: 600,
             cursor: "pointer",
             letterSpacing: "-0.01em",
-            boxShadow: "0 4px 16px rgba(37,99,235,0.15)",
+            boxShadow: shadow.elevated,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

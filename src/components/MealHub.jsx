@@ -7,11 +7,12 @@ import {
   Sunrise, Sun, Moon, Cookie, Dumbbell, Leaf,
   AlertTriangle, Check,
 } from "lucide-react";
-import {  radius, shadow, transition } from "../styles/designSystem";
+import { radius, shadow, transition } from "../styles/designSystem";
 import Card from "./ui/Card";
 import Button from "./ui/Button";
 import ProgressRing from "./ProgressRing";
 import AnimatedCounter from "./AnimatedCounter";
+import ProgressBar from "./ui/ProgressBar";
 import WaterTracker from "./WaterTracker";
 import EmptyState from "./ui/EmptyState";
 import { FOOD_DB } from "../data/fitness";
@@ -319,12 +320,7 @@ export default function MealHub({ calGoal, protGoal, onOpenModal }) {
   ];
 
   return (
-    <motion.div variants={containerVariants} initial="initial" animate="animate"
-      style={isMobile ? {
-        display: "flex", flexDirection: "column",
-        maxHeight: "calc(100vh - 154px)",
-        overflow: "hidden",
-      } : {}}>
+    <motion.div variants={containerVariants} initial="initial" animate="animate">
       {/* Tab navigation */}
       <motion.div variants={itemVariants} style={{
         display: "flex", gap: 0, marginBottom: 16,
@@ -365,7 +361,7 @@ export default function MealHub({ calGoal, protGoal, onOpenModal }) {
         })}
       </motion.div>
 
-      <div style={isMobile ? { flex: 1, overflowY: "auto", minHeight: 0, WebkitOverflowScrolling: "touch" } : {}}>
+      <div>
       {selectedTab === "dashboard" && (
         <motion.div key="dashboard">
           {/* Premium Hero */}
@@ -405,12 +401,7 @@ export default function MealHub({ calGoal, protGoal, onOpenModal }) {
                       {remainingCal > 0 ? `${formatCal(remainingCal)} kcal` : "Over goal!"}
                     </span>
                   </div>
-                  <div style={{ height: 6, background: "var(--track)", borderRadius: radius.full, overflow: "hidden" }}>
-                    <div style={{
-                      width: `${Math.min(100, (totalCal / safeCalGoal) * 100) || 0}%`,
-                      height: "100%", background: `linear-gradient(90deg, var(--accent), var(--accent-light))`, borderRadius: radius.full, boxShadow: `0 0 8px var(--accent)40`,
-                    }} />
-                  </div>
+                  <ProgressBar value={totalCal} max={safeCalGoal} gradient="linear-gradient(90deg, var(--accent), var(--accent-light))" height={6} boxShadow="0 0 8px var(--accent)" />
                 </div>
 
                 {/* Macro rings row */}
@@ -433,13 +424,7 @@ export default function MealHub({ calGoal, protGoal, onOpenModal }) {
                     return (
                       <div key={label} style={{ textAlign: "center" }}>
                         <div style={{ fontSize: 12, fontWeight: 600, color }}><AnimatedCounter value={Math.round(value)} /></div>
-                        <div style={{ height: 4, background: "var(--track)", borderRadius: radius.full, margin: "2px 4px", overflow: "hidden" }}>
-                          <div style={{
-                            width: `${pct}%`,
-                            height: "100%", background: `linear-gradient(90deg, ${color}, ${color}dd)`, borderRadius: radius.full,
-                            transition: "width 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)",
-                          }} />
-                        </div>
+                        <ProgressBar value={value} max={goal} color={color} height={4} sx={{ margin: "2px 4px" }} />
                         <div style={{ fontSize: 9, color: "var(--text-muted)" }}>{label}</div>
                       </div>
                     );
@@ -597,13 +582,7 @@ export default function MealHub({ calGoal, protGoal, onOpenModal }) {
                           <AnimatedCounter value={Math.round(value)} /> / {goal}
                         </span>
                       </div>
-                      <div style={{ height: 5, background: "var(--track)", borderRadius: radius.full, overflow: "hidden" }}>
-                        <div style={{
-                          width: `${pct}%`,
-                          height: "100%", background: `linear-gradient(90deg, ${color}, ${color}dd)`, borderRadius: radius.full,
-                          transition: "width 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)",
-                        }} />
-                      </div>
+                      <ProgressBar value={value} max={goal} color={color} height={5} />
                     </div>
                   );
                 })}

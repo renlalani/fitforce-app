@@ -11,6 +11,7 @@ import {  radius, shadow, transition, muscleColor } from "../styles/designSystem
 import { EXERCISES } from "../data/fitness";
 import ExerciseImage from "./ExerciseImage";
 import { Tag } from "./ui/Tag";
+import ProgressBar from "./ui/ProgressBar";
 import ConfettiEffect from "./ConfettiEffect";
 import { useWorkoutStore } from "../stores/workoutStore";
 import { useUserStore } from "../stores/userStore";
@@ -460,22 +461,7 @@ export default function WorkoutModal({ plan, onClose }) {
           </div>
         </div>
 
-        {/* Progress Bar */}
-          <div style={{
-            height: 6, background: "var(--track)", borderRadius: radius.full,
-            marginBottom: 4, overflow: "hidden",
-          }}>
-            <div
-              style={{
-                width: `${(((doneSets + 1) / Math.max(1, totalSets)) * 100) || 0}%`,
-                height: "100%",
-                background: `linear-gradient(90deg, var(--accent), var(--accent-light), var(--cyan))`,
-                borderRadius: radius.full,
-                boxShadow: `0 0 8px var(--accent)40`,
-                transition: "width 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)",
-              }}
-          />
-        </div>
+        <ProgressBar value={doneSets + 1} max={totalSets} gradient="linear-gradient(90deg, var(--accent), var(--accent-light), var(--cyan))" height={6} boxShadow="0 0 8px var(--accent)" sx={{ marginBottom: 4 }} />
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--text-muted)", marginBottom: 16 }}>
           <span>{doneSets + 1}/{totalSets} sets</span>
           <span>{completedSets.length} done</span>

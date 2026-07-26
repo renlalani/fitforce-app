@@ -27,6 +27,8 @@ export default function ConfettiEffect({ active }) {
     return () => clearTimeout(t);
   }, [active]);
 
+  if (items.length === 0) return null;
+
   return (
     <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 9999, overflow: "hidden" }}>
       <AnimatePresence>

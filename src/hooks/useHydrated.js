@@ -1,40 +1,26 @@
-import { useSyncExternalStore, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useNutritionStore } from "../stores/nutritionStore";
 import { useUserStore } from "../stores/userStore";
 import { useWorkoutStore } from "../stores/workoutStore";
 import { useUiStore } from "../stores/uiStore";
 import { useSettingsStore } from "../stores/settingsStore";
 
-function subscribeToHydration(store, cb) {
-  if (store.persist.hasHydrated()) cb();
-  const unsub = store.persist.onFinishHydration(() => cb());
-  return () => { unsub?.(); };
-}
-
-function checkHydrated(store) {
-  return store.persist?.hasHydrated?.() ?? true;
-}
+const stores = [useNutritionStore, useUserStore, useWorkoutStore, useUiStore, useSettingsStore];
 
 export function useHydrated() {
-  const nut = useSyncExternalStore(
-    useCallback((cb) => subscribeToHydration(useNutritionStore, cb), []),
-    useCallback(() => checkHydrated(useNutritionStore), [])
-  );
-  const user = useSyncExternalStore(
-    useCallback((cb) => subscribeToHydration(useUserStore, cb), []),
-    useCallback(() => checkHydrated(useUserStore), [])
-  );
-  const workout = useSyncExternalStore(
-    useCallback((cb) => subscribeToHydration(useWorkoutStore, cb), []),
-    useCallback(() => checkHydrated(useWorkoutStore), [])
-  );
-  const ui = useSyncExternalStore(
-    useCallback((cb) => subscribeToHydration(useUiStore, cb), []),
-    useCallback(() => checkHydrated(useUiStore), [])
-  );
-  const settings = useSyncExternalStore(
-    useCallback((cb) => subscribeToHydration(useSettingsStore, cb), []),
-    useCallback(() => checkHydrated(useSettingsStore), [])
-  );
-  return nut && user && workout && ui && settings;
+  const [hydrated, setHydrated] = useState(() => stores.every(s => s.persist?.hasHydrated?.()));
+
+  useEffect(() => {
+    if (hydrated) return;
+    const unsubs = stores.map(store =>
+      store.persist?.onFinishHydration?.(() => {
+        if (stores.every(s => s.persist?.hasHydrated?.())) {
+          setHydrated(true);
+        }
+      })
+    );
+    return () => unsubs.forEach(u => u?.());
+  }, [hydrated]);
+
+  return hydrated;
 }

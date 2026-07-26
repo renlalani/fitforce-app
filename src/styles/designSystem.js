@@ -11,8 +11,10 @@ export const radius = {
 export const shadow = {
   card: "0 1px 2px rgba(0,0,0,0.04), 0 4px 8px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.02)",
   elevated: "0 4px 12px rgba(37,99,235,0.08), 0 8px 24px rgba(37,99,235,0.04), 0 16px 48px rgba(37,99,235,0.04)",
-  modal: "0 25px 60px rgba(0,0,0,0.20), 0 0 0 1px rgba(0,0,0,0.04)",
-  floating: "0 1px 2px rgba(0,0,0,0.04), 0 4px 8px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.02)",
+  modal: "0 8px 32px rgba(0,0,0,0.10), 0 24px 60px rgba(0,0,0,0.08)",
+  dropdown: "0 4px 16px rgba(0,0,0,0.06), 0 12px 32px rgba(0,0,0,0.04)",
+  floating: "0 2px 8px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.04)",
+  toast: "0 4px 16px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.06)",
   glow: (c) => `0 0 20px ${c}15, 0 0 40px ${c}08, 0 0 80px ${c}04`,
   softGlow: (c) => `0 0 30px ${c}10, 0 0 60px ${c}05`,
   ambient: (c) => `0 4px 24px ${c}12, 0 0 0 1px ${c}06`,

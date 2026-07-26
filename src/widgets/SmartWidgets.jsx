@@ -8,6 +8,7 @@ import {
 import { radius, shadow, muscleColor as mc } from "../styles/designSystem";
 import { EXERCISES } from "../data/fitness";
 import AnimatedCounter from "../components/AnimatedCounter";
+import ProgressBar from "../components/ui/ProgressBar";
 import { useWorkoutStore, selectWeeklyWorkouts, selectWeeklyVolume, selectWeeklyMinutes, selectWeeklyCalories, selectCurrentStreak } from "../stores/workoutStore";
 import { useUserStore } from "../stores/userStore";
 import { useNutritionStore } from "../stores/nutritionStore";
@@ -301,14 +302,7 @@ export default function SmartWidgets({ onNavigate }) {
             ].map(bar => (
               <div key={bar.label} style={{ flex: 1 }}>
                 <div style={{ fontSize: 9, color: "var(--text-muted)", marginBottom: 3 }}>{bar.label}</div>
-                <div style={{ height: 4, background: "var(--track)", borderRadius: radius.full, overflow: "hidden" }}>
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${bar.pct * 100}%` }}
-                    transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-                    style={{ height: "100%", background: `linear-gradient(90deg, ${bar.c}, ${bar.c}dd)`, borderRadius: radius.full }}
-                  />
-                </div>
+                <ProgressBar value={bar.pct} max={1} color={bar.c} height={4} animated delay={0.2} />
               </div>
             ))}
           </div>
@@ -424,18 +418,7 @@ export default function SmartWidgets({ onNavigate }) {
                       </span>
                       <span style={{ color: "var(--text-muted)" }}>{m.sets} sets</span>
                     </div>
-                    <div style={{ height: 5, background: "var(--track)", borderRadius: radius.full, overflow: "hidden" }}>
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${pct}%` }}
-                        transition={{ duration: 0.6, delay: i * 0.1 }}
-                        style={{
-                          height: "100%",
-                          background: `linear-gradient(90deg, ${color}, ${color}cc)`,
-                          borderRadius: radius.full,
-                        }}
-                      />
-                    </div>
+                    <ProgressBar value={pct} max={100} color={color} height={5} animated delay={i * 0.1} />
                   </div>
                 );
               })}
@@ -460,36 +443,21 @@ export default function SmartWidgets({ onNavigate }) {
               <span style={{ color: "var(--text-muted)" }}>Calories</span>
               <span style={{ color: "var(--accent)", fontWeight: 600 }}>{Math.round(totalCal)}/{calGoal}</span>
             </div>
-            <div style={{ height: 4, background: "var(--track)", borderRadius: radius.full, overflow: "hidden" }}>
-              <motion.div initial={{ width: 0 }} animate={{ width: `${pctCal}%` }}
-                transition={{ duration: 0.6 }}
-                style={{ height: "100%", background: "linear-gradient(90deg, var(--accent), var(--accent)dd)", borderRadius: radius.full }}
-              />
-            </div>
+            <ProgressBar value={pctCal} max={100} color="var(--accent)" height={4} animated />
           </div>
           <div style={{ marginBottom: 10 }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, marginBottom: 4 }}>
               <span style={{ color: "var(--text-muted)" }}>Protein</span>
               <span style={{ color: "var(--accent)", fontWeight: 600 }}>{Math.round(totalProt)}/{protGoal}g</span>
             </div>
-            <div style={{ height: 4, background: "var(--track)", borderRadius: radius.full, overflow: "hidden" }}>
-              <motion.div initial={{ width: 0 }} animate={{ width: `${pctProt}%` }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                style={{ height: "100%", background: `linear-gradient(90deg, var(--accent), var(--highlight))`, borderRadius: radius.full }}
-              />
-            </div>
+            <ProgressBar value={pctProt} max={100} gradient="linear-gradient(90deg, var(--accent), var(--highlight))" height={4} animated delay={0.1} />
           </div>
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, marginBottom: 4 }}>
               <span style={{ color: "var(--text-muted)" }}>Water</span>
               <span style={{ color: "var(--teal)", fontWeight: 600 }}>{water}/8</span>
             </div>
-            <div style={{ height: 4, background: "var(--track)", borderRadius: radius.full, overflow: "hidden" }}>
-              <motion.div initial={{ width: 0 }} animate={{ width: `${pctWater}%` }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                style={{ height: "100%", background: "linear-gradient(90deg, var(--teal), var(--blue))", borderRadius: radius.full }}
-              />
-            </div>
+            <ProgressBar value={pctWater} max={100} gradient="linear-gradient(90deg, var(--teal), var(--blue))" height={4} animated delay={0.2} />
           </div>
         </motion.div>
 

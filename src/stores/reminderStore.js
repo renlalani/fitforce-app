@@ -17,6 +17,7 @@ const initialState = {
     workout: { ...defaultReminder, time: "08:00", repeatDays: [1, 2, 3, 4, 5, 6] },
     water: { ...defaultReminder, time: "10:00", repeatDays: [0, 1, 2, 3, 4, 5, 6] },
     meal: { ...defaultReminder, time: "12:00", repeatDays: [0, 1, 2, 3, 4, 5, 6] },
+    protein: { ...defaultReminder, time: "14:00", repeatDays: [0, 1, 2, 3, 4, 5, 6] },
     sleep: { ...defaultReminder, time: "22:00", repeatDays: [0, 1, 2, 3, 4, 5, 6] },
     weight: { ...defaultReminder, time: "09:00", repeatDays: [1] },
   },

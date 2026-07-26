@@ -4,9 +4,10 @@ import {
   Settings as SettingsIcon, Moon, Sun, Weight, Brain,
   Shield, Download, Upload, Trash2, Info,
 } from "lucide-react";
-import {  radius } from "../styles/designSystem";
+import { radius, shadow } from "../styles/designSystem";
 import { useSettingsStore } from "../stores/settingsStore";
 import Button from "./ui/Button";
+import AboutDialog from "./AboutDialog";
 import logo from "../../images/logo.png";
 import { getAllFitForceData, safeSet } from "../utils/storage";
 import Card from "./ui/Card";
@@ -48,7 +49,7 @@ function Toggle({ checked, onChange, id }) {
         style={{
           width: 20, height: 20, borderRadius: "50%",
           background: "var(--bg-card)", position: "absolute", top: 2,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          boxShadow: shadow.floating,
         }}
       />
     </motion.button>
@@ -88,6 +89,7 @@ export default function SettingsPage() {
   const settings = useSettingsStore();
   const [toast, setToast] = useState({ visible: false, message: "", sub: "" });
   const [confirmReset, setConfirmReset] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
 
   const showToast = (message, sub = "") => {
     setToast({ visible: true, message, sub });
@@ -273,22 +275,41 @@ export default function SettingsPage() {
       <div style={sectionStyle}>
         <Card>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <img src={logo} alt="FitForce" style={{ width: 24, height: 24, display: "block" }} />
+            <img src={logo} alt="FitForce" loading="lazy" style={{ width: 24, height: 24, display: "block" }} />
             <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>About</div>
           </div>
           <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 12 }}>FitForce version information</div>
-          <div style={rowStyle()}>
+          <motion.div
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setShowAbout(true)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setShowAbout(true); } }}
+            aria-label="Open About FitForce dialog"
+            style={{
+              ...rowStyle(),
+              cursor: "pointer",
+              borderRadius: radius.sm,
+              padding: "4px",
+              transition: "background 0.2s ease",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = "var(--bg-card2)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+          >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <img src={logo} alt="FitForce" style={{ width: 28, height: 28, display: "block" }} />
+              <img src={logo} alt="FitForce" loading="lazy" style={{ width: 28, height: 28, display: "block" }} />
               <div>
                 <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text)" }}>FitForce</div>
                 <div style={{ fontSize: 10, color: "var(--text-muted)" }}>AI Gym Companion</div>
               </div>
             </div>
             <div style={{ fontSize: 11, color: "var(--text-muted)" }}>v1.0.0</div>
-          </div>
+          </motion.div>
         </Card>
       </div>
+
+      {showAbout && <AboutDialog onClose={() => setShowAbout(false)} />}
 
       <Toast
         message={toast.message}

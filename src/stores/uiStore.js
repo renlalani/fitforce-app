@@ -15,6 +15,11 @@ const initialState = {
   orm1R: "5",
   bfNeck: "37",
   bfWaist: "82",
+  searchQuery: "",
+  filterEquipment: "All",
+  filterType: "All",
+  sortBy: "name",
+  favorites: [],
 };
 
 export const useUiStore = create(
@@ -45,6 +50,15 @@ export const useUiStore = create(
       setShowWorkoutGenerator: (show) => set({ showWorkoutGenerator: show }),
       setShowMealPlanner: (show) => set({ showMealPlanner: show }),
       setShowFoodScanner: (show) => set({ showFoodScanner: show }),
+      setSearchQuery: (q) => set({ searchQuery: q }),
+      setFilterEquipment: (v) => set({ filterEquipment: v }),
+      setFilterType: (v) => set({ filterType: v }),
+      setSortBy: (v) => set({ sortBy: v }),
+      toggleFavorite: (id) => set((state) => {
+        const has = state.favorites.includes(id);
+        return { favorites: has ? state.favorites.filter(f => f !== id) : [...state.favorites, id] };
+      }),
+      clearFavorites: () => set({ favorites: [] }),
     }),
     { name: "fitforce-ui", migrate: (persisted) => persisted }
   )

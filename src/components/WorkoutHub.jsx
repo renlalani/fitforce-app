@@ -28,10 +28,9 @@ const MUSCLE_EMOJI = {
   Shoulders: <Dumbbell size={12} />, Arms: <Dumbbell size={12} />, Core: <Activity size={12} />, Cardio: <Heart size={12} />,
 };
 
-const LEVEL_COLOR = () => ({ Beginner: "var(--green)", Intermediate: "var(--yellow)", Advanced: "var(--accent)" });
-const LEVEL_BG = () => ({ Beginner: `rgba(16,185,129,0.082)`, Intermediate: `rgba(245,158,11,0.082)`, Advanced: `rgba(59,130,246,0.082)` });
-
+const LEVEL_COLOR = { Beginner: "var(--green)", Intermediate: "var(--yellow)", Advanced: "var(--accent)" };
 const DIFFICULTY_STARS = { Beginner: 1, Intermediate: 2, Advanced: 3 };
+const LEVEL_BG = { Beginner: `rgba(16,185,129,0.082)`, Intermediate: `rgba(245,158,11,0.082)`, Advanced: `rgba(59,130,246,0.082)` };
 
 const QUICK_ACTIONS = () => [
   { id: "start", label: "Start Workout", icon: Play, color: "var(--accent)", gradient: `linear-gradient(135deg, var(--accent), var(--accent-dark))` },
@@ -145,15 +144,9 @@ export default function WorkoutHub({
   const xpProgress = Math.min(100, (workoutXp / nextLevelXp) * 100);
 
   return (
-    <motion.div variants={containerVariants} initial="initial" animate="animate"
-      style={isMobile ? {
-        display: "flex", flexDirection: "column",
-        maxHeight: "calc(100vh - 154px)",
-        overflow: "hidden",
-      } : {}}>
+    <motion.div variants={containerVariants} initial="initial" animate="animate">
 
-      {/* Scrollable content area */}
-      <div style={isMobile ? { flex: 1, overflowY: "auto", minHeight: 0, WebkitOverflowScrolling: "touch" } : {}}>
+      <div>
 
         {/* Hero - Today's Workout */}
         <div style={{ marginBottom: 16 }}>
@@ -190,7 +183,7 @@ export default function WorkoutHub({
                 </div>
 
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
-                  <Badge label={suggestedPlan.level} color={LEVEL_COLOR()[suggestedPlan.level]} />
+                  <Badge label={suggestedPlan.level} color={LEVEL_COLOR[suggestedPlan.level]} />
                   <Badge label={suggestedPlan.duration} color={"var(--text-muted)"} />
                   <Badge label={suggestedPlan.goal} color={suggestedPlan.color} />
                 </div>
@@ -469,7 +462,7 @@ export default function WorkoutHub({
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                                 <h3 style={{ color: "var(--text)", fontSize: 16, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}>{p.name}</h3>
-                                <Badge label={p.level} color={LEVEL_COLOR()[p.level]} />
+                                <Badge label={p.level} color={LEVEL_COLOR[p.level]} />
                               </div>
                               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
                                 <Tag label={`${p.days} days/wk`} color={p.color} />
@@ -713,7 +706,7 @@ export default function WorkoutHub({
                               <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                 {ex.name}
                               </h3>
-                              <Badge label={ex.level} color={LEVEL_COLOR()[ex.level]} />
+                              <Badge label={ex.level} color={LEVEL_COLOR[ex.level]} />
                             </div>
                             <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
                               <Tag label={ex.muscle} color={muscleColor[ex.muscle] || "var(--accent)"} />
@@ -746,7 +739,7 @@ export default function WorkoutHub({
                           </span>
                           <span style={{ display: "flex", alignItems: "center", gap: 2, marginLeft: "auto" }}>
                             {Array.from({ length: DIFFICULTY_STARS[ex.level] || 1 }).map((_, si) => (
-                              <Star key={si} size={9} color={LEVEL_COLOR()[ex.level]} fill={LEVEL_COLOR()[ex.level]} />
+                              <Star key={si} size={9} color={LEVEL_COLOR[ex.level]} fill={LEVEL_COLOR[ex.level]} />
                             ))}
                           </span>
                         </div>

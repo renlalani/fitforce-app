@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Download } from "lucide-react";
-import {  radius } from "../styles/designSystem";
+import {  radius, shadow } from "../styles/designSystem";
 
 export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -52,7 +52,7 @@ export default function InstallPrompt() {
             background: "var(--bg-card)", border: `1px solid var(--border2)`,
             borderRadius: radius.lg, padding: "14px 16px",
             display: "flex", alignItems: "center", gap: 12,
-            boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+            boxShadow: shadow.modal,
           }}>
             <div style={{
               width: 40, height: 40, borderRadius: radius.md,

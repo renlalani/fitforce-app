@@ -1,12 +1,19 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useReminderStore } from "../stores/reminderStore";
+import { useWorkoutStore } from "../stores/workoutStore";
+import { useNutritionStore } from "../stores/nutritionStore";
 
 const LABELS = {
   workout: { title: "Workout Time", body: "Time to crush your workout! Let's get those gains. 💪" },
   water: { title: "Hydration Reminder", body: "Don't forget to drink water. Stay hydrated! 💧" },
   meal: { title: "Meal Time", body: "Time to fuel your body with a nutritious meal. 🥗" },
+  protein: { title: "Protein Target", body: "Remember to hit your protein goal for the day. 🥩" },
   sleep: { title: "Sleep Reminder", body: "Rest is essential for recovery. Time to wind down. 🌙" },
   weight: { title: "Weight Check", body: "Time to log your weight and track your progress. ⚖️" },
+};
+
+const ICON_MAP = {
+  workout: "💪", water: "💧", meal: "🥗", protein: "🥩", sleep: "🌙", weight: "⚖️",
 };
 
 function todayMatches(reminder) {
@@ -44,7 +51,7 @@ async function requestPermission(store) {
   return result === "granted";
 }
 
-function fireNotification(key) {
+function fireBrowserNotification(key) {
   const info = LABELS[key];
   if (!info) return;
   try {
@@ -60,15 +67,49 @@ function fireNotification(key) {
   }
 }
 
+function shouldAutoStop(key) {
+  const today = new Date().toDateString();
+  switch (key) {
+    case "workout": {
+      const sessions = useWorkoutStore.getState().workoutSessions;
+      return sessions.some(ws => new Date(ws.completedAt).toDateString() === today);
+    }
+    case "water": {
+      const water = useNutritionStore.getState().water;
+      return water >= 8;
+    }
+    case "protein": {
+      const meals = useNutritionStore.getState().meals;
+      const totalProt = meals.reduce((s, m) => s + (+m.protein || 0), 0);
+      let protGoal = 150;
+      try {
+        const stored = JSON.parse(localStorage.getItem("fitforce-user") || "null");
+        if (stored?.state?.bodyStats?.length > 0) {
+          const entries = stored.state.bodyStats;
+          protGoal = Math.round(+entries[entries.length - 1].weight * 2);
+        } else if (stored?.state?.profile?.weight) {
+          protGoal = Math.round(+stored.state.profile.weight * 2);
+        }
+      } catch {}
+      return totalProt >= protGoal;
+    }
+    default:
+      return false;
+  }
+}
+
 export function useReminderEngine() {
   const intervalRef = useRef(null);
+  const [inApp, setInApp] = useState(null);
+
+  const dismiss = useCallback(() => setInApp(null), []);
 
   useEffect(() => {
     const store = useReminderStore;
     let mounted = true;
 
     (async () => {
-      await requestPermission(store);
+      const hasPermission = await requestPermission(store);
       if (!mounted) return;
       intervalRef.current = setInterval(() => {
         const { reminders } = store.getState();
@@ -77,8 +118,18 @@ export function useReminderEngine() {
           if (!todayMatches(reminder)) return;
           if (!timeMatches(reminder)) return;
           if (alreadyNotifiedToday(reminder)) return;
-          fireNotification(key);
+          if (shouldAutoStop(key)) return;
+          fireBrowserNotification(key);
           store.getState().logNotification(key);
+          if (!hasPermission) {
+            setInApp({
+              id: key,
+              key,
+              title: LABELS[key]?.title || key,
+              desc: LABELS[key]?.body || "",
+              icon: ICON_MAP[key] || "🔔",
+            });
+          }
         });
       }, 30_000);
     })();
@@ -88,4 +139,6 @@ export function useReminderEngine() {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
+
+  return { inApp, dismiss };
 }

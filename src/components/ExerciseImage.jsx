@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Dumbbell } from "lucide-react";
 import { radius } from "../styles/designSystem";
@@ -21,11 +21,18 @@ export default function ExerciseImage({
 }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
+  const imgRef = useRef(null);
 
   const src = getExerciseImage(exercise);
 
   const handleLoad = useCallback(() => setLoaded(true), []);
   const handleError = useCallback(() => setError(true), []);
+
+  useEffect(() => {
+    if (imgRef.current?.complete) {
+      setLoaded(true);
+    }
+  }, []);
 
   return (
     <div
@@ -56,6 +63,7 @@ export default function ExerciseImage({
       {/* Actual image */}
       {!error && (
         <motion.img
+          ref={imgRef}
           src={src}
           alt={exercise?.name || "Exercise"}
           loading="lazy"
@@ -75,7 +83,6 @@ export default function ExerciseImage({
             height: "100%",
             objectFit: "cover",
             borderRadius: radius.md,
-            transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         />
       )}

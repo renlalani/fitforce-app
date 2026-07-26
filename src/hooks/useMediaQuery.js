@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+
+const queryCache = new Map();
 
 export function useMediaQuery(query) {
   const [matches, setMatches] = useState(() => {

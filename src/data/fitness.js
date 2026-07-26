@@ -100,3 +100,31 @@ export const EXERCISE_SVG = (muscle) => {
   };
   return svgs[m] || svgs["Core"];
 };
+
+const EQUIPMENT_MAP = {
+  1:"Barbell, Bench",2:"Dumbbells, Adjustable Bench",3:"Cable Machine, D-handles",4:"None (Bodyweight)",
+  5:"Dumbbell, Flat Bench",6:"Pull-up Bar",7:"Barbell, Plates, Collars, Platform",8:"Barbell, Plates, Collars",
+  9:"Lat Pulldown Machine, Wide Bar",10:"Cable Machine, V-grip Handle",11:"Barbell, Squat Rack, Safety Bars",
+  12:"Leg Press Machine",13:"Barbell, Plates, Collars",14:"Leg Curl Machine",15:"Dumbbells, Flat Bench or Box",
+  16:"Barbell (optional), Bench, Hip Thrust Pad",17:"Cable Machine, Ankle Strap",18:"Barbell, Plates, Squat Rack",
+  19:"Dumbbells",20:"Cable Machine, Rope Attachment",21:"Dumbbells, Adjustable Bench",
+  22:"Dumbbells, Barbell, EZ Bar, Cable",23:"Parallel Bars or Weight Bench",24:"Dumbbells",
+  25:"EZ Bar, Barbell, Flat Bench, Dumbbells",26:"Cable Machine, Rope or Straight Bar",27:"None (Bodyweight), Mat",
+  28:"Cable Machine, Rope Attachment",29:"Flat Bench",30:"Pull-up Bar",31:"Ab Wheel, Mat",
+  32:"Treadmill, Running Shoes",33:"Treadmill, Bike, or Open Space",34:"Jump Rope, Mat (optional)",35:"Rowing Machine",
+};
+
+const EXERCISE_TYPE = {};
+for (let i = 1; i <= 31; i++) EXERCISE_TYPE[i] = "Strength";
+for (let i = 32; i <= 35; i++) EXERCISE_TYPE[i] = "Cardio";
+
+export const EQUIPMENT_OPTIONS = ["All","Barbell","Dumbbell","Cable","Machine","Bodyweight","Pull-up Bar","Bench","EZ Bar","Rope","Mat","Treadmill","Jump Rope","Rowing Machine"];
+export const TYPE_OPTIONS = ["All","Strength","Cardio","Mobility"];
+
+export function getEnrichedExercises() {
+  return EXERCISES.map(e => ({
+    ...e,
+    equipment: EQUIPMENT_MAP[e.id] || "Unknown",
+    type: EXERCISE_TYPE[e.id] || "Strength",
+  }));
+}
