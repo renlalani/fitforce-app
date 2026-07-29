@@ -2,8 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, Play, SkipForward, Trophy, Clock, Dumbbell, Zap,
-  CheckCircle, Plus, Minus, Pause, ChevronRight, Target,
+  X, SkipForward, Trophy, Clock, Dumbbell, Zap,
+  CheckCircle, Plus, Minus, ChevronRight, Target,
   Activity, Sparkles, Star, RotateCcw, ChevronDown,
   Heart, Footprints, Flame,
 } from "lucide-react";
@@ -35,38 +35,26 @@ function fmt(s) {
 }
 
 function CircularTimer({ total, remaining, phase }) {
-  const r = 90;
+  const r = 72;
   const circ = 2 * Math.PI * r;
   const progress = phase === "rest" ? remaining / total : 1;
   const color = phase === "rest" ? "var(--blue)" : "var(--green)";
 
   return (
-    <svg width="220" height="220" viewBox="0 0 220 220">
-      <defs>
-        <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
-          <stop offset="100%" stopColor={color} stopOpacity="0.1" />
-        </linearGradient>
-      </defs>
-      {/* Background ring */}
-      <circle cx="110" cy="110" r={r} fill="none" stroke={"var(--border3)"} strokeWidth="8" />
-      {/* Background glow */}
-      <circle cx="110" cy="110" r={r + 4} fill="none" stroke={color + "08"} strokeWidth="16" />
-      {/* Progress ring */}
+    <svg width="180" height="180" viewBox="0 0 180 180">
+      <circle cx="90" cy="90" r={r} fill="none" stroke="var(--border3)" strokeWidth="5" />
       <motion.circle
-        cx="110" cy="110" r={r}
+        cx="90" cy="90" r={r}
         fill="none"
         stroke={color}
-        strokeWidth="6"
+        strokeWidth="5"
         strokeLinecap="round"
         strokeDasharray={circ}
         animate={{ strokeDashoffset: circ * (1 - progress) }}
         transition={{ duration: 0.3, ease: "easeOut" }}
-        transform="rotate(-90, 110, 110)"
-        style={{ filter: `drop-shadow(0 0 8px ${color}40)` }}
+        transform="rotate(-90, 90, 90)"
+        style={{ filter: `drop-shadow(0 0 6px ${color}30)` }}
       />
-      {/* Inner glow */}
-      <circle cx="110" cy="110" r={r - 8} fill={color + "04"} />
     </svg>
   );
 }
@@ -91,8 +79,15 @@ export default function WorkoutModal({ plan, onClose }) {
   const [newPrFound, setNewPrFound] = useState(false);
   const restRef = useRef(null);
   const restPausedRef = useRef(restPaused);
+  const idxRef = useRef(idx);
+  const setNumRef = useRef(setNum);
+  const completingRef = useRef(false);
+  const transitionedRef = useRef(false);
 
   useEffect(() => { restPausedRef.current = restPaused; }, [restPaused]);
+  useEffect(() => { idxRef.current = idx; }, [idx]);
+  useEffect(() => { setNumRef.current = setNum; }, [setNum]);
+  useEffect(() => { if (phase === "work") completingRef.current = false; }, [phase]);
 
   const cur = exList[idx];
   const nextEx = exList[idx + 1] || null;
@@ -111,10 +106,28 @@ export default function WorkoutModal({ plan, onClose }) {
 
   useEffect(() => {
     if (phase !== "rest" || done) return;
+    transitionedRef.current = false;
     const t = setInterval(() => {
       if (restPausedRef.current) return;
       setRestCount(p => {
-        if (p <= 1) { setPhase("work"); setSetNum(s => s + 1); return 0; }
+        if (p <= 1) {
+          if (transitionedRef.current) return 0;
+          transitionedRef.current = true;
+          const ci = idxRef.current;
+          const cs = setNumRef.current;
+          const c = exList[ci];
+          if (cs >= (c?.sets || 3)) {
+            if (ci < exList.length - 1) {
+              setIdx(i => i + 1);
+              setSetNum(1);
+              setExerciseExpanded(false);
+            }
+          } else {
+            setSetNum(s => s + 1);
+          }
+          setPhase("work");
+          return 0;
+        }
         return p - 1;
       });
     }, 1000);
@@ -153,38 +166,37 @@ export default function WorkoutModal({ plan, onClose }) {
   }, [showSummary]);
 
   const nextSet = useCallback(() => {
+    if (completingRef.current) return;
+    completingRef.current = true;
     const entry = { exId: cur.id, name: cur.name, set: setNum, weight: weights[`${cur.id}_${setNum}`] || "—", reps: cur.reps };
     setCompletedSets(p => [...p, entry]);
-    if (setNum < (cur.sets || 3)) {
+    if (idx === exList.length - 1 && setNum >= (cur.sets || 3)) {
+      setDone(true);
+    } else {
       setPhase("rest");
       setRestCount((cur.rest || 60) + extraRest);
       setExtraRest(0);
-    } else {
-      if (idx < exList.length - 1) {
-        setIdx(p => p + 1);
-        setSetNum(1);
-        setPhase("work");
-        setExerciseExpanded(false);
-      } else {
-        setDone(true);
-      }
     }
   }, [cur, idx, setNum, weights, extraRest, exList.length]);
 
   const addRest = useCallback((sec) => {
-    setExtraRest(p => p + sec);
+    setExtraRest(p => Math.max(0, p + sec));
     setRestCount(p => Math.max(1, p + sec));
   }, []);
 
-  const toggleRestPause = useCallback(() => {
-    setRestPaused(p => !p);
-  }, []);
-
   const skipRest = useCallback(() => {
+    if (setNum >= (cur?.sets || 3)) {
+      if (idx < exList.length - 1) {
+        setIdx(i => i + 1);
+        setSetNum(1);
+        setExerciseExpanded(false);
+      }
+    } else {
+      setSetNum(s => s + 1);
+    }
     setPhase("work");
-    setSetNum(s => s + 1);
     setRestPaused(false);
-  }, []);
+  }, [cur, idx, setNum, exList.length]);
 
   const setWeight = useCallback((key, val) => {
     setWeights(p => ({ ...p, [key]: val }));
@@ -406,6 +418,7 @@ export default function WorkoutModal({ plan, onClose }) {
   }
 
   const showNextEx = phase === "rest" && nextEx;
+  const isLastSetOfExercise = setNum >= (cur?.sets || 3);
 
   return createPortal(
     <motion.div
@@ -473,146 +486,157 @@ export default function WorkoutModal({ plan, onClose }) {
           {phase === "rest" ? (
             <motion.div
               key="rest"
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.25 }}
+              style={{
+                background: "var(--bg-card)",
+                border: `1px solid var(--border2)`,
+                borderRadius: radius.xl,
+                padding: "24px",
+                boxShadow: shadow.elevated,
+                textAlign: "center",
+              }}
             >
-              <div style={{ textAlign: "center", padding: "8px 0 4px" }}>
-                <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 6, letterSpacing: 3, textTransform: "uppercase" }}>
-                  Rest
+              {/* Header */}
+              <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 16, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase" }}>
+                Rest
+              </div>
+
+              {/* Circular Timer */}
+              <div style={{ position: "relative", display: "inline-block" }}>
+                <CircularTimer total={(cur?.rest || 60) + extraRest} remaining={restCount} phase={phase} />
+                <div style={{
+                  position: "absolute", top: "50%", left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  textAlign: "center",
+                }}>
+                  <motion.div
+                    key={restCount}
+                    initial={{ scale: 1.15 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.15 }}
+                    style={{
+                      fontSize: 38, fontWeight: 700,
+                      color: restCount <= 10 ? "var(--red)" : "var(--blue)",
+                      fontVariantNumeric: "tabular-nums",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {restCount}
+                  </motion.div>
+                  <div style={{ fontSize: 10, color: "var(--text-dim)", marginTop: 2 }}>sec</div>
                 </div>
+              </div>
 
-                {/* Circular Timer */}
-                <div style={{ position: "relative", display: "inline-block" }}>
-                  <CircularTimer total={(cur?.rest || 60) + extraRest} remaining={restCount} phase={phase} />
-                  <div style={{
-                    position: "absolute", top: "50%", left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    textAlign: "center",
-                  }}>
-                    <motion.div
-                      key={restCount}
-                      initial={{ scale: 1.2 }}
-                      animate={{ scale: 1 }}
-                      transition={{ duration: 0.15 }}
-                      style={{
-                        fontSize: 48, fontWeight: 700,
-                        color: restCount <= 10 ? "var(--red)" : "var(--blue)",
-                        fontVariantNumeric: "tabular-nums",
-                        lineHeight: 1,
-                      }}
-                    >
-                      {restCount}
-                    </motion.div>
-                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>seconds</div>
-                  </div>
-                </div>
+              {/* Next info */}
+              <p style={{ color: "var(--text-secondary)", fontSize: 12, marginTop: 14, marginBottom: 0, fontWeight: 500 }}>
+                {isLastSetOfExercise && nextEx
+                  ? `Up next · ${nextEx.name}`
+                  : `Set ${setNum + 1} of ${cur?.sets} · ${cur?.name}`
+                }
+              </p>
 
-                {/* Set info */}
-                <p style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 10 }}>
-                  Next: Set {setNum + 1} of {cur?.sets} · {cur?.name}
-                </p>
+              {/* Rest Controls */}
+              <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 16 }}>
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => addRest(-15)}
+                  style={{
+                    padding: "7px 14px",
+                    background: "var(--bg-card2)",
+                    border: `1px solid var(--border)`,
+                    color: "var(--text-muted)",
+                    borderRadius: radius.md,
+                    cursor: "pointer",
+                    fontSize: 11,
+                    fontWeight: 500,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
+                  <Minus size={12} /> 15s
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => addRest(15)}
+                  style={{
+                    padding: "7px 14px",
+                    background: "var(--bg-card2)",
+                    border: `1px solid var(--border)`,
+                    color: "var(--blue)",
+                    borderRadius: radius.md,
+                    cursor: "pointer",
+                    fontSize: 11,
+                    fontWeight: 500,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
+                  <Plus size={12} /> 15s
+                </motion.button>
 
-                {/* Rest Controls */}
-                <div style={{ display: "flex", gap: 6, justifyContent: "center", marginTop: 12, flexWrap: "wrap" }}>
-                  <motion.button
-                    whileHover={{ scale: 1.04 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => addRest(-15)}
-                    style={{
-                      padding: "8px 14px", background: "var(--bg-card3)",
-                      border: `1px solid var(--border2)`, color: restCount <= 15 ? "var(--text-dim)" : "var(--text)",
-                      borderRadius: radius.md, cursor: restCount <= 15 ? "not-allowed" : "pointer",
-                      fontSize: 12, display: "flex", alignItems: "center", gap: 4,
-                      opacity: restCount <= 15 ? 0.4 : 1,
-                    }}
-                    disabled={restCount <= 15}
-                  >
-                    <Minus size={12} /> 15s
-                  </motion.button>
-
-                  <motion.button
-                    whileHover={{ scale: 1.04 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={toggleRestPause}
-                    style={{
-                      padding: "8px 18px",
-                      background: restPaused ? `rgba(16,185,129,0.094)` : "var(--bg-card3)",
-                      border: `1px solid ${restPaused ? "var(--green)" : "var(--border2)"}`,
-                      color: restPaused ? "var(--green)" : "var(--text)",
-                      borderRadius: radius.md, cursor: "pointer",
-                      fontSize: 12, display: "flex", alignItems: "center", gap: 4,
-                      fontWeight: 500,
-                    }}
-                  >
-                    {restPaused ? <Play size={12} /> : <Pause size={12} />}
-                    {restPaused ? "Resume" : "Pause"}
-                  </motion.button>
-
-                  <motion.button
-                    whileHover={{ scale: 1.04 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => addRest(15)}
-                    style={{
-                      padding: "8px 14px", background: "var(--bg-card3)",
-                      border: `1px solid var(--border2)`, color: "var(--text)",
-                      borderRadius: radius.md, cursor: "pointer",
-                      fontSize: 12, display: "flex", alignItems: "center", gap: 4,
-                    }}
-                  >
-                    <Plus size={12} /> 15s
-                  </motion.button>
-
-                  <motion.button
-                    whileHover={{ scale: 1.04 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={skipRest}
-                    style={{
-                      padding: "8px 16px", background: "var(--bg-card3)",
-                      border: `1px solid var(--border2)`, color: "var(--blue)",
-                      borderRadius: radius.md, cursor: "pointer",
-                      fontSize: 12, display: "flex", alignItems: "center", gap: 4,
-                    }}
-                  >
-                    <SkipForward size={12} /> Skip
-                  </motion.button>
-                </div>
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={skipRest}
+                  style={{
+                    padding: "7px 18px",
+                    background: "var(--accent-gradient)",
+                    border: "none",
+                    color: "#fff",
+                    borderRadius: radius.md,
+                    cursor: "pointer",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
+                  <SkipForward size={12} /> Skip
+                </motion.button>
               </div>
 
               {/* Next Exercise Preview */}
               {nextEx && (
                 <motion.div
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
+                  transition={{ delay: 0.1 }}
                   style={{
                     marginTop: 16,
-                    background: "var(--bg-card2)",
+                    background: `linear-gradient(135deg, var(--bg-card2), ${(muscleColor[nextEx?.muscle] || "var(--accent)") + "06"})`,
                     borderRadius: radius.md,
                     border: `1px solid var(--border)`,
                     padding: "12px",
+                    textAlign: "left",
                   }}
                 >
-                  <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" }}>
-                    <ChevronRight size={10} style={{ verticalAlign: "middle" }} /> Next Exercise
+                  <div style={{ fontSize: 9, color: "var(--text-dim)", marginBottom: 6, letterSpacing: 1, textTransform: "uppercase" }}>
+                    <ChevronRight size={9} style={{ verticalAlign: "middle" }} /> Next
                   </div>
                   <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                     <ExerciseImage
                       exercise={nextEx}
-                      width={44}
-                      height={44}
+                      width={40}
+                      height={40}
                       style={{ flexShrink: 0, border: `1px solid var(--border)` }}
                     />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{nextEx.name}</div>
-                      <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
-                        <Tag label={`${nextEx.sets} sets`} color={"var(--accent)"} />
-                        <Tag label={`${nextEx.reps}`} color={"var(--blue)"} />
+                      <div style={{ display: "flex", gap: 4, marginTop: 3 }}>
+                        <Tag label={`${nextEx.sets}×${nextEx.reps}`} color={"var(--accent)"} />
                       </div>
                     </div>
-                    <div style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "right" }}>
+                    <div style={{ fontSize: 10, color: "var(--text-dim)", textAlign: "right" }}>
                       <div>~{nextEx.cal} cal</div>
-                      <div style={{ color: muscleColor[nextEx.muscle] || "var(--text-muted)", fontSize: 10 }}>
+                      <div style={{ color: muscleColor[nextEx.muscle] || "var(--text-dim)", fontSize: 9 }}>
                         {MUSCLE_EMOJI[nextEx.muscle] || ""} {nextEx.muscle}
                       </div>
                     </div>
@@ -788,7 +812,7 @@ export default function WorkoutModal({ plan, onClose }) {
                 {setsInCurrent.length > 0 && (
                   <div style={{ marginBottom: 10, fontSize: 11, color: "var(--text-muted)", display: "flex", gap: 8, flexWrap: "wrap" }}>
                     {setsInCurrent.map((s, si) => (
-                      <span key={`${s.exId}-${s.set}`} style={{
+                      <span key={`${s.exId}-${s.set}-${si}`} style={{
                         background: `rgba(16,185,129,0.063)`, padding: "3px 8px",
                         borderRadius: radius.sm,
                         border: `1px solid rgba(16,185,129,0.125)`,
@@ -874,7 +898,7 @@ export default function WorkoutModal({ plan, onClose }) {
                 >
                   <CheckCircle size={18} fill="#fff" />
                 </motion.div>
-                {setNum < (cur?.sets || 3) ? `Complete Set ${setNum}` : idx < exList.length - 1 ? "Next Exercise" : "Finish Workout"}
+                {idx === exList.length - 1 && setNum >= (cur?.sets || 3) ? "Finish Workout" : `Complete Set ${setNum}`}
               </motion.button>
               </form>
             </motion.div>

@@ -39,6 +39,7 @@ export const useNutritionStore = create(
 
       addMeal: (food) =>
         set((state) => {
+          if (!food) return state;
           const today2 = new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
           let streak = state.nutritionStreak;
           let totalDays = state.totalDaysLogged;
@@ -62,9 +63,10 @@ export const useNutritionStore = create(
         }),
 
       deleteMeal: (meal) =>
-        set((state) => ({
-          meals: state.meals.filter((m) => m.uid !== meal.uid),
-        })),
+        set((state) => {
+          if (!meal || !meal.uid) return state;
+          return { meals: state.meals.filter((m) => m.uid !== meal.uid) };
+        }),
 
       setWater: (updater) =>
         set((state) => ({

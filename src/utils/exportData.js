@@ -10,7 +10,8 @@ export function exportAsCSV(rows, headers, filename = "fitforce-export") {
       headers.map((h) => {
         const val = row[h] ?? "";
         const str = String(val);
-        return str.includes(",") || str.includes('"') ? `"${str.replace(/"/g, '""')}"` : str;
+        const sanitized = /^[=+\-@]/.test(str) ? "'" + str : str;
+        return sanitized.includes(",") || sanitized.includes('"') ? `"${sanitized.replace(/"/g, '""')}"` : sanitized;
       }).join(",")
     ),
   ].join("\n");

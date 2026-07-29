@@ -4,12 +4,7 @@ export function safeGet(key, fallback = null) {
     if (raw === null) return fallback;
     return JSON.parse(raw);
   } catch {
-    try {
-      const raw = localStorage.getItem(key);
-      return raw;
-    } catch {
-      return fallback;
-    }
+    return fallback;
   }
 }
 
@@ -32,21 +27,29 @@ export function safeRemove(key) {
 }
 
 export function clearAllFitForceData() {
-  const keys = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if (k && k.startsWith("fitforce-")) keys.push(k);
+  try {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith("fitforce-")) keys.push(k);
+    }
+    keys.forEach((k) => safeRemove(k));
+  } catch {
+    /* localStorage may be blocked (private browsing) */
   }
-  keys.forEach((k) => safeRemove(k));
 }
 
 export function getAllFitForceData() {
-  const data = {};
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if (k && k.startsWith("fitforce-")) {
-      data[k] = safeGet(k);
+  try {
+    const data = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith("fitforce-")) {
+        data[k] = safeGet(k);
+      }
     }
+    return data;
+  } catch {
+    return {};
   }
-  return data;
 }

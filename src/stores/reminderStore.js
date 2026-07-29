@@ -24,53 +24,74 @@ const initialState = {
   permissionRequested: false,
 };
 
+const guardReminder = (state, key) => {
+  if (!state.reminders[key]) return null;
+  return state.reminders[key];
+};
+
 export const useReminderStore = create(
   persist(
-    (set, get) => ({
+    (set) => ({
       ...initialState,
 
       setReminder: (key, updates) =>
-        set((state) => ({
-          reminders: {
-            ...state.reminders,
-            [key]: { ...state.reminders[key], ...updates },
-          },
-        })),
+        set((state) => {
+          if (!guardReminder(state, key)) return state;
+          return {
+            reminders: {
+              ...state.reminders,
+              [key]: { ...state.reminders[key], ...updates },
+            },
+          };
+        }),
 
       toggleReminder: (key) =>
-        set((state) => ({
-          reminders: {
-            ...state.reminders,
-            [key]: { ...state.reminders[key], enabled: !state.reminders[key].enabled },
-          },
-        })),
+        set((state) => {
+          if (!guardReminder(state, key)) return state;
+          return {
+            reminders: {
+              ...state.reminders,
+              [key]: { ...state.reminders[key], enabled: !state.reminders[key].enabled },
+            },
+          };
+        }),
 
       setReminderTime: (key, time) =>
-        set((state) => ({
-          reminders: {
-            ...state.reminders,
-            [key]: { ...state.reminders[key], time },
-          },
-        })),
+        set((state) => {
+          if (!guardReminder(state, key)) return state;
+          return {
+            reminders: {
+              ...state.reminders,
+              [key]: { ...state.reminders[key], time },
+            },
+          };
+        }),
 
       setReminderRepeat: (key, repeat) =>
-        set((state) => ({
-          reminders: {
-            ...state.reminders,
-            [key]: { ...state.reminders[key], repeat },
-          },
-        })),
+        set((state) => {
+          if (!guardReminder(state, key)) return state;
+          return {
+            reminders: {
+              ...state.reminders,
+              [key]: { ...state.reminders[key], repeat },
+            },
+          };
+        }),
 
       setReminderDays: (key, repeatDays) =>
-        set((state) => ({
-          reminders: {
-            ...state.reminders,
-            [key]: { ...state.reminders[key], repeatDays },
-          },
-        })),
+        set((state) => {
+          if (!guardReminder(state, key)) return state;
+          return {
+            reminders: {
+              ...state.reminders,
+              [key]: { ...state.reminders[key], repeatDays },
+            },
+          };
+        }),
 
       toggleReminderDay: (key, day) =>
         set((state) => {
+          if (!guardReminder(state, key)) return state;
           const current = state.reminders[key].repeatDays;
           const next = current.includes(day)
             ? current.filter((d) => d !== day)
@@ -91,7 +112,8 @@ export const useReminderStore = create(
           date: now.toLocaleDateString(),
         };
         set((state) => {
-          const reminder = state.reminders[key];
+          const reminder = guardReminder(state, key);
+          if (!reminder) return state;
           const history = [entry, ...reminder.history].slice(0, 50);
           return {
             reminders: {
@@ -107,12 +129,15 @@ export const useReminderStore = create(
       },
 
       clearHistory: (key) =>
-        set((state) => ({
-          reminders: {
-            ...state.reminders,
-            [key]: { ...state.reminders[key], history: [] },
-          },
-        })),
+        set((state) => {
+          if (!guardReminder(state, key)) return state;
+          return {
+            reminders: {
+              ...state.reminders,
+              [key]: { ...state.reminders[key], history: [] },
+            },
+          };
+        }),
 
       setPermissionRequested: () => set({ permissionRequested: true }),
 

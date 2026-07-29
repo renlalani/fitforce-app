@@ -30,7 +30,7 @@ function getFirebaseErrorCode(error) {
     "auth/cancelled-popup-request": "Sign-in was cancelled.",
     "auth/network-request-failed": "Network error. Please check your connection.",
   };
-  return map[error.code] || error.message || "An unexpected error occurred.";
+  return map[error.code] || "An unexpected error occurred. Please try again.";
 }
 
 export async function signInWithGoogle() {
@@ -58,7 +58,9 @@ export async function signUpWithEmail(email, password) {
   try {
     const result = await createUserWithEmailAndPassword(auth, email, password);
     if (result.user) {
-      await sendEmailVerification(result.user).catch(() => {});
+      await sendEmailVerification(result.user).catch((err) => {
+        console.error("Verification email failed:", err);
+      });
     }
     return {
       uid: result.user.uid,

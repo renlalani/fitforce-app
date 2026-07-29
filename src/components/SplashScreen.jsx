@@ -1,20 +1,21 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import logo from "../../images/logo.png";
 
 export default function SplashScreen({ onComplete }) {
   const [progress, setProgress] = useState(0);
   const [phase, setPhase] = useState("enter");
+  const intervalRef = useRef(null);
 
   useEffect(() => {
     const enterTimer = setTimeout(() => setPhase("hold"), 800);
-    let interval;
     const holdTimer = setTimeout(() => {
       setPhase("exit");
-      interval = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         setProgress(p => {
           if (p >= 1) {
-            clearInterval(interval);
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
             return 1;
           }
           return p + 0.08;
@@ -30,7 +31,10 @@ export default function SplashScreen({ onComplete }) {
       clearTimeout(enterTimer);
       clearTimeout(holdTimer);
       clearTimeout(exitTimer);
-      clearInterval(interval);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     };
   }, [onComplete]);
 

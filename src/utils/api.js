@@ -1,25 +1,31 @@
-const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
-const VISION_MODEL = import.meta.env.VITE_DEFAULT_VISION_MODEL || "qwen/qwen2.5-vl-72b-instruct:free";
-const BASE = import.meta.env.VITE_API_BASE_URL || "https://openrouter.ai/api/v1/chat/completions";
+const BASE = "/api/chat";
 
-export const FREE_MODELS = [
-  "openrouter/free",
-  "google/gemini-2.0-flash-exp:free",
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "qwen/qwen-2.5-7b-instruct:free",
+const SAFETY_PATTERNS = [
+  /^user\s*safety:?\s*safe/i,
+  /^content\s*moderation/i,
+  /^i'?m?\s*sorry,\s*i\s*cannot/i,
+  /^i\s*cannot\s*(fulfill|complete|generate|provide|create|answer)/i,
+  /^i\s*don'?t?\s*have\s*(enough\s*)?information/i,
+  /^it\s*seems\s*like\s*you'?re?\s*asking/i,
+  /^my\s*(purpose|role)\s*is/i,
 ];
+
+function isValidResponse(text) {
+  if (!text || !text.trim()) return false;
+  const trimmed = text.trim();
+  if (trimmed.length < 5) return false;
+  for (const pattern of SAFETY_PATTERNS) {
+    if (pattern.test(trimmed)) return false;
+  }
+  return true;
+}
 
 async function tryModel({ model, messages, system, maxTokens, temperature, signal, onChunk }) {
   const res = await fetch(BASE, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${API_KEY}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": import.meta.env.VITE_SITE_URL || window.location.origin,
-      "X-Title": "FitForce",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model,
+      ...(model ? { model } : {}),
       max_tokens: maxTokens,
       temperature,
       stream: true,
@@ -32,13 +38,27 @@ async function tryModel({ model, messages, system, maxTokens, temperature, signa
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    const body = err?.error || err;
-    if (body?.type === "exceeded_limit" || res.status === 429) {
-      const resetsAt = body?.resetsAt || body?.windows?.["5h"]?.resets_at;
-      throw { rateLimited: true, resetsAt: resetsAt ? new Date(resetsAt * 1000) : new Date(Date.now() + 3600000) };
+    const contentType = res.headers.get("content-type") || "";
+    let body;
+    try {
+      if (contentType.includes("application/json")) {
+        body = await res.json();
+      } else {
+        const text = await res.text().catch(() => "");
+        if (process.env.NODE_ENV === "development") {
+          console.warn(`[API] Non-JSON error response (${res.status}):`, text.slice(0, 200));
+        }
+        body = { message: text || `HTTP ${res.status}` };
+      }
+    } catch {
+      body = { message: `HTTP ${res.status}` };
     }
-    const error = new Error(body?.message || `HTTP ${res.status}`);
+    const err = body?.error || body;
+    if (err?.isRateLimited || err?.type === "exceeded_limit" || res.status === 429 || err?.rateLimited) {
+      const rAt = err?.resetsAt;
+      throw { rateLimited: true, resetsAt: rAt ? new Date(rAt) : new Date(Date.now() + 3600000) };
+    }
+    const error = new Error(err?.message || `HTTP ${res.status}`);
     error.status = res.status;
     throw error;
   }
@@ -47,8 +67,15 @@ async function tryModel({ model, messages, system, maxTokens, temperature, signa
   const decoder = new TextDecoder();
   let buffer = "";
   let fullContent = "";
+  let dataEventCount = 0;
 
-  while (true) {
+  if (process.env.NODE_ENV === "development") {
+    console.log(`[API] Streaming started${model ? ` (model: ${model})` : ""}`);
+  }
+
+  let streamDone = false;
+
+  while (!streamDone) {
     const { done, value } = await reader.read();
     if (done) break;
 
@@ -57,42 +84,50 @@ async function tryModel({ model, messages, system, maxTokens, temperature, signa
     buffer = lines.pop() || "";
 
     for (const line of lines) {
-      if (!line.trim()) continue;
-      if (line.includes("[DONE]")) break;
-      if (!line.startsWith("data: ")) continue;
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      if (trimmed.includes("[DONE]")) { streamDone = true; break; }
+      if (!trimmed.startsWith("data: ")) continue;
+      dataEventCount++;
+      const dataStr = trimmed.slice(6).trim();
+      if (dataStr === "[CLEAR]") {
+        fullContent = "";
+        if (onChunk?.("") === false) { streamDone = true; break; }
+        continue;
+      }
       try {
-        const json = JSON.parse(line.slice(6));
-        const content = json?.choices?.[0]?.delta?.content || "";
+        const json = JSON.parse(dataStr);
+        const content = json?.choices?.[0]?.delta?.content;
         if (content) {
           fullContent += content;
-          onChunk?.(fullContent);
+          if (onChunk?.(fullContent) === false) {
+            streamDone = true;
+            break;
+          }
+        } else if (process.env.NODE_ENV === "development" && dataEventCount <= 3) {
+          const keys = Object.keys(json?.choices?.[0]?.delta || {});
+          console.log(`[API] SSE event #${dataEventCount}: keys=[${keys.join(",")}] finish=${json?.choices?.[0]?.finish_reason || "null"}`);
         }
       } catch { }
     }
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    console.log(`[API] Streaming finished: ${dataEventCount} SSE events, ${fullContent.length} chars`);
+  }
+
+  if (!isValidResponse(fullContent)) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn(`[API] Invalid response (${fullContent.length} chars):`, JSON.stringify(fullContent.slice(0, 150)));
+    }
+    return "";
   }
 
   return fullContent;
 }
 
 export async function streamAI({ messages, system, maxTokens = 2048, temperature = 0.7, model, signal, onChunk }) {
-  const modelsToTry = model ? [model] : [...FREE_MODELS];
-  let lastError;
-
-  for (const m of modelsToTry) {
-    try {
-      return await tryModel({ model: m, messages, system, maxTokens, temperature, signal, onChunk });
-    } catch (e) {
-      if (e.rateLimited) throw e;
-      if (e.status === 404) {
-        console.warn(`AI model "${m}" unavailable, trying fallback...`);
-        lastError = e;
-        continue;
-      }
-      throw e;
-    }
-  }
-
-  throw lastError || new Error("All AI models are currently unavailable. Please try again later.");
+  return tryModel({ model, messages, system, maxTokens, temperature, signal, onChunk });
 }
 
 export async function callAI({ messages, system, maxTokens = 1024, temperature = 0.7, model }) {

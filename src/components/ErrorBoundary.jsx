@@ -5,15 +5,14 @@ import { radius } from "../styles/designSystem";
 export default class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
-    this.state = { error: null, info: null };
+    this.state = { error: null, retryCount: 0 };
   }
 
   static getDerivedStateFromError(error) {
     return { error };
   }
 
-  componentDidCatch(error, info) {
-    this.setState({ info });
+  componentDidCatch(error) {
     console.error("ErrorBoundary caught:", error);
   }
 
@@ -33,7 +32,7 @@ export default class ErrorBoundary extends Component {
             {this.state.error?.message || "An unexpected error occurred"}
           </div>
           <button
-            onClick={() => this.setState({ error: null, info: null })}
+            onClick={() => this.setState(s => ({ error: null, retryCount: s.retryCount + 1 }))}
             style={{
               background: "var(--red)", color: "#fff", border: "none",
               borderRadius: radius.md, padding: "10px 24px",
@@ -45,6 +44,6 @@ export default class ErrorBoundary extends Component {
         </div>
       );
     }
-    return this.props.children;
+    return <div key={this.state.retryCount}>{this.props.children}</div>;
   }
 }

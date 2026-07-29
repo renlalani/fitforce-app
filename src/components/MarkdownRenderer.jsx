@@ -10,7 +10,7 @@ import { radius } from "../styles/designSystem";
 const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
   const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText(text).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }, [text]);
@@ -119,7 +119,7 @@ const components = {
     );
   },
   p({ children, ...props }) {
-    return <p style={{ margin: "0 0 8px", lineHeight: 1.65, fontSize: 13 }} {...props}>{children}</p>;
+    return <div style={{ margin: "0 0 8px", lineHeight: 1.65, fontSize: 13 }} {...props}>{children}</div>;
   },
   h1({ children, ...props }) {
     return <h1 style={{ fontSize: 18, fontWeight: 600, margin: "16px 0 8px", color: "var(--text)" }} {...props}>{children}</h1>;

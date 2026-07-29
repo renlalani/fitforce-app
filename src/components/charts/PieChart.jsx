@@ -22,8 +22,6 @@ export default function PieChart({
 }) {
   if (!data || data.length === 0) return null;
 
-  const total = data.reduce((s, d) => s + d.value, 0) || 1;
-
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
       <ResponsiveContainer width="100%" height={height}>

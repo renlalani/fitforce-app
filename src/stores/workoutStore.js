@@ -12,6 +12,7 @@ const initialState = {
     { uid: "1", date: "Apr 10", name: "Squat", sets: 4, reps: 8, weight: 80, vol: 2560 },
     { uid: "2", date: "Apr 11", name: "Deadlift", sets: 4, reps: 5, weight: 100, vol: 2000 },
   ],
+  deletedLogs: [],
   activeWorkout: null,
   newLogRow: { name: "", sets: "", reps: "", weight: "" },
   workoutSessions: [
@@ -94,8 +95,48 @@ export const useWorkoutStore = create(
           };
         }),
 
+      deleteLogEntry: (uid) =>
+        set((state) => {
+          const entry = state.workoutLog.find((e) => e.uid === uid);
+          if (!entry) return state;
+          return {
+            workoutLog: state.workoutLog.filter((e) => e.uid !== uid),
+            deletedLogs: [...state.deletedLogs, { ...entry, deletedAt: new Date().toISOString() }],
+          };
+        }),
+
+      restoreLogEntry: (uid) =>
+        set((state) => {
+          const entry = state.deletedLogs.find((e) => e.uid === uid);
+          if (!entry) return state;
+          const { deletedAt, ...rest } = entry;
+          return {
+            deletedLogs: state.deletedLogs.filter((e) => e.uid !== uid),
+            workoutLog: [...state.workoutLog, rest],
+          };
+        }),
+
+      permanentlyDeleteLogEntry: (uid) =>
+        set((state) => ({
+          deletedLogs: state.deletedLogs.filter((e) => e.uid !== uid),
+        })),
+
+      restoreAllLogs: () =>
+        set((state) => {
+          if (state.deletedLogs.length === 0) return state;
+          const restored = state.deletedLogs.map(({ deletedAt, ...rest }) => rest);
+          return {
+            deletedLogs: [],
+            workoutLog: [...state.workoutLog, ...restored],
+          };
+        }),
+
+      emptyRecycleBin: () =>
+        set({ deletedLogs: [] }),
+
       completeWorkout: (completedSets, xpGained, sessionMeta = {}) =>
         set((state) => {
+          if (!Array.isArray(completedSets) || completedSets.length === 0) return state;
           const completedAt = new Date().toISOString();
           const today = new Date().toLocaleDateString("en-US", {
             year: "numeric",
@@ -167,14 +208,17 @@ export const useWorkoutStore = create(
       migrate: (persisted) => persisted,
       onRehydrateStorage: () => (state) => {
         if (!state) return;
+        state.deletedLogs = state.deletedLogs || [];
         const seen = new Set();
-        state.workoutLog = (state.workoutLog || []).map((e) => ({
+        const normalize = (e) => ({
           ...e,
           sets: +e.sets || 0,
           reps: +e.reps || 0,
           weight: +e.weight || 0,
           vol: +e.vol || 0,
-        }));
+        });
+        state.workoutLog = (state.workoutLog || []).map(normalize);
+        state.deletedLogs = state.deletedLogs.map(normalize);
         state.workoutLog.forEach((e) => {
           if (!e.uid) return;
           const n = parseInt(e.uid, 36);

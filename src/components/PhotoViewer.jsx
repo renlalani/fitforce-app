@@ -24,8 +24,16 @@ export default function PhotoViewer({ photo, onClose, onDelete, onReplace }) {
 
   const handleWheel = useCallback((e) => {
     e.preventDefault();
+    e.stopPropagation();
     setScale((s) => Math.max(1, Math.min(5, s - e.deltaY * 0.002)));
   }, []);
+
+  useEffect(() => {
+    const el = document.getElementById("photo-viewer-container");
+    if (!el) return;
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, [handleWheel]);
 
   const handleMouseDown = useCallback((e) => {
     if (scale <= 1) return;
@@ -86,6 +94,7 @@ export default function PhotoViewer({ photo, onClose, onDelete, onReplace }) {
 
   return createPortal(
     <motion.div
+      id="photo-viewer-container"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -94,7 +103,6 @@ export default function PhotoViewer({ photo, onClose, onDelete, onReplace }) {
         background: "rgba(0,0,0,0.92)",
         display: "flex", flexDirection: "column",
       }}
-      onWheel={handleWheel}
     >
       {/* Top bar */}
       <div style={{

@@ -9,6 +9,7 @@ import {
   Flame, Search, Plus, Bell,
   Ruler, Brain, TrendingUp, Settings,
   Salad, Target, Trophy, Crown,
+  Trash2, RotateCcw, ChevronDown, AlertTriangle,
 } from "lucide-react";
 import { radius, shadow, transition } from "./styles/designSystem";
 import { Skeleton } from "./components/ui/Skeleton";
@@ -33,6 +34,7 @@ import SplashScreen from "./components/SplashScreen";
 import Onboarding from "./components/Onboarding";
 import AuthScreen from "./components/AuthScreen";
 import { useAuthStore } from "./stores/authStore";
+import { useAICoachStore } from "./stores/aiCoachStore";
 import { auth, onAuthStateChanged, isFirebaseReady } from "./utils/firebase";
 const Dashboard = lazy(() => import("./components/Dashboard"));
 const WorkoutHub = lazy(() => import("./components/WorkoutHub"));
@@ -51,7 +53,7 @@ import { useHydrated } from "./hooks/useHydrated";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 import { useReminderEngine } from "./hooks/useReminderEngine";
 import useScrollLock from "./hooks/useScrollLock";
-import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 function AppSkeleton() {
   return (
     <div style={{ maxWidth: 480, margin: "0 auto", padding: 20 }}>
@@ -95,6 +97,8 @@ const tabs = [
 export default function FitForce() {
   const hydrated = useHydrated();
   const [showSplash, setShowSplash] = useState(true);
+  const [showNotifPanel, setShowNotifPanel] = useState(false);
+  const notifPanelRef = useRef(null);
   const hasCompletedOnboarding = useSettingsStore(s => s.hasCompletedOnboarding);
   const workoutLog = useWorkoutStore(s => s.workoutLog);
   const workoutSessions = useWorkoutStore(s => s.workoutSessions);
@@ -103,6 +107,12 @@ export default function FitForce() {
   const newLogRow = useWorkoutStore(s => s.newLogRow);
   const setNewLogRow = useWorkoutStore(s => s.setNewLogRow);
   const addLogEntry = useWorkoutStore(s => s.addLogEntry);
+  const deleteLogEntry = useWorkoutStore(s => s.deleteLogEntry);
+  const restoreLogEntry = useWorkoutStore(s => s.restoreLogEntry);
+  const permanentlyDeleteLogEntry = useWorkoutStore(s => s.permanentlyDeleteLogEntry);
+  const restoreAllLogs = useWorkoutStore(s => s.restoreAllLogs);
+  const emptyRecycleBin = useWorkoutStore(s => s.emptyRecycleBin);
+  const deletedLogs = useWorkoutStore(s => s.deletedLogs);
   const xp = useUserStore(s => s.xp);
   const prs = useUserStore(s => s.prs);
   const addXp = useUserStore(s => s.addXp);
@@ -124,12 +134,14 @@ export default function FitForce() {
   const setShowFoodScanner = useUiStore(s => s.setShowFoodScanner);
   const showExDetail = useUiStore(s => s.showExDetail);
   const setShowExDetail = useUiStore(s => s.setShowExDetail);
-  const anyModalOpen = !!activeWorkout || !!showExDetail || showMealModal || showWorkoutGenerator || showMealPlanner || showFoodScanner;
+  const anyModalOpen = useMemo(() => !!activeWorkout || !!showExDetail || showMealModal || showWorkoutGenerator || showMealPlanner || showFoodScanner, [activeWorkout, showExDetail, showMealModal, showWorkoutGenerator, showMealPlanner, showFoodScanner]);
   useScrollLock(anyModalOpen);
   const newBodyStat = useUiStore(s => s.newBodyStat);
   const setNewBodyStat = useUiStore(s => s.setNewBodyStat);
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const [deletedLogsExpanded, setDeletedLogsExpanded] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
   const orm1W = useUiStore(s => s.orm1W);
-  const setOrm1W = useUiStore(s => s.setOrm1W);
   const orm1R = useUiStore(s => s.orm1R);
   const setOrm1R = useUiStore(s => s.setOrm1R);
   const bfNeck = useUiStore(s => s.bfNeck);
@@ -146,10 +158,24 @@ export default function FitForce() {
   const measurements = useUserStore(s => s.measurements);
   const setMeasurements = useUserStore(s => s.setMeasurements);
 
-  const totalCal = Math.round((meals || []).reduce((s, m) => s + (+m.cal || 0), 0));
-  const totalProt = Math.round((meals || []).reduce((s, m) => s + (+m.protein || 0), 0));
-  const totalCarbs = Math.round((meals || []).reduce((s, m) => s + (+m.carbs || 0), 0));
-  const totalFat = Math.round((meals || []).reduce((s, m) => s + (+m.fat || 0), 0));
+  const totals = useMemo(() => {
+    const m = meals || [];
+    return m.reduce(
+      (acc, meal) => {
+        acc.cal += +meal.cal || 0;
+        acc.prot += +meal.protein || 0;
+        acc.carbs += +meal.carbs || 0;
+        acc.fat += +meal.fat || 0;
+        return acc;
+      },
+      { cal: 0, prot: 0, carbs: 0, fat: 0 }
+    );
+  }, [meals]);
+  const totalCal = Math.round(totals.cal);
+  const totalProt = Math.round(totals.prot);
+  const totalCarbs = Math.round(totals.carbs);
+  const totalFat = Math.round(totals.fat);
+  const filteredPRs = useMemo(() => prs.filter(p => p.lift), [prs]);
   const latestWeight = useMemo(() => {
     if (bodyStats.length === 0) return +profile.weight || 0;
     const sorted = [...bodyStats].sort((a, b) => {
@@ -204,6 +230,25 @@ export default function FitForce() {
   }, []);
 
   useEffect(() => { window.scrollTo(0, 0); }, [tab]);
+
+  useEffect(() => {
+    const key = "fitforce-nav-session";
+    if (!sessionStorage.getItem(key)) {
+      setTab("dashboard");
+      sessionStorage.setItem(key, "1");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!showNotifPanel) return;
+    const handleClick = (e) => {
+      if (notifPanelRef.current && !notifPanelRef.current.contains(e.target)) {
+        setShowNotifPanel(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [showNotifPanel]);
   const handleOpenModal = useCallback((food) => {
     setPreselectedFood(food || null);
     setShowMealModal(true);
@@ -251,7 +296,7 @@ export default function FitForce() {
         pointerEvents: "none", zIndex: 0,
         animation: "ambientPulse 8s ease-in-out infinite",
       }} />
-      <div style={{ position: "relative", zIndex: 1 }}>
+      <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       {activeWorkout && <WorkoutModal plan={activeWorkout} onClose={() => setActiveWorkout(null)} />}
 
       <AnimatePresence>
@@ -318,6 +363,7 @@ export default function FitForce() {
           <input
             id="search-exercises"
             name="search"
+            aria-label="Search exercises"
             placeholder="Search exercises, workouts..."
             style={{
               width: "100%", padding: "8px 12px 8px 34px",
@@ -363,9 +409,10 @@ export default function FitForce() {
 
           {/* Notification */}
           {!isMobile && (
+          <div ref={notifPanelRef} style={{ position: "relative" }}>
           <motion.button
             whileHover={{ scale: 1.08, background: "var(--bg-card3)" }}
-            onClick={checkNow}
+            onClick={() => setShowNotifPanel(p => !p)}
             style={{
               width: 34, height: 34,
               background: "var(--bg-card2)", border: `1px solid var(--border)`,
@@ -381,6 +428,32 @@ export default function FitForce() {
               background: "var(--accent)", boxShadow: shadow.softGlow("var(--accent)"),
             }} />
           </motion.button>
+          <AnimatePresence>
+            {showNotifPanel && (
+              <motion.div
+                initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                style={{
+                  position: "absolute", top: "100%", right: 0, marginTop: 8,
+                  width: 320, maxHeight: 400, overflowY: "auto",
+                  background: "var(--bg-card2)", border: `1px solid var(--border)`,
+                  borderRadius: radius.lg, boxShadow: shadow.floating,
+                  zIndex: 200,
+                }}
+              >
+                <div style={{ padding: "14px 16px 10px", borderBottom: `1px solid var(--border)`, fontWeight: 600, fontSize: 13 }}>
+                  Notifications
+                </div>
+                <div style={{ padding: "32px 16px", textAlign: "center", color: "var(--text-muted)" }}>
+                  <Bell size={24} style={{ opacity: 0.3, marginBottom: 10 }} />
+                  <div style={{ fontSize: 12 }}>No notifications yet.</div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          </div>
           )}
 
           {/* Avatar */}
@@ -462,7 +535,8 @@ export default function FitForce() {
         padding: isMobile ? "0" : "32px 24px 40px",
         maxWidth: isMobile ? "100%" : 1400, margin: "0 auto",
         width: isMobile ? "100%" : "92vw",
-        ...(isMobile ? { overflowX: "hidden" } : {}),
+        ...(isMobile && tab !== "ai" ? { overflowX: "hidden" } : {}),
+        ...(!isMobile && tab === "ai" ? { display: "none" } : {}),
       }}>
         <div style={isMobile ? { minHeight: "100%", padding: "16px 16px 88px", paddingBottom: "var(--safe-bottom)" } : {}}>
         <AnimatePresence mode="wait">
@@ -625,12 +699,12 @@ export default function FitForce() {
                       }}>
                         <Crown size={15} color={"var(--yellow)"} /> Strength PRs
                       </h3>
-                      {prs.filter(p => p.lift).length === 0 ? (
+                      {filteredPRs.length === 0 ? (
                         <div style={{ textAlign: "center", padding: "16px", color: "var(--text-muted)", fontSize: 12, lineHeight: 1.5 }}>
                           No lifts tracked yet.
                         </div>
                       ) : null}
-                      {prs.filter(p => p.lift).map((p, i) => (
+                      {filteredPRs.map((p, i) => (
                         <div key={`pr-${p.lift}-${i}`} style={{ marginBottom: 12 }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                             <label htmlFor={`pr-weight-${i}`} style={{ fontSize: 13, fontWeight: 500, color: "var(--text)" }}>{p.lift}</label>
@@ -712,8 +786,8 @@ export default function FitForce() {
                         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, minWidth: isMobile ? 320 : 400 }}>
                           <thead>
                             <tr style={{ borderBottom: `1px solid var(--border2)` }}>
-                              {["Date", "Exercise", "Sets", "Reps", "Weight", "Volume"].map(h => (
-                                <th key={h} style={{ padding: "8px 6px", textAlign: "left", color: "var(--text-muted)", fontWeight: 500, fontSize: 10, letterSpacing: "0.02em" }}>{h}</th>
+                              {["Date", "Exercise", "Sets", "Reps", "Weight", "Volume", ""].map(h => (
+                                <th key={h} style={{ padding: "8px 6px", textAlign: h === "" ? "right" : "left", color: "var(--text-muted)", fontWeight: 500, fontSize: 10, letterSpacing: "0.02em" }}>{h}</th>
                               ))}
                             </tr>
                           </thead>
@@ -726,6 +800,22 @@ export default function FitForce() {
                                 <td style={{ padding: "8px 6px", color: "var(--blue)", fontSize: 11 }}>{w.reps}</td>
                                 <td style={{ padding: "8px 6px", color: "var(--yellow)", fontSize: 11 }}>{w.weight ? `${w.weight}kg` : "BW"}</td>
                                 <td style={{ padding: "8px 6px", color: "var(--text-muted)", fontSize: 11 }}>{w.vol || "—"}</td>
+                                <td style={{ padding: "8px 6px", textAlign: "right" }}>
+                                  <motion.button
+                                    whileHover={{ scale: 1.1, color: "var(--red)" }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={() => setPendingDelete(w)}
+                                    style={{
+                                      background: "none", border: "none", cursor: "pointer",
+                                      color: "var(--text-dim)", padding: 4,
+                                      display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                      borderRadius: radius.sm, transition: "all 0.15s",
+                                    }}
+                                    title="Move to Recycle Bin"
+                                  >
+                                    <Trash2 size={13} />
+                                  </motion.button>
+                                </td>
                               </tr>
                             ))}
                           </tbody>
@@ -733,10 +823,14 @@ export default function FitForce() {
                       </div>
                     ) : (
                       <div style={{
-                        textAlign: "center", padding: "24px", color: "var(--text-muted)", fontSize: 12, lineHeight: 1.5,
+                        textAlign: "center", padding: "32px 16px", color: "var(--text-muted)", fontSize: 12, lineHeight: 1.5,
                         background: "var(--bg-card2)", borderRadius: radius.sm, marginBottom: 14,
                       }}>
-                        No log entries yet. Start tracking your workouts below.
+                        <Dumbbell size={24} style={{ opacity: 0.25, marginBottom: 8 }} />
+                        <div style={{ fontWeight: 500, color: "var(--text-muted)", marginBottom: 4 }}>No workouts logged yet</div>
+                        <div style={{ fontSize: 11, color: "var(--text-dim)", lineHeight: 1.4 }}>
+                          Complete a workout or log an exercise below to start tracking your progress.
+                        </div>
                       </div>
                     )}
                     <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "2fr 1fr 1fr 1fr", gap: 8 }}>
@@ -766,6 +860,220 @@ export default function FitForce() {
                     }}>
                       <Dumbbell size={13} /> Log Exercise
                     </Button>
+                  </Card>
+                </motion.div>
+
+                {/* === Deleted Workout Logs === */}
+                <motion.div variants={itemVariants} style={{ marginBottom: 16 }}>
+                  <Card variant="glass" glowColor="var(--text-dim)" style={{ padding: "18px" }}>
+                    <div
+                      onClick={() => setDeletedLogsExpanded(p => !p)}
+                      style={{
+                        display: "flex", alignItems: "center", justifyContent: "space-between",
+                        cursor: "pointer", userSelect: "none",
+                      }}
+                    >
+                      <h3 style={{
+                        color: "var(--text)", fontSize: 14, fontWeight: 600, margin: 0,
+                        display: "flex", alignItems: "center", gap: 6,
+                      }}>
+                        <Trash2 size={15} color={"var(--text-muted)"} /> Deleted Workout Logs
+                        {deletedLogs.length > 0 && (
+                          <span style={{
+                            background: "var(--bg-card3)", color: "var(--text-muted)",
+                            fontSize: 10, fontWeight: 600, padding: "1px 7px",
+                            borderRadius: radius.full, marginLeft: 4,
+                          }}>
+                            {deletedLogs.length}
+                          </span>
+                        )}
+                      </h3>
+                      <motion.div
+                        animate={{ rotate: deletedLogsExpanded ? 180 : 0 }}
+                        transition={{ duration: 0.2 }}
+                        style={{ color: "var(--text-muted)", display: "flex" }}
+                      >
+                        <ChevronDown size={16} />
+                      </motion.div>
+                    </div>
+
+                    <AnimatePresence initial={false}>
+                      {deletedLogsExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+                          style={{ overflow: "hidden" }}
+                        >
+                          <div style={{ paddingTop: 14 }}>
+                            {deletedLogs.length === 0 ? (
+                              <div style={{
+                                textAlign: "center", padding: "28px 16px",
+                                color: "var(--text-dim)", fontSize: 12,
+                                background: "var(--bg-card2)", borderRadius: radius.sm,
+                              }}>
+                                <Trash2 size={22} style={{ opacity: 0.2, marginBottom: 8 }} />
+                                <div>Recycle Bin is empty.</div>
+                              </div>
+                            ) : (
+                              <>
+                                {/* Bulk Actions */}
+                                <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                                  <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.97 }}
+                                    onClick={() => setConfirmAction("restoreAll")}
+                                    style={{
+                                      flex: 1, padding: "8px", cursor: "pointer",
+                                      background: "var(--bg-card2)", border: `1px solid var(--border)`,
+                                      color: "var(--blue)", borderRadius: radius.sm,
+                                      fontSize: 11, fontWeight: 500,
+                                      display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+                                    }}
+                                  >
+                                    <RotateCcw size={12} /> Restore All
+                                  </motion.button>
+                                  <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.97 }}
+                                    onClick={() => setConfirmAction("emptyBin")}
+                                    style={{
+                                      flex: 1, padding: "8px", cursor: "pointer",
+                                      background: "var(--bg-card2)", border: `1px solid var(--border)`,
+                                      color: "var(--red)", borderRadius: radius.sm,
+                                      fontSize: 11, fontWeight: 500,
+                                      display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+                                    }}
+                                  >
+                                    <Trash2 size={12} /> Empty Recycle Bin
+                                  </motion.button>
+                                </div>
+
+                                {/* Confirmation Dialog */}
+                                <AnimatePresence>
+                                  {confirmAction && (
+                                    <motion.div
+                                      initial={{ opacity: 0, height: 0 }}
+                                      animate={{ opacity: 1, height: "auto" }}
+                                      exit={{ opacity: 0, height: 0 }}
+                                      style={{ overflow: "hidden" }}
+                                    >
+                                      <div style={{
+                                        background: `${confirmAction === "emptyBin" ? "rgba(239,68,68,0.063)" : "rgba(59,130,246,0.063)"}`,
+                                        border: `1px solid ${confirmAction === "emptyBin" ? "rgba(239,68,68,0.125)" : "rgba(59,130,246,0.125)"}`,
+                                        borderRadius: radius.sm, padding: "12px", marginBottom: 12,
+                                        display: "flex", alignItems: "center", gap: 10,
+                                      }}>
+                                        <AlertTriangle size={16} color={confirmAction === "emptyBin" ? "var(--red)" : "var(--blue)"} style={{ flexShrink: 0 }} />
+                                        <div style={{ flex: 1, fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.4 }}>
+                                          {confirmAction === "emptyBin"
+                                            ? `Permanently delete all ${deletedLogs.length} deleted logs? This cannot be undone.`
+                                            : `Restore all ${deletedLogs.length} deleted logs to the Workout Log?`}
+                                        </div>
+                                        <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                                          <motion.button
+                                            whileHover={{ scale: 1.03 }}
+                                            whileTap={{ scale: 0.97 }}
+                                            onClick={() => setConfirmAction(null)}
+                                            style={{
+                                              padding: "5px 12px", cursor: "pointer",
+                                              background: "var(--bg-card2)", border: `1px solid var(--border)`,
+                                              color: "var(--text-muted)", borderRadius: radius.sm,
+                                              fontSize: 11, fontWeight: 500,
+                                            }}
+                                          >
+                                            Cancel
+                                          </motion.button>
+                                          <motion.button
+                                            whileHover={{ scale: 1.03 }}
+                                            whileTap={{ scale: 0.97 }}
+                                            onClick={() => {
+                                              if (confirmAction === "emptyBin") emptyRecycleBin();
+                                              else restoreAllLogs();
+                                              setConfirmAction(null);
+                                            }}
+                                            style={{
+                                              padding: "5px 12px", cursor: "pointer",
+                                              background: confirmAction === "emptyBin" ? "var(--red)" : "var(--accent-gradient)",
+                                              border: "none", color: "#fff", borderRadius: radius.sm,
+                                              fontSize: 11, fontWeight: 600, whiteSpace: "nowrap",
+                                            }}
+                                          >
+                                            {confirmAction === "emptyBin" ? "Delete All" : "Restore All"}
+                                          </motion.button>
+                                        </div>
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+
+                                {/* Deleted Logs Table */}
+                                <div style={{ overflowX: "auto" }}>
+                                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, minWidth: isMobile ? 300 : 400 }}>
+                                    <thead>
+                                      <tr style={{ borderBottom: `1px solid var(--border2)` }}>
+                                        {["Date", "Exercise", "Sets", "Reps", "Weight", "Volume", ""].map(h => (
+                                          <th key={h} style={{ padding: "8px 6px", textAlign: h === "" ? "right" : "left", color: "var(--text-dim)", fontWeight: 500, fontSize: 10, letterSpacing: "0.02em" }}>{h}</th>
+                                        ))}
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {deletedLogs.map((w, i) => (
+                                        <tr key={w.uid ? `dl-${w.uid}` : `dl-${i}-${w.date}-${w.name}`} style={{ borderBottom: `1px solid var(--border)`, opacity: 0.75 }}>
+                                          <td style={{ padding: "8px 6px", color: "var(--text-dim)", fontSize: 11 }}>{w.date}</td>
+                                          <td style={{ padding: "8px 6px", fontWeight: 500, fontSize: 11, color: "var(--text-secondary)" }}>{w.name}</td>
+                                          <td style={{ padding: "8px 6px", color: "var(--accent)", fontSize: 11 }}>{w.sets}</td>
+                                          <td style={{ padding: "8px 6px", color: "var(--blue)", fontSize: 11 }}>{w.reps}</td>
+                                          <td style={{ padding: "8px 6px", color: "var(--yellow)", fontSize: 11 }}>{w.weight ? `${w.weight}kg` : "BW"}</td>
+                                          <td style={{ padding: "8px 6px", color: "var(--text-dim)", fontSize: 11 }}>{w.vol || "—"}</td>
+                                          <td style={{ padding: "8px 6px", textAlign: "right", whiteSpace: "nowrap" }}>
+                                            <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
+                                              <motion.button
+                                                whileHover={{ scale: 1.1, color: "var(--blue)" }}
+                                                whileTap={{ scale: 0.9 }}
+                                                onClick={() => restoreLogEntry(w.uid)}
+                                                style={{
+                                                  background: "none", border: "none", cursor: "pointer",
+                                                  color: "var(--text-dim)", padding: 4,
+                                                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                                  borderRadius: radius.sm, transition: "all 0.15s",
+                                                }}
+                                                title="Restore"
+                                              >
+                                                <RotateCcw size={13} />
+                                              </motion.button>
+                                              <motion.button
+                                                whileHover={{ scale: 1.1, color: "var(--red)" }}
+                                                whileTap={{ scale: 0.9 }}
+                                                onClick={() => {
+                                                  if (window.confirm(`Permanently delete "${w.name}" from ${w.date}? This cannot be undone.`)) {
+                                                    permanentlyDeleteLogEntry(w.uid);
+                                                  }
+                                                }}
+                                                style={{
+                                                  background: "none", border: "none", cursor: "pointer",
+                                                  color: "var(--text-dim)", padding: 4,
+                                                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                                  borderRadius: radius.sm, transition: "all 0.15s",
+                                                }}
+                                                title="Permanently delete"
+                                              >
+                                                <Trash2 size={13} />
+                                              </motion.button>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </Card>
                 </motion.div>
 
@@ -853,10 +1161,139 @@ export default function FitForce() {
 
                 <motion.div variants={itemVariants} style={{ marginBottom: 16 }}>
                   <AIGoals />
-                </motion.div>
+</motion.div>
                 </div>
               </motion.div>
             )}
+
+            {/* Delete Confirmation Modal */}
+            <AnimatePresence>
+              {pendingDelete && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  style={{
+                    position: "fixed", inset: 0,
+                    background: "rgba(0,0,0,0.45)",
+                    backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    zIndex: 10000, padding: 16,
+                  }}
+                  onClick={() => setPendingDelete(null)}
+                >
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.92, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.92, y: 20 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    onClick={e => e.stopPropagation()}
+                    style={{
+                      background: "var(--bg-card)",
+                      border: `1px solid var(--border2)`,
+                      borderRadius: radius.xl,
+                      padding: "28px 24px 24px",
+                      maxWidth: 360,
+                      width: "100%",
+                      boxShadow: shadow.modal,
+                      textAlign: "center",
+                    }}
+                  >
+                    {/* Icon */}
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 300, delay: 0.1 }}
+                      style={{
+                        width: 52, height: 52,
+                        background: "rgba(239,68,68,0.094)",
+                        borderRadius: radius.lg,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        margin: "0 auto 16px",
+                      }}
+                    >
+                      <Trash2 size={22} color="var(--red)" />
+                    </motion.div>
+
+                    {/* Title */}
+                    <h2 style={{
+                      fontSize: 17, fontWeight: 700, color: "var(--text)",
+                      margin: "0 0 8px", letterSpacing: "-0.01em",
+                    }}>
+                      Delete Workout Log?
+                    </h2>
+
+                    {/* Message */}
+                    <p style={{
+                      fontSize: 13, color: "var(--text-secondary)",
+                      margin: "0 0 4px", lineHeight: 1.5,
+                    }}>
+                      Are you sure you want to move this workout log to the Recycle Bin?
+                    </p>
+                    <p style={{
+                      fontSize: 12, color: "var(--text-muted)",
+                      margin: "0 0 20px", lineHeight: 1.4,
+                    }}>
+                      You can restore it later from Deleted Workout Logs.
+                    </p>
+
+                    {/* Exercise preview */}
+                    {pendingDelete && (
+                      <div style={{
+                        background: "var(--bg-card2)", borderRadius: radius.md,
+                        border: `1px solid var(--border)`, padding: "10px 12px",
+                        marginBottom: 20, textAlign: "left",
+                      }}>
+                        <div style={{ fontSize: 10, color: "var(--text-dim)", marginBottom: 4, fontWeight: 500 }}>
+                          {pendingDelete.date}
+                        </div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>
+                          {pendingDelete.name}
+                        </div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 3 }}>
+                          {pendingDelete.sets} sets × {pendingDelete.reps} reps · {pendingDelete.weight ? `${pendingDelete.weight}kg` : "BW"}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Buttons */}
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => setPendingDelete(null)}
+                        style={{
+                          flex: 1, padding: "11px", cursor: "pointer",
+                          background: "var(--bg-card2)", border: `1px solid var(--border)`,
+                          color: "var(--text-secondary)", borderRadius: radius.md,
+                          fontSize: 13, fontWeight: 600,
+                        }}
+                      >
+                        Cancel
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => {
+                          deleteLogEntry(pendingDelete.uid);
+                          setPendingDelete(null);
+                        }}
+                        style={{
+                          flex: 1, padding: "11px", cursor: "pointer",
+                          background: "var(--red)",
+                          border: "none", color: "#fff", borderRadius: radius.md,
+                          fontSize: 13, fontWeight: 600,
+                          boxShadow: "0 0 16px rgba(239,68,68,0.25)",
+                        }}
+                      >
+                        Move to Recycle Bin
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {tab === "tools" && (
               <motion.div variants={containerVariants} initial="initial" animate="animate">
@@ -1123,14 +1560,7 @@ export default function FitForce() {
               </motion.div>
             )}
 
-            {tab === "ai" && (
-              <motion.div variants={containerVariants} initial="initial" animate="animate">
-                <motion.h2 variants={itemVariants} style={h2s}>AI Coach</motion.h2>
-                <motion.div variants={itemVariants}>
-                  <AICoach profile={profile} totalCal={totalCal} totalProt={totalProt} water={water} level={level} xp={xp} latestWeight={latestWeight} />
-                </motion.div>
-              </motion.div>
-            )}
+            {tab === "ai" && !isMobile && null}
 
             {tab === "profile" && (
               <Profile
@@ -1155,6 +1585,38 @@ export default function FitForce() {
         </div>
       </div>
 
+      {/* Desktop AI Page Layout */}
+      {!isMobile && tab === "ai" && (
+        <div style={{
+          flex: 1,
+          maxWidth: 900, margin: "0 auto", width: "100%",
+          display: "flex", flexDirection: "column",
+          minHeight: 0,
+        }}>
+          <Suspense fallback={null}>
+            <AICoach profile={profile} totalCal={totalCal} totalProt={totalProt} water={water} level={level} xp={xp} latestWeight={latestWeight} />
+          </Suspense>
+        </div>
+      )}
+
+      {/* Mobile AI Page Layout */}
+      {isMobile && tab === "ai" && (
+        <div style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          zIndex: 50,
+          display: "flex", flexDirection: "column",
+          paddingTop: "calc(env(safe-area-inset-top, 4px) + 64px)",
+          paddingBottom: "calc(var(--safe-bottom) - 24px)",
+        }}>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+            <Suspense fallback={null}>
+              <AICoach profile={profile} totalCal={totalCal} totalProt={totalProt} water={water} level={level} xp={xp} latestWeight={latestWeight} />
+            </Suspense>
+          </div>
+        </div>
+      )}
+
       {/* Mobile Bottom Navigation */}
       {isMobile && !anyModalOpen && (
         <nav className="bottom-nav" role="tablist" aria-label="Main navigation">
@@ -1163,6 +1625,7 @@ export default function FitForce() {
             { id: "workouts", label: "Workouts", icon: Dumbbell },
             { id: "nutrition", label: "Nutrition", icon: Apple },
             { id: "progress", label: "Progress", icon: TrendingUp },
+            { id: "ai", label: "AI", icon: Brain },
             { id: "profile", label: "Profile", icon: User },
           ].map((t) => {
             const active = tab === t.id;
@@ -1170,7 +1633,9 @@ export default function FitForce() {
             return (
               <button
                 key={t.id}
-                onClick={() => setTab(t.id)}
+onClick={() => {
+                      setTab(t.id);
+                    }}
                 className="bottom-nav-btn"
                 role="tab"
                 aria-selected={active}
@@ -1218,9 +1683,15 @@ export default function FitForce() {
       />
 
       {/* AI Chat Orb */}
-      {!anyModalOpen && (
+      {!anyModalOpen && tab !== "ai" && (
       <motion.button
-        onClick={() => setTab("ai")}
+        onClick={() => {
+            if (tab === "ai") {
+              useAICoachStore.getState().requestFocusInput();
+            } else {
+              setTab("ai");
+            }
+          }}
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 1, type: "spring", stiffness: 300, damping: 20 }}

@@ -1,9 +1,11 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Wand2, Save, ChevronLeft, ChevronRight, Check, Dumbbell, Clock, Target, AlertCircle, BarChart3, Calendar, Flame, Lightbulb, Sparkles, Star, TrendingUp } from "lucide-react";
+import { X, Wand2, Save, ChevronLeft, ChevronRight, Check, Dumbbell, Clock, Target, AlertCircle, BarChart3, Calendar, Flame, Lightbulb, Sparkles, Star, TrendingUp, RefreshCw } from "lucide-react";
 import {  radius, shadow, transition } from "../styles/designSystem";
 import Button from "./ui/Button";
-import { streamAI } from "../utils/api";
+import useAIStream from "../hooks/useAIStream";
+import useLoadingProgress from "../hooks/useLoadingProgress";
+import LoadingOverlay from "./LoadingOverlay";
 import { useWorkoutStore } from "../stores/workoutStore";
 import { createPortal } from "react-dom";
 import useScrollLock from "../hooks/useScrollLock";
@@ -107,71 +109,119 @@ export default function WorkoutGenerator({ open, onClose }) {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
-  const abortRef = useRef(null);
   const addWorkoutSession = useWorkoutStore(s => s.completeWorkout);
   const activeWorkout = useWorkoutStore(s => s.activeWorkout);
   const setActiveWorkout = useWorkoutStore(s => s.setActiveWorkout);
+  const generatingRef = useRef(false);
+  const ai = useAIStream();
+  const loading = useLoadingProgress();
+  const [tip, setTip] = useState("");
+  const tipRef = useRef(null);
 
   const handleGenerate = useCallback(async () => {
+    if (generatingRef.current) return;
+    generatingRef.current = true;
     setGenerating(true);
     setError("");
     setResult(null);
     setSaved(false);
+    setTip("");
+    loading.start();
+    tipRef.current = setInterval(() => {
+      setTip(p => {
+        const tips = ["Progressive overload is key to continuous gains.","Rest 48h between training the same muscle group.","Form matters more than the weight you lift.","Warm up for 5-10 min before each session.","Track your lifts to ensure steady progress.","Deload every 4-6 weeks to prevent burnout."];
+        const idx = tips.indexOf(p);
+        return tips[(idx + 1) % tips.length];
+      });
+    }, 4000);
 
-    const controller = new AbortController();
-    abortRef.current = controller;
+    const systemPrompt = `Output ONLY valid JSON: {"name":"...","weeklySchedule":[{"day":"...","exercises":[{"name":"...","sets":N,"reps":"...","rest":N}],"notes":"..."}],"progressiveOverload":"...","estimatedCalories":"...","totalWeeklyCalories":"...","tips":["..."]}`;
 
-    const systemPrompt = `You are a professional fitness trainer and workout program designer. Generate a detailed weekly workout plan in JSON format only, no markdown. The response must be a valid JSON object with this structure:
-{
-  "name": "Plan name",
-  "weeklySchedule": [
-    {
-      "day": "Day 1 - Push",
-      "exercises": [
-        { "name": "Exercise Name", "sets": 3, "reps": "8-10", "rest": 90 }
-      ],
-      "notes": "Optional note"
-    }
-  ],
-  "progressiveOverload": "Description of how to progress",
-  "estimatedCalories": "calories per session",
-  "totalWeeklyCalories": "total",
-  "tips": ["tip1", "tip2", "tip3"]
-}`;
-
-    const userPrompt = `Create a ${days}/week ${level} ${goal} workout plan.
-Equipment: ${equipment}
-Session duration: ${duration}
-Body focus: ${focus}
-${injuries ? `Injuries/limitations to consider: ${injuries}` : ""}
-
-Include specific exercises with sets, reps, and rest times. Make it realistic and follow proven training principles.`;
+    const userPrompt = `Create a ${days}/week ${level} ${goal} workout plan. Equipment: ${equipment}. Duration: ${duration}. Focus: ${focus}.${injuries ? ` Limitations: ${injuries}.` : ""}`;
 
     try {
-      let fullResponse = "";
-      await streamAI({
-        messages: [{ role: "user", content: userPrompt }],
+      const fullResponse = await ai.stream({
         system: systemPrompt,
-        maxTokens: 2048,
-        signal: controller.signal,
-        onChunk: (text) => { fullResponse = text; },
+        messages: [{ role: "user", content: userPrompt }],
+        maxTokens: 4096,
+        onChunk: (chunk) => {
+          try {
+            const start = chunk.indexOf("{");
+            const end = chunk.lastIndexOf("}");
+            if (start !== -1 && end !== -1 && end > start) {
+              JSON.parse(chunk.slice(start, end + 1));
+              return false;
+            }
+          } catch {}
+        },
       });
 
+      if (!fullResponse || !fullResponse.trim()) {
+        loading.fail();
+        setError("The AI returned an empty response. Please try again.");
+        setGenerating(false);
+        return;
+      }
+
       const cleaned = fullResponse.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
-      const parsed = JSON.parse(cleaned);
+      const jsonStart = cleaned.indexOf("{");
+      const jsonEnd = cleaned.lastIndexOf("}");
+      let parsed;
+      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+        const jsonStr = cleaned.slice(jsonStart, jsonEnd + 1);
+        try {
+          parsed = JSON.parse(jsonStr);
+        } catch (parseErr) {
+          loading.fail();
+          if (process.env.NODE_ENV === "development") {
+            console.warn("[WorkoutGenerator] JSON parse failed. Raw response:", cleaned.slice(0, 500));
+          }
+          setError("Could not parse the workout plan. The AI returned an unexpected format. Please try again.");
+          setGenerating(false);
+          return;
+        }
+      } else {
+        loading.fail();
+        if (process.env.NODE_ENV === "development") {
+          console.warn("[WorkoutGenerator] No JSON object found. Raw response:", cleaned.slice(0, 500));
+        }
+        setError("The AI didn't return a valid workout plan format. Please try again.");
+        setGenerating(false);
+        return;
+      }
+
+      if (!parsed.weeklySchedule || !Array.isArray(parsed.weeklySchedule) || parsed.weeklySchedule.length === 0) {
+        loading.fail();
+        setError("The workout plan has no schedule. Please try different settings.");
+        setGenerating(false);
+        return;
+      }
+
+      clearInterval(tipRef.current);
+      await loading.complete();
       setResult(parsed);
       setStep(2);
     } catch (err) {
-      if (err?.rateLimited) {
-        setError("Rate limited. Please wait before generating again.");
-      } else if (err.name !== "AbortError") {
-        setError(err?.message || "Failed to generate. Please try again.");
+      clearInterval(tipRef.current);
+      if (err.code === "LOCKED") return;
+      loading.fail();
+      if (err.isRateLimited) {
+        loading.boost(95);
+        setError("The AI is temporarily busy. Please wait a few seconds and try again.");
+      } else if (err?.rateLimited) {
+        loading.boost(95);
+        setError("The AI is temporarily busy. Please wait a few seconds and try again.");
+      } else if (err?.name !== "AbortError") {
+        if (process.env.NODE_ENV === "development") {
+          console.warn("[WorkoutGenerator] Generation failed:", err);
+        }
+        setError(err?.message?.includes("unavailable") ? "Sorry, I couldn't generate a response. Please try again." : "Failed to generate workout plan. Please check your connection and try again.");
       }
     } finally {
+      generatingRef.current = false;
       setGenerating(false);
-      abortRef.current = null;
     }
-  }, [goal, level, days, equipment, duration, focus, injuries]);
+  }, [goal, level, days, equipment, duration, focus, injuries, ai.stream, loading]);
 
   const handleSave = useCallback(() => {
     if (!result) return;
@@ -213,7 +263,7 @@ Include specific exercises with sets, reps, and rest times. Make it realistic an
     } catch { }
   }, [result, goal, level, duration, setActiveWorkout, onClose]);
 
-  const isLoading = generating;
+  
 
   return createPortal(
     <AnimatePresence>
@@ -286,180 +336,157 @@ Include specific exercises with sets, reps, and rest times. Make it realistic an
               </motion.button>
             </div>
 
-            <div style={{ padding: "20px" }}>
-              {step === 0 && (
-                <motion.div key="step0" variants={stepVariant} initial="enter" animate="center" exit="exit">
-                  <PillGroup icon={<Target size={16} />} label="What's your goal?" options={GOALS} value={goal} onChange={setGoal} />
-                  <PillGroup icon={<BarChart3 size={16} />} label="Experience level" options={LEVELS} value={level} onChange={setLevel} />
-                  <PillGroup icon={<Calendar size={16} />} label="Days per week" options={DAYS} value={days} onChange={setDays} />
-                  <PillGroup icon={<Dumbbell size={16} />} label="Available equipment" options={EQUIPMENT} value={equipment} onChange={setEquipment} />
-                  <PillGroup icon={<Clock size={16} />} label="Session duration" options={DURATIONS} value={duration} onChange={setDuration} />
-                  <PillGroup icon={<Target size={16} />} label="Body focus" options={FOCUS} value={focus} onChange={setFocus} />
+<div style={{ padding: "20px" }}>
+              <AnimatePresence mode="wait">
+                {generating ? (
+                  <motion.div key="loading" variants={stepVariant} initial="enter" animate="center" exit="exit">
+                    <LoadingOverlay progress={loading.progress} stageText={loading.stageText} tip={tip} />
+                  </motion.div>
+                ) : error ? (
+                  <motion.div key="error" variants={stepVariant} initial="enter" animate="center" exit="exit" style={{ textAlign: "center", padding: "30px 0" }}>
+                    <AlertCircle size={40} color="var(--red)" style={{ marginBottom: 12 }} />
+                    <div style={{ fontSize: 14, color: "var(--text)", marginBottom: 8 }}>{error}</div>
+                    <Button onClick={handleGenerate}><RefreshCw size={14} /> Try Again</Button>
+                  </motion.div>
+                ) : step === 2 && result ? (
+                  <motion.div key="step2" variants={stepVariant} initial="enter" animate="center" exit="exit">
 
-                  <div style={{ marginBottom: 18 }}>
-                    <label htmlFor="wg-injuries" style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                      <AlertCircle size={14} color={"var(--yellow)"} />
-                      <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Injuries / Limitations (optional)</span>
-                    </label>
-                    <textarea
-                      id="wg-injuries"
-                      name="wgInjuries"
-                      value={injuries}
-                      onChange={e => setInjuries(e.target.value)}
-                      placeholder="E.g., lower back pain, knee issues, shoulder impingement..."
-                      rows={2}
-                      style={{
-                        width: "100%", padding: "10px 12px", borderRadius: radius.md,
-                        background: "var(--bg-card2)", border: `1px solid var(--border2)`,
-                        color: "var(--text)", fontSize: 12, outline: "none", resize: "none",
-                        fontFamily: "inherit", boxSizing: "border-box",
-                      }}
-                    />
-                  </div>
-
-                  <Button onClick={() => setStep(1)} style={{ width: "100%" }}>
-                    Continue <ChevronRight size={16} />
-                  </Button>
-                </motion.div>
-              )}
-
-              {step === 1 && (
-                <motion.div key="step1" variants={stepVariant} initial="enter" animate="center" exit="exit">
-                  <div style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 12 }}>Review your selections</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                      {[
-                        ["Goal", goal], ["Level", level], ["Days", days],
-                        ["Equipment", equipment], ["Duration", duration], ["Focus", focus],
-                      ].map(([l, v]) => (
-                        <div key={l} style={{
-                          background: "var(--bg-card2)", borderRadius: radius.sm,
-                          padding: "8px 10px", border: `1px solid var(--border)`,
-                        }}>
-                          <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 2 }}>{l}</div>
-                          <div style={{ fontSize: 12, color: "var(--text)", fontWeight: 500 }}>{v}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <Button variant="secondary" onClick={() => setStep(0)} style={{ flex: 1 }}>
-                      <ChevronLeft size={16} /> Back
-                    </Button>
-                    <Button onClick={handleGenerate} disabled={isLoading} style={{ flex: 1 }}>
-                      {isLoading ? "Generating..." : <><Sparkles size={16} /> Generate Plan</>}
-                    </Button>
-                  </div>
-                </motion.div>
-              )}
-
-              {error && (
-                <div role="alert" style={{
-                  background: `rgba(239,68,68,0.063)`, border: `1px solid rgba(239,68,68,0.145)`,
-                  borderRadius: radius.md, padding: "10px 14px", marginBottom: 16,
-                  fontSize: 12, color: "var(--red)",
-                }}>
-                  {error}
-                </div>
-              )}
-
-              {step === 2 && result && (
-                <motion.div key="step2" variants={stepVariant} initial="enter" animate="center" exit="exit">
-
-                  <div style={{ marginBottom: 16 }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>
-                      {result.name || `${goal} Plan`}
-                    </div>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <div style={{
-                        fontSize: 11, padding: "3px 10px", borderRadius: radius.full,
-                        background: `rgba(16,185,129,0.082)`, color: "var(--green)", fontWeight: 500,
-                      }}>{level}</div>
-                      <div style={{
-                        fontSize: 11, padding: "3px 10px", borderRadius: radius.full,
-                        background: `rgba(245,158,11,0.082)`, color: "var(--yellow)", fontWeight: 500,
-                      }}>{goal}</div>
-                      {result.estimatedCalories && (
+                    <div style={{ marginBottom: 16 }}>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>
+                        {result.name || `${goal} Plan`}
+                      </div>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                         <div style={{
                           fontSize: 11, padding: "3px 10px", borderRadius: radius.full,
-                          background: `rgba(249,115,22,0.082)`, color: "var(--orange)", fontWeight: 500,
-                        }}><Flame size={14} /> {result.estimatedCalories}</div>
-                      )}
+                          background: `rgba(16,185,129,0.082)`, color: "var(--green)", fontWeight: 500,
+                        }}>{level}</div>
+                        <div style={{
+                          fontSize: 11, padding: "3px 10px", borderRadius: radius.full,
+                          background: `rgba(245,158,11,0.082)`, color: "var(--yellow)", fontWeight: 500,
+                        }}>{goal}</div>
+                        {result.estimatedCalories && (
+                          <div style={{
+                            fontSize: 11, padding: "3px 10px", borderRadius: radius.full,
+                            background: `rgba(249,115,22,0.082)`, color: "var(--orange)", fontWeight: 500,
+                          }}><Flame size={14} /> {result.estimatedCalories}</div>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
-                    {result.weeklySchedule?.map((day, i) => (
-                      <DayCard key={i} day={day} />
-                    ))}
-                  </div>
-
-                  {result.progressiveOverload && (
-                    <div style={{
-                      background: `rgba(59,130,246,0.031)`, border: `1px solid rgba(59,130,246,0.125)`,
-                      borderRadius: radius.md, padding: "12px 14px", marginBottom: 16,
-                    }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: "var(--blue)", marginBottom: 4 }}><TrendingUp size={14} /> Progressive Overload</div>
-                      <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>{result.progressiveOverload}</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+                      {result.weeklySchedule?.map((day, i) => (
+                        <DayCard key={i} day={day} />
+                      ))}
                     </div>
-                  )}
 
-                  {result.tips?.length > 0 && (
-                    <div style={{ marginBottom: 16 }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text)", marginBottom: 8 }}><Lightbulb size={14} /> Tips</div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                        {result.tips.map((tip, i) => (
-                          <div key={i} style={{
-                            display: "flex", gap: 6, alignItems: "flex-start",
-                            fontSize: 11.5, color: "var(--text-muted)", lineHeight: 1.5,
+                    {result.progressiveOverload && (
+                      <div style={{
+                        background: `rgba(59,130,246,0.031)`, border: `1px solid rgba(59,130,246,0.125)`,
+                        borderRadius: radius.md, padding: "12px 14px", marginBottom: 16,
+                      }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--blue)", marginBottom: 4 }}><TrendingUp size={14} /> Progressive Overload</div>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>{result.progressiveOverload}</div>
+                      </div>
+                    )}
+
+                    {result.tips?.length > 0 && (
+                      <div style={{ marginBottom: 16 }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text)", marginBottom: 8 }}><Lightbulb size={14} /> Tips</div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                          {result.tips.map((tip, i) => (
+                            <div key={i} style={{
+                              display: "flex", gap: 6, alignItems: "flex-start",
+                              fontSize: 11.5, color: "var(--text-muted)", lineHeight: 1.5,
+                            }}>
+                              <span style={{ color: "var(--yellow)", flexShrink: 0 }}><Star size={12} /></span>
+                              <span>{tip}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <Button variant="secondary" onClick={handleStartWorkout} style={{ flex: 1 }}>
+                        <Dumbbell size={14} /> Start
+                      </Button>
+                      <Button
+                        onClick={handleSave}
+                        disabled={saved}
+                        style={{
+                          flex: 1,
+                          background: saved ? `rgba(16,185,129,0.125)` : undefined,
+                          color: saved ? "var(--green)" : undefined,
+                        }}
+                      >
+                        {saved ? <><Check size={14} /> Saved!</> : <><Save size={14} /> Save Plan</>}
+                      </Button>
+                    </div>
+                  </motion.div>
+                ) : step === 0 ? (
+                  <motion.div key="step0" variants={stepVariant} initial="enter" animate="center" exit="exit">
+                    <PillGroup icon={<Target size={16} />} label="What's your goal?" options={GOALS} value={goal} onChange={setGoal} />
+                    <PillGroup icon={<BarChart3 size={16} />} label="Experience level" options={LEVELS} value={level} onChange={setLevel} />
+                    <PillGroup icon={<Calendar size={16} />} label="Days per week" options={DAYS} value={days} onChange={setDays} />
+                    <PillGroup icon={<Dumbbell size={16} />} label="Available equipment" options={EQUIPMENT} value={equipment} onChange={setEquipment} />
+                    <PillGroup icon={<Clock size={16} />} label="Session duration" options={DURATIONS} value={duration} onChange={setDuration} />
+                    <PillGroup icon={<Target size={16} />} label="Body focus" options={FOCUS} value={focus} onChange={setFocus} />
+
+                    <div style={{ marginBottom: 18 }}>
+                      <label htmlFor="wg-injuries" style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                        <AlertCircle size={14} color={"var(--yellow)"} />
+                        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Injuries / Limitations (optional)</span>
+                      </label>
+                      <textarea
+                        id="wg-injuries"
+                        name="wgInjuries"
+                        value={injuries}
+                        onChange={e => setInjuries(e.target.value)}
+                        placeholder="E.g., lower back pain, knee issues, shoulder impingement..."
+                        rows={2}
+                        style={{
+                          width: "100%", padding: "10px 12px", borderRadius: radius.md,
+                          background: "var(--bg-card2)", border: `1px solid var(--border2)`,
+                          color: "var(--text)", fontSize: 12, outline: "none", resize: "none",
+                          fontFamily: "inherit", boxSizing: "border-box",
+                        }}
+                      />
+                    </div>
+
+                    <Button onClick={() => setStep(1)} style={{ width: "100%" }}>
+                      Continue <ChevronRight size={16} />
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <motion.div key="step1" variants={stepVariant} initial="enter" animate="center" exit="exit">
+                    <div style={{ marginBottom: 20 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", marginBottom: 12 }}>Review your selections</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                        {[
+                          ["Goal", goal], ["Level", level], ["Days", days],
+                          ["Equipment", equipment], ["Duration", duration], ["Focus", focus],
+                        ].map(([l, v]) => (
+                          <div key={l} style={{
+                            background: "var(--bg-card2)", borderRadius: radius.sm,
+                            padding: "8px 10px", border: `1px solid var(--border)`,
                           }}>
-                            <span style={{ color: "var(--yellow)", flexShrink: 0 }}><Star size={12} /></span>
-                            <span>{tip}</span>
+                            <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 2 }}>{l}</div>
+                            <div style={{ fontSize: 12, color: "var(--text)", fontWeight: 500 }}>{v}</div>
                           </div>
                         ))}
                       </div>
                     </div>
-                  )}
-
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <Button variant="secondary" onClick={handleStartWorkout} style={{ flex: 1 }}>
-                      <Dumbbell size={14} /> Start
-                    </Button>
-                    <Button
-                      onClick={handleSave}
-                      disabled={saved}
-                      style={{
-                        flex: 1,
-                        background: saved ? `rgba(16,185,129,0.125)` : undefined,
-                        color: saved ? "var(--green)" : undefined,
-                      }}
-                    >
-                      {saved ? <><Check size={14} /> Saved!</> : <><Save size={14} /> Save Plan</>}
-                    </Button>
-                  </div>
-                </motion.div>
-              )}
-
-              {isLoading && step === 1 && (
-                <div style={{ textAlign: "center", padding: "40px 0" }}>
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-                    style={{
-                      width: 40, height: 40, borderRadius: "50%",
-                      border: `3px solid var(--border)`,
-                      borderTopColor: "var(--accent)",
-                      margin: "0 auto 16px",
-                    }}
-                  />
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", marginBottom: 6 }}>
-                    Creating your workout plan...
-                  </div>
-                  <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                    Analyzing your preferences and designing the perfect routine
-                  </div>
-                </div>
-              )}
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <Button variant="secondary" onClick={() => setStep(0)} style={{ flex: 1 }}>
+                        <ChevronLeft size={16} /> Back
+                      </Button>
+                      <Button onClick={handleGenerate} disabled={generating} style={{ flex: 1 }}>
+                        <Sparkles size={16} /> Generate Plan
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         </motion.div>

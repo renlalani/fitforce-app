@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { signOut as firebaseSignOut } from "../utils/auth";
 
 const initialState = {
   isAuthenticated: false,
@@ -21,7 +22,10 @@ export const useAuthStore = create(
           authMethod: method,
         }),
 
-      logout: () => set({ ...initialState }),
+      logout: () => {
+        firebaseSignOut().catch(() => {});
+        set({ ...initialState });
+      },
 
       upgradeGuest: (userData, method) =>
         set({
